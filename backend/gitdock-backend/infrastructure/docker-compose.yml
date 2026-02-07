@@ -1,0 +1,82 @@
+services:
+  # ---------------------------------------------------
+  # 1. BASE DE DONNÉES SQL (Postgres)
+  # ---------------------------------------------------
+  gitdock-postgres:
+    image: postgres:15-alpine
+    container_name: gitdock-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gitdock_project
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # Interface PgAdmin (Port 5050)
+  gitdock-pgadmin:
+    image: dpage/pgadmin4:8.14
+    container_name: gitdock-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gitdock.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - gitdock-postgres
+
+  # ---------------------------------------------------
+  # 2. BASE DE DONNÉES NoSQL (MongoDB)
+  # ---------------------------------------------------
+  gitdock-mongo:
+    image: mongo:6.0
+    container_name: gitdock-mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: toor
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # Interface Mongo Express (Port 8085)
+  gitdock-mongo-express:
+    image: mongo-express:1.0.2
+    container_name: gitdock-mongo-express
+    restart: always
+    ports:
+      - "8085:8081"
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: pass
+      ME_CONFIG_MONGODB_SERVER: gitdock-mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_MONGODB_AUTH_DATABASE: root
+      ME_CONFIG_MONGODB_ADMINUSERNAME: toor
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+    depends_on:
+      - gitdock-mongo
+
+  # ---------------------------------------------------
+  # 3. MESSAGERIE (RabbitMQ)
+  # ---------------------------------------------------
+  gitdock-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: gitdock-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+volumes:
+  postgres_data:
+  mongo_data:
