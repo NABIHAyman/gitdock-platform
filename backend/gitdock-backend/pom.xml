@@ -2,60 +2,86 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!-- Version de Maven POM -->
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- Parent Spring Boot pour la gestion des dépendances et configuration commune -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.3.6</version>
-        <relativePath/>
+        <relativePath/> <!-- Cherche dans le repository Maven, pas localement -->
     </parent>
 
+    <!-- Coordonnées du projet (GAV - GroupId, ArtifactId, Version) -->
     <groupId>edu.ehei.gitdock</groupId>
     <artifactId>gitdock-backend</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <!-- Packaging "pom" indique qu'il s'agit d'un projet parent multi-modules -->
     <packaging>pom</packaging>
 
+    <!-- Métadonnées du projet -->
     <name>gitdock-backend</name>
     <description>Microservices Backend Parent</description>
 
+    <!-- Propriétés globales du projet -->
     <properties>
+        <!-- Version de Java requise -->
         <java.version>17</java.version>
+
+        <!-- Version de Spring Cloud pour la gestion des dépendances microservices -->
         <spring-cloud.version>2023.0.3</spring-cloud.version>
+
+        <!-- Configuration du compilateur Maven -->
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+
+        <!-- Encodage des fichiers sources -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <!-- Dépendances communes à tous les modules -->
     <dependencies>
+        <!-- Lombok pour réduire le code boilerplate (getters, setters, constructeurs, etc.) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <optional>true</optional>
+            <optional>true</optional> <!-- Optionnel, pas transmis aux dépendants -->
         </dependency>
 
+        <!-- Spring Boot Test pour les tests unitaires et d'intégration -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <scope>test</scope> <!-- Dépendance uniquement pour les tests -->
         </dependency>
     </dependencies>
 
+    <!-- Gestion des versions des dépendances (import BOM - Bill Of Materials) -->
     <dependencyManagement>
         <dependencies>
+            <!-- Import du BOM Spring Cloud pour avoir des versions compatibles -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <type>pom</type> <!-- Type "pom" car c'est un BOM -->
+                <scope>import</scope> <!-- Importe toutes les versions définies dans le BOM -->
             </dependency>
         </dependencies>
     </dependencyManagement>
 
+    <!-- Liste des modules du projet (sous-projets Maven) -->
     <modules>
+        <!-- Module de service de découverte (Eureka/Nacos/Consul) -->
         <module>gitdock-discovery</module>
+
+        <!-- Module de gateway (Spring Cloud Gateway) -->
         <module>gitdock-gateway</module>
+
+        <!-- Module d'authentification et autorisation -->
         <module>gitdock-auth</module>
     </modules>
 

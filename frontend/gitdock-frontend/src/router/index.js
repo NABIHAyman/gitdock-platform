@@ -1,17 +1,48 @@
 import { createRouter, createWebHistory } from 'vue-router'
-// Importe tes vues ici (ex: Home, Login)
-// import LoginView from '../views/LoginView.vue'
+import { setupRouterGuards } from './guards'
+
+import LoginView from '@/views/auth/LoginView.vue'
+import RegisterView from '@/views/auth/RegisterView.vue'
+import ForgotPasswordView from '@/views/auth/ForgotPasswordView.vue'
+import ResetPasswordView from '@/views/auth/ResetPasswordView.vue'
+import ActivationView from '@/views/auth/ActivationView.vue'
 
 const router = createRouter({
-    history: createWebHistory(import.meta.env.BASE_URL),
+    history: createWebHistory(),
     routes: [
         {
             path: '/',
-            name: 'home',
-            component: () => import('../views/HomeView.vue') // Lazy loading
+            redirect: '/login', // Redirige la racine vers le login
         },
-        // Ajoute tes futures routes ici
-    ]
+        {
+            path: '/login',
+            name: 'login',
+            component: LoginView,
+            meta: { guest: true } // Indique que seuls les non-connectés y ont accès
+        },
+        {
+            path: '/signup',
+            name: 'signup',
+            component: RegisterView, meta: {guest: true}
+        },
+        {
+            path: '/auth/forgot-password',
+            name: 'forgot-password',
+            component: ForgotPasswordView, meta: {guest: true}
+        },
+        {
+            path: '/reset-password',
+            name: 'reset-password',
+            component: ResetPasswordView, meta: {guest: true}
+        },
+        {
+            path: '/activate',
+            name: 'activate',
+            component: ActivationView, meta: {guest: true}
+        }
+    ],
 })
+
+setupRouterGuards(router)
 
 export default router
