@@ -37,4 +37,6 @@ public interface EmailSenderService {
      * @param resetLink L'URL complète contenant le token de réinitialisation.
      */
     void sendPasswordResetEmail(String toEmail, String firstName, String lastName, String resetLink);
+
+    void sendInvitationEmail(String to, String firstName, String lastName, String invitationLink, String projectName);
 }

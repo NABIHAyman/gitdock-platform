@@ -99,3 +99,7 @@ logging:
     edu.ehei.gitdock.gitdockauth: DEBUG
     # Utile pour voir exactement quelles tables Hibernate crée ou supprime
     org.hibernate.tool.schema: DEBUG
+
+    org.springframework.security: DEBUG
+    org.springframework.security.web: DEBUG
+    org.springframework.web: DEBUG
