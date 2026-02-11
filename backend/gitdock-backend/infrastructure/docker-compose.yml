@@ -1,7 +1,5 @@
 services:
-  # ---------------------------------------------------
-  # 1. BASE DE DONNÉES SQL (Postgres)
-  # ---------------------------------------------------
+  # --- Postgres ---
   gitdock-postgres:
     image: postgres:15-alpine
     container_name: gitdock-postgres
@@ -15,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
-  # Interface PgAdmin (Port 5050)
+  # --- PgAdmin (Port 5050) ---
   gitdock-pgadmin:
     image: dpage/pgadmin4:8.14
     container_name: gitdock-pgadmin
@@ -28,9 +26,9 @@ services:
     depends_on:
       - gitdock-postgres
 
-  # ---------------------------------------------------
-  # 2. BASE DE DONNÉES NoSQL (MongoDB)
-  # ---------------------------------------------------
+
+
+  # --- MongoDB ---
   gitdock-mongo:
     image: mongo:6.0
     container_name: gitdock-mongo
@@ -43,7 +41,7 @@ services:
     volumes:
       - mongo_data:/data/db
 
-  # Interface Mongo Express (Port 8085)
+  # --- Mongo Express (Port 8085) ---
   gitdock-mongo-express:
     image: mongo-express:1.0.2
     container_name: gitdock-mongo-express
@@ -62,9 +60,9 @@ services:
     depends_on:
       - gitdock-mongo
 
-  # ---------------------------------------------------
-  # 3. MESSAGERIE (RabbitMQ)
-  # ---------------------------------------------------
+
+
+  # --- RabbitMQ ---
   gitdock-rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: gitdock-rabbitmq
@@ -76,6 +74,38 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
 
+
+
+  # --- MySQL 8 ---
+  gitdock-mysql:
+    image: mysql:8.0
+    container_name: gitdock-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gitdock_tasks
+      MYSQL_USER: task_user
+      MYSQL_PASSWORD: ***REMOVED***
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_tasks_data:/var/lib/mysql
+
+  # --- PhpMyAdmin (Port 8088) ---
+  gitdock-phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: gitdock-phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: gitdock-mysql
+      PMA_PORT: 3306
+    ports:
+      - "8088:80"
+    depends_on:
+      - gitdock-mysql
+
 volumes:
   postgres_data:
   mongo_data:
+  mysql_tasks_data:
+
