@@ -24,13 +24,13 @@ class Task
     #[ORM\Column(length: 255)]
     private ?string $status = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime')]
     private ?\DateTime $dueDate = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'tasks')]
@@ -48,16 +48,19 @@ class Task
     #[ORM\ManyToOne(inversedBy: 'tasks')]
     private ?User $assignedBy = null;
 
-    /**
-     * @var Collection<int, Commit>
-     */
     #[ORM\OneToMany(targetEntity: Commit::class, mappedBy: 'task')]
     private Collection $commits;
+
+    // ✅ SOFT DELETE
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTime $deletedAt = null;
 
     public function __construct()
     {
         $this->commits = new ArrayCollection();
     }
+
+    // ---------------- GETTERS / SETTERS ----------------
 
     public function getId(): ?int
     {
@@ -211,17 +214,22 @@ class Task
         }
         return $this;
     }
-    #[ORM\Column(type: 'datetime', nullable: true)]
-private ?\DateTime $deletedAt = null;
 
-public function getDeletedAt(): ?\DateTime
-{
-    return $this->deletedAt;
-}
+    // ---------------- SOFT DELETE ----------------
 
-public function setDeletedAt(?\DateTime $deletedAt): static
-{
-    $this->deletedAt = $deletedAt;
-    return $this;
-}
+    public function getDeletedAt(): ?\DateTime
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?\DateTime $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
+        return $this;
+    }
+
+    public function isDeleted(): bool
+    {
+        return $this->deletedAt !== null;
+    }
 }

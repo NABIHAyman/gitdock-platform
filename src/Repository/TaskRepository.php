@@ -6,9 +6,6 @@ use App\Entity\Task;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<Task>
- */
 class TaskRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -16,28 +13,69 @@ class TaskRepository extends ServiceEntityRepository
         parent::__construct($registry, Task::class);
     }
 
-    //    /**
-    //     * @return Task[] Returns an array of Task objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('t.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    // =========================
+    // TASKS NON SUPPRIMÉES
+    // =========================
 
-    //    public function findOneBySomeField($value): ?Task
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function findNotDeleted(): array
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.deletedAt IS NULL')
+            ->orderBy('t.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    // =========================
+    // STATS DASHBOARD
+    // =========================
+
+    // TOTAL TASKS
+    public function countTotalTasks(): int
+    {
+        return (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->andWhere('t.deletedAt IS NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    // IN PROGRESS
+    public function countInProgress(): int
+    {
+        return (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->andWhere('t.status = :status')
+            ->andWhere('t.deletedAt IS NULL')
+            ->setParameter('status', 'In Progress')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    // COMPLETED
+    public function countCompleted(): int
+    {
+        return (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->andWhere('t.status = :status')
+            ->andWhere('t.deletedAt IS NULL')
+            ->setParameter('status', 'Done')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    // OVERDUE
+   public function countOverdue(): int
+{
+    return (int) $this->createQueryBuilder('t')
+        ->select('COUNT(t.id)')
+        ->where('t.dueDate IS NOT NULL')
+        ->andWhere('t.dueDate < :now')
+        ->andWhere('t.status != :done')
+        ->andWhere('t.deletedAt IS NULL')
+        ->setParameter('now', new \DateTime())
+        ->setParameter('done', 'Done')
+        ->getQuery()
+        ->getSingleScalarResult();
+}
 }

@@ -22,7 +22,7 @@ class TaskService
         private TaskRepository $taskRepo
     ) {}
 
-    // ---------------- CREATE ----------------
+    // ================= CREATE =================
     public function create(TaskDto $dto): Task
     {
         $task = new Task();
@@ -30,16 +30,14 @@ class TaskService
         $task->setTitle($dto->title ?? 'Untitled Task');
         $task->setDescription($dto->description ?? '');
         $task->setStatus($dto->status ?? 'To Do');
-        $task->setDueDate($dto->dueDate ? new \DateTime($dto->dueDate) : new \DateTime());
+        $task->setDueDate(
+            $dto->dueDate ? new \DateTime($dto->dueDate) : new \DateTime()
+        );
+
         $task->setCreatedAt(new \DateTimeImmutable());
         $task->setUpdatedAt(new \DateTimeImmutable());
 
-        // Relations
-        if ($dto->assignedTo) $task->setAssignedTo($this->userRepo->find($dto->assignedTo));
-        if ($dto->assignedBy) $task->setAssignedBy($this->userRepo->find($dto->assignedBy));
-        if ($dto->epic) $task->setEpic($this->epicRepo->find($dto->epic));
-        if ($dto->part) $task->setPart($this->partRepo->find($dto->part));
-        if ($dto->level) $task->setLevel($this->levelRepo->find($dto->level));
+        $this->setRelations($task, $dto);
 
         $this->em->persist($task);
         $this->em->flush();
@@ -47,25 +45,23 @@ class TaskService
         return $task;
     }
 
-    // ---------------- UPDATE ----------------
+    // ================= UPDATE =================
     public function update(int $id, TaskDto $dto): Task
     {
-        $task = $this->em->getRepository(Task::class)->find($id);
+        $task = $this->taskRepo->find($id);
+
         if (!$task) {
-            throw new \Exception("Task introuvable (ID=$id)");
+            throw new \Exception("Task not found (ID=$id)");
         }
 
         if ($dto->title !== null) $task->setTitle($dto->title);
         if ($dto->description !== null) $task->setDescription($dto->description);
         if ($dto->status !== null) $task->setStatus($dto->status);
-        if ($dto->dueDate !== null) $task->setDueDate(new \DateTime($dto->dueDate));
+        if ($dto->dueDate !== null) {
+            $task->setDueDate(new \DateTime($dto->dueDate));
+        }
 
-        // Relations
-        if ($dto->assignedTo) $task->setAssignedTo($this->userRepo->find($dto->assignedTo));
-        if ($dto->assignedBy) $task->setAssignedBy($this->userRepo->find($dto->assignedBy));
-        if ($dto->epic) $task->setEpic($this->epicRepo->find($dto->epic));
-        if ($dto->part) $task->setPart($this->partRepo->find($dto->part));
-        if ($dto->level) $task->setLevel($this->levelRepo->find($dto->level));
+        $this->setRelations($task, $dto);
 
         $task->setUpdatedAt(new \DateTimeImmutable());
 
@@ -74,32 +70,81 @@ class TaskService
         return $task;
     }
 
-    // ---------------- GET ALL ----------------
+    // ================= GET ALL =================
     public function getAll(): array
     {
-        return $this->em->getRepository(Task::class)->findAll();
+        return $this->taskRepo->findBy(['deletedAt' => null]);
     }
+
+    // ================= GET BY ID (FIX 404 SAFE) =================
     public function getById(int $id): Task
-{
-    $task = $this->em->getRepository(Task::class)->find($id);
+    {
+        $task = $this->taskRepo->findOneBy([
+            'id' => $id,
+            'deletedAt' => null
+        ]);
 
-    if (!$task) {
-        throw new \Exception("Task not found");
+        if (!$task) {
+            throw new \Exception("Task not found");
+        }
+
+        return $task;
     }
 
-    return $task;
-}
-public function softDelete(int $id)
-{
-    $task = $this->taskRepo->find($id);
+    // ================= SOFT DELETE =================
+    public function softDelete(int $id): Task
+    {
+        $task = $this->taskRepo->find($id);
 
-    if (!$task) {
-        throw new \Exception("Task not found");
+        if (!$task) {
+            throw new \Exception("Task not found");
+        }
+
+        $task->setDeletedAt(new \DateTime());
+        $this->em->flush();
+
+        return $task;
     }
 
-    $task->setDeletedAt(new \DateTime()); // On met la date actuelle
-    $this->em->flush();
+    // ================= DASHBOARD (SAFE VERSION) =================
+    public function getDashboardStats(): array
+    {
+        return [
+            'total' => $this->taskRepo->count([]),
+            'in_progress' => $this->taskRepo->count(['status' => 'In Progress']),
+            'completed' => $this->taskRepo->count(['status' => 'Done']),
+            'overdue' => $this->taskRepo->createQueryBuilder('t')
+                ->select('COUNT(t.id)')
+                ->where('t.dueDate < :now')
+                ->andWhere('t.status != :done')
+                ->setParameter('now', new \DateTime())
+                ->setParameter('done', 'Done')
+                ->getQuery()
+                ->getSingleScalarResult(),
+        ];
+    }
 
-    return $task;
-}
+    // ================= RELATIONS CLEAN =================
+    private function setRelations(Task $task, TaskDto $dto): void
+    {
+        if ($dto->assignedTo) {
+            $task->setAssignedTo($this->userRepo->find($dto->assignedTo));
+        }
+
+        if ($dto->assignedBy) {
+            $task->setAssignedBy($this->userRepo->find($dto->assignedBy));
+        }
+
+        if ($dto->epic) {
+            $task->setEpic($this->epicRepo->find($dto->epic));
+        }
+
+        if ($dto->part) {
+            $task->setPart($this->partRepo->find($dto->part));
+        }
+
+        if ($dto->level) {
+            $task->setLevel($this->levelRepo->find($dto->level));
+        }
+    }
 }
