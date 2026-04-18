@@ -1,4 +1,4 @@
-package edu.ehei.gitdock.gitdockauth.service.impl;
+package edu.ehei.gitdock.gitdockauth.service;
 
 import edu.ehei.gitdock.gitdockauth.dto.AuthenticationRequestDTO;
 import edu.ehei.gitdock.gitdockauth.dto.AuthenticationResponseDTO;

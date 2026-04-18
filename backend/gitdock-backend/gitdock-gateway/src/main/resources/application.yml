@@ -10,13 +10,60 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
-          lower-case-service-id: true
+          enabled: false
+      # --- CONFIGURATION CORS ---
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      # --- DEFINITION DES ROUTES ---
       routes:
         - id: auth-service
           uri: lb://GITDOCK-AUTH
           predicates:
             - Path=/api/auth/**
+
+        - id: project-service
+          uri: lb://GITDOCK-PROJECT
+          predicates:
+            - Path=/api/projects/**
+
+        - id: sync-service
+          uri: lb://gitdock-sync
+          predicates:
+            - Path=/api/sync/**
+
+        - id: notification-service
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/notifications/**, /ws-notifications/**
+
+        - id: task-service
+          uri: http://localhost:8089
+          predicates:
+            - Path=/api/tasks/**
+
+        - id: gamification-service
+          uri: http://127.0.0.1:5292
+          predicates:
+            - Path=/api/badges/**, /api/levels/**, /api/tags/**, /api/xpconfig/**
+
+        - id: yam-service
+          uri: http://localhost:8010
+          predicates:
+            - Path=/api/ai/**
 
 eureka:
   client:

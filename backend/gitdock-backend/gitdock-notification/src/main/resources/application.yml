@@ -1,0 +1,74 @@
+server:
+  port: 8085                        # Port dédié au service de notification
+
+spring:
+  application:
+    name: gitdock-notification      # Nom du service pour Eureka
+
+  # --- Base de données PostgreSQL ---
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gitdock_notification
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  # --- JPA / Hibernate ---
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true   # Permet d'exécuter data.sql après la création des tables
+
+  # --- RabbitMQ (communication asynchrone) ---
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  # --- Mail (SMTP) – ici on reprend Mailtrap comme dans gitdock-auth ---
+  mail:
+    host: sandbox.smtp.mailtrap.io
+    port: 2525
+    username: ***REMOVED***        # À remplacer par tes identifiants Mailtrap
+    password: ***REMOVED***        # À remplacer par ton mot de passe Mailtrap
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # --- Thymeleaf pour les templates d'emails ---
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false                    # Désactiver le cache en développement
+
+
+# --- Eureka Client (découverte de services) ---
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+# --- Configuration personnalisée (URLs du frontend pour les emails) ---
+application:
+  mail:
+    activation-url: http://localhost:5173/activate
+    reset-password-url: http://localhost:5173/reset-password
+    invitation-url: http://localhost:5173/accept-invitation   # Pour les invitations
+
+# --- Logs ---
+logging:
+  level:
+    root: INFO
+    edu.ehei.gitdock.gitdocknotification: DEBUG
+    org.springframework.mail: DEBUG
+    org.springframework.amqp: DEBUG

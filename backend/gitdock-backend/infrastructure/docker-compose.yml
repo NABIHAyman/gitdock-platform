@@ -12,6 +12,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - gitdock_global_network
 
   # --- PgAdmin (Port 5050) ---
   gitdock-pgadmin:
@@ -25,7 +27,8 @@ services:
       - "5050:80"
     depends_on:
       - gitdock-postgres
-
+    networks:
+      - gitdock_global_network
 
 
   # --- MongoDB ---
@@ -40,6 +43,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - gitdock_global_network
 
   # --- Mongo Express (Port 8085) ---
   gitdock-mongo-express:
@@ -59,7 +64,8 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: mongodb
     depends_on:
       - gitdock-mongo
-
+    networks:
+      - gitdock_global_network
 
 
   # --- RabbitMQ ---
@@ -73,6 +79,8 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - gitdock_global_network
 
 
 
@@ -90,6 +98,8 @@ services:
       - "3306:3306"
     volumes:
       - mysql_tasks_data:/var/lib/mysql
+    networks:
+      - gitdock_global_network
 
   # --- PhpMyAdmin (Port 8088) ---
   gitdock-phpmyadmin:
@@ -103,9 +113,64 @@ services:
       - "8088:80"
     depends_on:
       - gitdock-mysql
+    networks:
+      - gitdock_global_network
+
+  # --- ChromaDB (Noyau Rust) ---
+  gitdock-chromadb:
+    image: chromadb/chroma:latest
+    container_name: gitdock-chromadb
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb_data:/chroma/data
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    networks:
+      - gitdock_global_network
+
+  # --- Ollama (IA Locale) ---
+  gitdock-ollama:
+    image: ollama/ollama:latest
+    container_name: gitdock-ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    networks:
+      - gitdock_global_network
+
+  # --- pour afficher les logs de tous les services dans une seule interface ---
+  gitdock-dozzle:
+    image: amir20/dozzle:latest
+    container_name: gitdock-dozzle
+    ports:
+      - "8887:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Donne à Dozzle le droit de lire Docker
+    restart: always
+    networks:
+      - gitdock_global_network
 
 volumes:
   postgres_data:
   mongo_data:
   mysql_tasks_data:
+  chromadb_data:
+  ollama_data:
 
+networks:
+  gitdock_global_network:
+    name: gitdock_shared_net # Un nom clair, net et précis pour toute l'équipe
+    driver: bridge

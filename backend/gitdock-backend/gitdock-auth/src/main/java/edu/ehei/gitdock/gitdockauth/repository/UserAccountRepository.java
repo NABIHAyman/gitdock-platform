@@ -1,5 +1,6 @@
 package edu.ehei.gitdock.gitdockauth.repository;
 
+import edu.ehei.gitdock.gitdockauth.dto.UserSummaryDTO;
 import edu.ehei.gitdock.gitdockauth.model.UserAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -86,4 +87,14 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, Long> 
     default Optional<UserAccount> findByEmail(String email) {
         return findByEmailAndIsDeletedFalse(email);
     }
+
+    UserSummaryDTO getUserByEmail(String email);
+
+    List<UserAccount> findByEmailInAndIsDeletedFalse(List<String> emails);
+
+    // Dans UserAccountRepository.java
+    long countByIsDeletedFalse();
+// Page<UserAccount> findAllByIsDeletedFalse(Pageable pageable); // Si tu veux de la pagination
+
+
 }

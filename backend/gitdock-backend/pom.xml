@@ -83,6 +83,15 @@
 
         <!-- Module d'authentification et autorisation -->
         <module>gitdock-auth</module>
+
+        <!-- Module des projets et collaborations -->
+        <module>gitdock-project</module>
+
+        <!-- Module de synchronisation des projets -->
+        <module>gitdock-sync</module>
+
+        <!-- Module de notifications (emails + centre de notifications) -->
+        <module>gitdock-notification</module>
     </modules>
 
 </project>
