@@ -1,0 +1,83 @@
+services:
+    nginx_webserver:
+        build:
+            context: ./infra/
+            args:
+                BUILD_ARGUMENT_ENV: dev
+            dockerfile: ./nginx/Dockerfile
+        restart: always
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - .:/var/www/html:ro,cached
+            - ./var/log/nginx:/var/log/nginx
+            - ./infra/nginx/conf.d:/etc/nginx/conf.d
+        depends_on:
+            - php
+        networks:
+            - internal_network
+
+    php:
+        build:
+            context: ./infra/
+            dockerfile: ./php/Dockerfile
+        volumes:
+            - .:/var/www/html:cached
+            - ./infra/php/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
+            - ./infra/php/config/php.ini:/usr/local/etc/php/php.ini
+            - ./infra/php/xdebug/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+        depends_on:
+            - database
+        networks:
+            - internal_network
+        expose:
+            - "9000"
+            - "9003"
+
+    database:
+        image: mysql:8.0
+        platform: linux/x86_64
+        container_name: mysql_db
+        command: --default-authentication-plugin=mysql_native_password
+        environment:
+            MYSQL_ROOT_PASSWORD: secret
+            MYSQL_DATABASE: travel
+            MYSQL_USER: app
+            MYSQL_PASSWORD: app
+        ports:
+            - "33060:3306"
+        volumes:
+            - mysql_user:/var/lib/mysql
+        networks:
+            - internal_network
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin:5
+        environment:
+            PMA_HOST: database
+        ports:
+            - "9002:80"
+        depends_on:
+            - database
+        networks:
+            - internal_network
+        volumes:
+            - db_admin_data:/var/www/html
+
+    rabbitmq:
+        image: rabbitmq:3-management
+        container_name: rabbitmq
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        networks:
+            - internal_network
+
+volumes:
+    db_admin_data:
+    mysql_user:
+
+networks:
+    internal_network:
+        name: internal_network
