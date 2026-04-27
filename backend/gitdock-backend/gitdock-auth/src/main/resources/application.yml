@@ -2,11 +2,22 @@ server:
   # Le port d'écoute du serveur.
   # On utilise souvent 8081 pour l'Auth Service pour laisser le 8080 à l'API Gateway ou au service principal.
   port: 8081
+  error:
+    include-message: always
 
 spring:
   application:
     # Le nom du service. C'est ce nom qui apparaîtra dans Eureka et dans les logs.
     name: gitdock-auth
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23li2o16E8oJxp6jUY
+            client-secret: ***REMOVED***
+            redirect-uri: "http://localhost:5173/oauth/callback/github"
 
   # --- Configuration de la Base de Données (PostgreSQL) ---
   datasource:

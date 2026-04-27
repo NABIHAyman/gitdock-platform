@@ -1,5 +1,6 @@
 package edu.ehei.gitdock.gitdockauth.controller;
 
+import edu.ehei.gitdock.gitdockauth.dto.ActivateAccountRequestDTO;
 import edu.ehei.gitdock.gitdockauth.dto.SetPasswordRequestDTO;
 import edu.ehei.gitdock.gitdockauth.service.interfaces.UserActivationService;
 import jakarta.validation.Valid;
@@ -61,5 +62,11 @@ public class ActivationController {
     @GetMapping("/validate")
     public ResponseEntity<Boolean> validateToken(@RequestParam("token") String token) {
         return ResponseEntity.ok(userActivationService.isValidActivationToken(token));
+    }
+
+    @PostMapping("/accept-invitation")
+    public ResponseEntity<String> acceptInvitation(@RequestBody @Valid ActivateAccountRequestDTO request) {
+        userActivationService.activateInvitedAccount(request);
+        return ResponseEntity.ok("Invitation acceptée avec succès !");
     }
 }

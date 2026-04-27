@@ -1,6 +1,8 @@
 <template>
-  <router-view />
-  <NotificationToast />
+  <v-app>
+    <router-view />
+    <NotificationToast />
+  </v-app>
 </template>
 
 <script setup>

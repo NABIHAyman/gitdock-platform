@@ -38,7 +38,8 @@ public class SecurityConfig {
         MvcRequestMatcher.Builder mvc = new MvcRequestMatcher.Builder(introspector);
 
         httpSecurity
-                .cors(Customizer.withDefaults())
+                // .cors(Customizer.withDefaults())
+                .cors(cors -> cors.disable())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
                         // 1. Autoriser les erreurs internes (pour éviter les 403 sur les exceptions)
@@ -57,7 +58,14 @@ public class SecurityConfig {
                         .requestMatchers(mvc.pattern("/api/auth/companies/**")).hasAuthority("ROLE_SUPER_ADMIN")
                         .requestMatchers(mvc.pattern("/api/auth/projects/**")).authenticated()
 
-                        // Gestion des droits sur les utilisateurs
+                        .requestMatchers(mvc.pattern("/api/auth/users/summaries")).permitAll()
+                        .requestMatchers(mvc.pattern("/api/auth/users/by-email")).permitAll()
+                        .requestMatchers(mvc.pattern("/api/auth/oauth/internal/token")).permitAll()
+                        .requestMatchers(mvc.pattern("/api/auth/users/internal/invite")).permitAll()
+                        .requestMatchers(mvc.pattern("/api/auth/user-activation/**")).permitAll()// Gestion des droits sur les utilisateurs
+                        .requestMatchers(mvc.pattern("/api/auth/users/internal/**")).permitAll()
+                        .requestMatchers(mvc.pattern("/api/auth/oauth/**")).authenticated()
+
                         .requestMatchers(mvc.pattern("/api/auth/users/**")).hasAnyAuthority(
                                 "ROLE_SUPER_ADMIN",
                                 "ROLE_COMPANY_ADMIN",
@@ -76,6 +84,7 @@ public class SecurityConfig {
         return httpSecurity.build();
     }
 
+    /*
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -89,4 +98,5 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+    */
 }

@@ -76,6 +76,12 @@ public class JwtService {
         // Si l'objet UserDetails est bien notre entité UserAccount, on injecte son ID
         if (userDetails instanceof UserAccount user) {
             extraClaims.put("userId", user.getId());
+            if (user.getCompany() != null) {
+                extraClaims.put("companyId", user.getCompany().getId());
+                extraClaims.put("company_plan", user.getCompany().getSubscriptionPlan().name());
+            } else {
+                extraClaims.put("company_plan", "FREE"); // Sécurité par défaut
+            }
         }
 
         return generateToken(extraClaims, userDetails);
