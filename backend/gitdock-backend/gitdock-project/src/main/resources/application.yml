@@ -10,12 +10,12 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/gitdock_project
     username: postgres
-    password: postgres
+    password: ***REMOVED***
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: create-drop #update
+      ddl-auto: update #update
     show-sql: true
     defer-datasource-initialization: true
     properties:

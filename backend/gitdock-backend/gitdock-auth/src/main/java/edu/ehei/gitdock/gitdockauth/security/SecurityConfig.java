@@ -1,11 +1,9 @@
 package edu.ehei.gitdock.gitdockauth.security;
 
-import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,18 +11,15 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -32,71 +27,75 @@ public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, HandlerMappingIntrospector introspector) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        // Constructeur de matcher MVC : Indispensable pour Spring Boot 3 + H2/Postgres
-        MvcRequestMatcher.Builder mvc = new MvcRequestMatcher.Builder(introspector);
-
-        httpSecurity
-                // .cors(Customizer.withDefaults())
-                .cors(cors -> cors.disable())
+        http
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(req -> req
-                        // 1. Autoriser les erreurs internes (pour éviter les 403 sur les exceptions)
-                        .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
 
-                        // 2. ROUTES PUBLIQUES (Login, Register, Activation)
-                        // On utilise mvc.pattern() pour être sûr que ça matche
-                        .requestMatchers(mvc.pattern("/api/auth/authenticate")).permitAll()
-                        .requestMatchers(mvc.pattern("/api/auth/register")).permitAll()
-                        .requestMatchers(mvc.pattern("/api/auth/user-activation/**")).permitAll()
-                        .requestMatchers(mvc.pattern("/api/auth/password-reset/**")).permitAll()
-                        .requestMatchers(mvc.pattern("/error")).permitAll()
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                        // 3. ROUTES SÉCURISÉES
-                        .requestMatchers(mvc.pattern("/api/auth/users/available-roles")).authenticated()
-                        .requestMatchers(mvc.pattern("/api/auth/companies/**")).hasAuthority("ROLE_SUPER_ADMIN")
-                        .requestMatchers(mvc.pattern("/api/auth/projects/**")).authenticated()
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
-                        .requestMatchers(mvc.pattern("/api/auth/users/summaries")).permitAll()
-                        .requestMatchers(mvc.pattern("/api/auth/users/by-email")).permitAll()
-                        .requestMatchers(mvc.pattern("/api/auth/oauth/internal/token")).permitAll()
-                        .requestMatchers(mvc.pattern("/api/auth/users/internal/invite")).permitAll()
-                        .requestMatchers(mvc.pattern("/api/auth/user-activation/**")).permitAll()// Gestion des droits sur les utilisateurs
-                        .requestMatchers(mvc.pattern("/api/auth/users/internal/**")).permitAll()
-                        .requestMatchers(mvc.pattern("/api/auth/oauth/**")).authenticated()
+                .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers(mvc.pattern("/api/auth/users/**")).hasAnyAuthority(
-                                "ROLE_SUPER_ADMIN",
-                                "ROLE_COMPANY_ADMIN",
-                                "ROLE_WORKSPACE_OWNER", // Votre rôle ID 3 est bien ici !
-                                "ROLE_MANAGER",
-                                "ROLE_DEVELOPER"
-                        )
+                        // ✅ ACTUATOR FIX
+                        .requestMatchers("/actuator/**").permitAll()
 
-                        // 4. TOUT LE RESTE EST BLOQUÉ
+                        // 🔓 PUBLIC AUTH
+                        .requestMatchers(
+                                "/api/auth/authenticate",
+                                "/api/auth/register",
+                                "/api/auth/user-activation/**",
+                                "/api/auth/password-reset/**"
+                        ).permitAll()
+
+                        // 🔓 USERS
+                        .requestMatchers(
+                                "/api/users/**",
+                                "/users/**",
+                                "/api/auth/users/**"
+                        ).permitAll()
+
+                        // error
+                        .requestMatchers("/error").permitAll()
+
+                        // 🔒 SECURED
+                        .requestMatchers("/api/auth/companies/**")
+                        .hasRole("SUPER_ADMIN")
+
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 .authenticationProvider(authenticationProvider)
+
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return httpSecurity.build();
+        return http.build();
     }
 
-    /*
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        // Vos URLs frontend (Gateway et accès direct)
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000", "http://localhost:8080"));
-        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173"
+        ));
+
+        config.setAllowCredentials(true);
+        config.setAllowedHeaders(List.of("*"));
+
+        config.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", config);
+
         return source;
     }
-    */
 }

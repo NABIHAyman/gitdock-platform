@@ -20,10 +20,8 @@ public interface UserProjectRepository extends JpaRepository<UserProject, Long> 
 
     @Modifying
     @Query("DELETE FROM UserProject up WHERE up.project.id = :projectId AND up.userId = :userId")
-    void removeUserFromProject(@Param("projectId") Long projectId, @Param("userId") Long userId);
+    void removeUserFromProject(@Param("projectId") Long projectId,
+                               @Param("userId") Long userId);
 
-    // On utilise roleId au lieu de RoleName, car le nom du rôle est dans gitdock-auth !
     boolean existsByProjectIdAndUserIdAndRole(Long projectId, Long userId, ProjectRole role);
-
-
 }

@@ -23,7 +23,8 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/gitdock_auth
     username: postgres
-    password: postgres
+    password: ***REMOVED***
+
     driver-class-name: org.postgresql.Driver
 
   # --- Configuration JPA / Hibernate ---
@@ -114,3 +115,14 @@ logging:
     org.springframework.security: DEBUG
     org.springframework.security.web: DEBUG
     org.springframework.web: DEBUG
+  spring:
+    profiles:
+      active: docker
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info
+    endpoint:
+      health:
+        show-details: always
