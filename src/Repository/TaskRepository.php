@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Task;
+use App\Enum\TaskStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -13,10 +14,6 @@ class TaskRepository extends ServiceEntityRepository
         parent::__construct($registry, Task::class);
     }
 
-    // =========================
-    // TASKS NON SUPPRIMÉES
-    // =========================
-
     public function findNotDeleted(): array
     {
         return $this->createQueryBuilder('t')
@@ -26,11 +23,6 @@ class TaskRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // =========================
-    // STATS DASHBOARD
-    // =========================
-
-    // TOTAL TASKS
     public function countTotalTasks(): int
     {
         return (int) $this->createQueryBuilder('t')
@@ -40,42 +32,25 @@ class TaskRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    // IN PROGRESS
     public function countInProgress(): int
     {
         return (int) $this->createQueryBuilder('t')
             ->select('COUNT(t.id)')
             ->andWhere('t.status = :status')
             ->andWhere('t.deletedAt IS NULL')
-            ->setParameter('status', 'In Progress')
+            ->setParameter('status', TaskStatus::IN_PROGRESS) // ✅ FIX
             ->getQuery()
             ->getSingleScalarResult();
     }
 
-    // COMPLETED
     public function countCompleted(): int
     {
         return (int) $this->createQueryBuilder('t')
             ->select('COUNT(t.id)')
             ->andWhere('t.status = :status')
             ->andWhere('t.deletedAt IS NULL')
-            ->setParameter('status', 'Done')
+            ->setParameter('status', TaskStatus::DONE) // ✅ FIX
             ->getQuery()
             ->getSingleScalarResult();
     }
-
-    // OVERDUE
-   public function countOverdue(): int
-{
-    return (int) $this->createQueryBuilder('t')
-        ->select('COUNT(t.id)')
-        ->where('t.dueDate IS NOT NULL')
-        ->andWhere('t.dueDate < :now')
-        ->andWhere('t.status != :done')
-        ->andWhere('t.deletedAt IS NULL')
-        ->setParameter('now', new \DateTime())
-        ->setParameter('done', 'Done')
-        ->getQuery()
-        ->getSingleScalarResult();
-}
 }

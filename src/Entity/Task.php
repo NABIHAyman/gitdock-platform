@@ -2,59 +2,72 @@
 
 namespace App\Entity;
 
-use App\Repository\TaskRepository;
+use App\Enum\TaskStatus;
+use App\Enum\TaskPriority;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: TaskRepository::class)]
+#[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
 class Task
 {
-    // ================= PRIMARY KEY =================
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    // ================= BASIC DATA =================
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(length: 50)]
-    private string $status = 'To Do';
+    // ✅ ENUM STATUS
+    #[ORM\Column(enumType: TaskStatus::class)]
+    private TaskStatus $status;
 
-    #[ORM\Column(type: 'datetime')]
-    private ?\DateTime $dueDate = null;
+    // ✅ ENUM PRIORITY
+    #[ORM\Column(enumType: TaskPriority::class)]
+    private TaskPriority $priority;
 
-    // ================= MICROSERVICE RELATIONS (ONLY IDS) =================
-    #[ORM\Column(nullable: true)]
-    private ?int $epicId = null;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $dueDate = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $projectId = null; // venant Spring Boot
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $completedAt = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $levelId = null;
-
-    // users (Spring Boot auth sync)
-    #[ORM\Column(nullable: true)]
-    private ?int $assignedTo = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?int $assignedBy = null;
-
-    // ================= AUDIT =================
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    // ================= SOFT DELETE =================
+    #[ORM\Column(nullable: true)]
+    private ?int $epicId = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $projectId = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $levelId = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $partId = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $assignedTo = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $assignedBy = null;
+
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTime $deletedAt = null;
+    private ?\DateTimeInterface $deletedAt = null;
+
+    // ================= CONSTRUCTOR =================
+    public function __construct()
+    {
+        $this->status = TaskStatus::TODO;
+        $this->priority = TaskPriority::MEDIUM;
+    }
 
     // ================= LIFECYCLE =================
     #[ORM\PrePersist]
@@ -70,62 +83,67 @@ class Task
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    // ================= GETTERS / SETTERS =================
+    // ================= GETTERS =================
+    public function getId(): ?int { return $this->id; }
 
-    public function getId(): ?int
+    public function getStatus(): TaskStatus
     {
-        return $this->id;
+        return $this->status;
     }
 
-    public function getTitle(): ?string
+    public function getPriority(): TaskPriority
     {
-        return $this->title;
+        return $this->priority;
     }
 
-    public function setTitle(string $title): self
+    public function getLevelId(): ?int { return $this->levelId; }
+    public function getAssignedTo(): ?int { return $this->assignedTo; }
+
+    public function getCompletedAt(): ?\DateTimeInterface
+    {
+        return $this->completedAt;
+    }
+
+    public function isDeleted(): bool
+    {
+        return $this->deletedAt !== null;
+    }
+
+    // ================= SETTERS =================
+    public function setTitle(?string $title): self
     {
         $this->title = $title;
         return $this;
     }
 
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    public function setDescription(string $description): self
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
         return $this;
     }
 
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(string $status): self
+    public function setStatus(TaskStatus $status): self
     {
         $this->status = $status;
         return $this;
     }
 
-    public function getDueDate(): ?\DateTime
+    public function setPriority(TaskPriority $priority): self
     {
-        return $this->dueDate;
+        $this->priority = $priority;
+        return $this;
     }
 
-    public function setDueDate(\DateTime $dueDate): self
+    public function setDueDate(?\DateTimeInterface $dueDate): self
     {
         $this->dueDate = $dueDate;
         return $this;
     }
 
-    // ================= IDS =================
-
-    public function getEpicId(): ?int
+    public function setCompletedAt(?\DateTimeInterface $completedAt): self
     {
-        return $this->epicId;
+        $this->completedAt = $completedAt;
+        return $this;
     }
 
     public function setEpicId(?int $epicId): self
@@ -134,20 +152,10 @@ class Task
         return $this;
     }
 
-    public function getProjectId(): ?int
-    {
-        return $this->projectId;
-    }
-
     public function setProjectId(?int $projectId): self
     {
         $this->projectId = $projectId;
         return $this;
-    }
-
-    public function getLevelId(): ?int
-    {
-        return $this->levelId;
     }
 
     public function setLevelId(?int $levelId): self
@@ -156,9 +164,10 @@ class Task
         return $this;
     }
 
-    public function getAssignedTo(): ?int
+    public function setPartId(?int $partId): self
     {
-        return $this->assignedTo;
+        $this->partId = $partId;
+        return $this;
     }
 
     public function setAssignedTo(?int $assignedTo): self
@@ -167,32 +176,15 @@ class Task
         return $this;
     }
 
-    public function getAssignedBy(): ?int
-    {
-        return $this->assignedBy;
-    }
-
     public function setAssignedBy(?int $assignedBy): self
     {
         $this->assignedBy = $assignedBy;
         return $this;
     }
 
-    // ================= SOFT DELETE =================
-
-    public function getDeletedAt(): ?\DateTime
-    {
-        return $this->deletedAt;
-    }
-
-    public function setDeletedAt(?\DateTime $deletedAt): self
+    public function setDeletedAt(?\DateTimeInterface $deletedAt): self
     {
         $this->deletedAt = $deletedAt;
         return $this;
-    }
-
-    public function isDeleted(): bool
-    {
-        return $this->deletedAt !== null;
     }
 }

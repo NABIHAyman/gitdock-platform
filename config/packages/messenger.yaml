@@ -9,7 +9,8 @@ framework:
                     max_retries: 3
                     multiplier: 2
 
-            failed: 'doctrine://default?queue_name=failed'
+            failed:
+                dsn: 'doctrine://default?queue_name=failed'
 
         default_bus: messenger.bus.default
 
@@ -20,3 +21,5 @@ framework:
             Symfony\Component\Mailer\Messenger\SendEmailMessage: async
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async
+
+            App\Message\TaskCompletedEvent: async

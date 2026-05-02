@@ -2,7 +2,6 @@
 
 namespace App\Command;
 
-use App\Service\UserSyncService;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -14,16 +13,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:rabbit:consume')]
 class RabbitConsumeCommand extends Command
 {
-    public function __construct(
-        private UserSyncService $userSyncService
-    ) {
-        parent::__construct();
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $connection = new AMQPStreamConnection(
-            'rabbitmq', // ⚠️ si docker
+            'rabbitmq',
             5672,
             'guest',
             'guest'
@@ -31,44 +24,68 @@ class RabbitConsumeCommand extends Command
 
         $channel = $connection->channel();
 
-        // Exchange (IMPORTANT: match Spring)
+        // =========================
+        // TASK EXCHANGE
+        // =========================
         $channel->exchange_declare(
-            'auth.exchange',
+            'task.exchange',
             AMQPExchangeType::TOPIC,
             false,
             true,
             false
         );
 
-        // Queue durable
-        $channel->queue_declare('auth.queue', false, true, false, false);
+        // =========================
+        // QUEUE GAMIFICATION
+        // =========================
+        $channel->queue_declare(
+            'task.completed.queue',
+            false,
+            true,
+            false,
+            false
+        );
 
-        // Bindings
-        $channel->queue_bind('auth.queue', 'auth.exchange', 'user.*');
+        // =========================
+        // BINDING
+        // =========================
+        $channel->queue_bind(
+            'task.completed.queue',
+            'task.exchange',
+            'task.completed'
+        );
 
-        $output->writeln("🚀 Waiting for events...");
+        $output->writeln("🚀 Waiting TaskCompletedEvent...");
 
+        // =========================
+        // CALLBACK
+        // =========================
         $callback = function (AMQPMessage $msg) use ($output) {
 
             $body = json_decode($msg->getBody(), true);
 
             if (!$body) {
-                $output->writeln("❌ Invalid JSON message");
+                $output->writeln("❌ Invalid message");
                 return;
             }
 
-            $type = $body['type'] ?? 'UNKNOWN';
-            $payload = $body['data'] ?? [];
+            $output->writeln("🎯 TaskCompletedEvent reçu");
 
-            $output->writeln("📩 EVENT: " . $type);
-            $output->writeln(print_r($payload, true));
+            $taskId = $body['taskId'] ?? null;
+            $userId = $body['userId'] ?? null;
+            $level = $body['taskLevel'] ?? null;
+            $xp = $body['xpReward'] ?? 0;
 
-            // 🔥 SYNC vers DB Symfony
-            $this->userSyncService->sync($type, $payload);
+            $output->writeln("Task: $taskId");
+            $output->writeln("User: $userId");
+            $output->writeln("Level: $level");
+            $output->writeln("XP: $xp");
+
+            // TODO: appeler service gamification ici
         };
 
         $channel->basic_consume(
-            'auth.queue',
+            'task.completed.queue',
             '',
             false,
             true,
