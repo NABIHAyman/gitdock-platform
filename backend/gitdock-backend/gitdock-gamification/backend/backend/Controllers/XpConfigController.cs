@@ -2,11 +2,14 @@
 using backend.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization; // <--- C'est cette ligne qui manque !
 
 namespace backend.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
+    //[AllowAnonymous]
     public class XpConfigController : ControllerBase
     {
         private readonly XpConfigService _service;

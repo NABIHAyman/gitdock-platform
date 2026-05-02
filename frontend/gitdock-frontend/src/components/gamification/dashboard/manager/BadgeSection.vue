@@ -73,7 +73,8 @@ const badgeToDeleteId = ref<string | null>(null)
 // --- LOGIC: XP ENGINE ---
 const fetchConfig = async () => {
   try {
-    const data = await xpConfigService.get()
+    // Correction : on passe l'ID 1 (ou l'ID correspondant à ta config en DB)
+    const data = await xpConfigService.get(1)
     configXP.value = {
       commitXp: data.commitXp,
       prXp: data.prXp,
@@ -86,7 +87,17 @@ const fetchConfig = async () => {
 
 const saveConfig = async () => {
   try {
-    await xpConfigService.update(configXP.value as XpConfigDTO)
+    // On crée un objet complet qui respecte l'interface XpConfigDTO
+    const fullConfig: XpConfigDTO = {
+      id: 1,
+      level: 1,           // Valeur par défaut requise par l'interface
+      xpRequired: 100,    // Valeur par défaut requise par l'interface
+      ...configXP.value   // On déverse commitXp, prXp, bugFixXp
+    }
+
+    // Correction : on passe l'ID ET l'objet complet
+    await xpConfigService.update(1, fullConfig)
+
     showNotify("System configuration synchronized. XP rules updated.")
   } catch (error) {
     showNotify("Failed to update system parameters.", "error")

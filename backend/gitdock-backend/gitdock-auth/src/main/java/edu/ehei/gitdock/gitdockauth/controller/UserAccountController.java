@@ -76,4 +76,20 @@ public class UserAccountController {
     public ResponseEntity<List<UserSummaryDTO>> getUsersByEmailsInternal(@RequestBody List<String> emails) {
         return ResponseEntity.ok(userService.getUsersByEmails(emails));
     }
+
+
+    // Endpoint utilisé par gitdock-gamification pour valider l'existence d'un user
+    @GetMapping("/{id}/exists")
+    public ResponseEntity<Void> checkUserExists(@PathVariable Long id) {
+        log.info("Vérification d'existence pour l'utilisateur ID: {}", id);
+
+        boolean exists = userService.existsById(id); // Tu devras peut-être ajouter cette méthode dans ton Service
+
+        if (exists) {
+            return ResponseEntity.ok().build();
+        } else {
+            log.warn("Tentative de validation pour un utilisateur inconnu ID: {}", id);
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

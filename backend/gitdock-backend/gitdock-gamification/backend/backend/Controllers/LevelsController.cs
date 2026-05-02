@@ -11,9 +11,12 @@ namespace backend.Controllers;
 [Route("api/levels")]
 public class LevelsController : ControllerBase
 {
-    private readonly LevelService _levelService;
+    private readonly ILevelService _levelService;
 
-    public LevelsController(LevelService levelService) => _levelService = levelService;
+    public LevelsController(ILevelService levelService)
+    {
+        _levelService = levelService;
+    }
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {

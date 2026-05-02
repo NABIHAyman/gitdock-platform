@@ -241,25 +241,30 @@ const validatePasswordMatch = () => {
 }
 
 const handleSubmit = async () => {
-  if (!validateForm()) return
-
-  isLoading.value = true
+  if (!validateForm()) return;
+  isLoading.value = true;
 
   try {
-    await authService.activateAccount(resetToken.value, formData.password, formData.confirmPassword)
-    state.value = 'success'
-    notificationStore.success('Compte activé avec succès !')
+    // Correction ici : on passe UN SEUL OBJET entre des accolades { }
+    await authService.activateAccount({
+      token: resetToken.value,
+      password: formData.password,
+      confirmPassword: formData.confirmPassword
+    });
+
+    state.value = 'success';
+    notificationStore.success('Compte activé avec succès !');
 
     setTimeout(() => {
-      router.push('/login')
-    }, 3000)
+      router.push('/login');
+    }, 3000);
   } catch (error) {
-    const message = error.response?.data?.detail || error.message || "Erreur lors de l'activation du compte"
-    errorMessage.value = message
-    state.value = 'error'
-    notificationStore.error(message)
+    const message = error.response?.data?.detail || error.message || "Erreur lors de l'activation";
+    errorMessage.value = message;
+    state.value = 'error';
+    notificationStore.error(message);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>

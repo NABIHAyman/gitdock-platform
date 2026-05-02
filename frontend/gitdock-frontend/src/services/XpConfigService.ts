@@ -1,20 +1,31 @@
-import api from '@/services/api'
+import api from './api';
 
+// Résout TS2305 & TS2352 : On ajoute tous les champs nécessaires
 export interface XpConfigDTO {
-  commitXp: number
-  prXp: number
-  bugFixXp: number
+  id?: number;
+  level: number;
+  xpRequired: number;
+  commitXp: number;   // Ajouté pour correspondre à ton objet
+  prXp: number;       // Ajouté
+  bugFixXp: number;   // Ajouté
+  description?: string;
 }
 
 export const xpConfigService = {
-  async get(): Promise<XpConfigDTO> {
-    const response = await api.get('/xpconfig')
-    return response.data
+  async getAll() {
+    const response = await api.get('/xp-configs');
+    return response.data;
   },
 
-  async update(payload: XpConfigDTO): Promise<XpConfigDTO> {
-    const response = await api.put('/xpconfig', payload)
-    return response.data
+  // Résout TS2554 : On s'assure que 'id' est bien attendu
+  async get(id: number) {
+    const response = await api.get(`/xp-configs/${id}`);
+    return response.data;
   },
-}
 
+  // Résout TS2554 : On attend l'id ET les données
+  async update(id: number, data: XpConfigDTO) {
+    const response = await api.put(`/xp-configs/${id}`, data);
+    return response.data;
+  }
+};

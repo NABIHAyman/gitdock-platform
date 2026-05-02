@@ -29,4 +29,6 @@ public interface IUserAccountService {
 
     List<UserSummaryDTO> getAllUsersSummaries();
 
+    boolean existsById(Long id);
+
 }

@@ -8,9 +8,12 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class TagsController : ControllerBase
 {
-    private readonly TagService _tagService;
+    private readonly ITagService _tagService;
 
-    public TagsController(TagService tagService) => _tagService = tagService;
+    public TagsController(ITagService tagService)
+    {
+        _tagService = tagService;
+    }
 
     [HttpGet]
     public async Task<ActionResult<List<TagResponseDto>>> GetAll()

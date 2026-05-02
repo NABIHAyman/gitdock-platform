@@ -28,10 +28,13 @@ public class SecurityConfig {
 
         httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
-                // Note: Le CORS est généralement géré par l'API Gateway en architecture microservices
                 .authorizeHttpRequests(req -> req
                         .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
-                        // On bloque tout, il faut un token valide pour accéder aux projets
+
+                        // --- AJOUTE CETTE LIGNE ---
+                        // Permet au dashboard IA d'accéder à la liste des projets sans token
+                        .requestMatchers(mvc.pattern("/api/projects/**")).permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

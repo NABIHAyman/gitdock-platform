@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { authService, type LoginCredentials, type RegisterCredentials } from '@/services/authService'
+import { authService } from '@/services/authService'
+import type { LoginCredentials, RegisterCredentials } from '@/services/authService'
 import { useNotificationStore } from './notificationStore'
 import router from '@/router'
 
@@ -20,7 +21,6 @@ export const useAuthStore = defineStore('auth', () => {
     const login = async (credentials: LoginCredentials) => {
         try {
             const response = await authService.login(credentials)
-
             token.value = response.accessToken
             userId.value = response.user.id
             firstName.value = response.user.firstName
@@ -37,26 +37,13 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.user.email) localStorage.setItem('email', response.user.email)
             if (response.user.avatarUrl) localStorage.setItem('avatarUrl', response.user.avatarUrl)
 
-            router.push('/projects')
+            await router.push('/dashboard/projects') // Utilise await ici
             return { success: true }
-        } catch (error: unknown) {
+        } catch (error: any) {
             const notificationStore = useNotificationStore()
-            const axiosError = error as { response?: { status?: number; data?: { detail?: string } } }
-            const detail = axiosError.response?.data?.detail ?? 'Une erreur est survenue'
-
-            if (axiosError.response?.status === 401) {
-                const message = detail || 'Email ou mot de passe incorrect'
-                notificationStore.error(message)
-                return { success: false, error: message, needsActivation: false }
-            }
-            if (axiosError.response?.status === 403) {
-                const message = detail || 'Compte non activé'
-                notificationStore.error(message)
-                return { success: false, error: message, needsActivation: true }
-            }
-
+            const detail = error.response?.data?.detail ?? 'Identifiants invalides'
             notificationStore.error(detail)
-            return { success: false, error: detail, needsActivation: false }
+            return { success: false, error: detail }
         }
     }
 
@@ -64,67 +51,43 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             await authService.signup(credentials)
             const notificationStore = useNotificationStore()
-            notificationStore.success("Inscription réussie ! Un email d'activation a été envoyé.")
-            setTimeout(() => router.push('/login'), 2000)
+            notificationStore.success("Inscription réussie ! Vérifiez vos emails.")
+            setTimeout(async () => await router.push('/login'), 2000)
             return { success: true }
-        } catch (error: unknown) {
+        } catch (error: any) {
             const notificationStore = useNotificationStore()
-            const axiosError = error as {
-                response?: { data?: { detail?: string; message?: string } }
-            }
-            const message =
-                axiosError.response?.data?.detail ??
-                axiosError.response?.data?.message ??
-                "Erreur lors de l'inscription"
-            notificationStore.error(message)
-            return { success: false, error: message }
-        }
-    }
-
-    const resendActivationEmail = async (userEmail: string) => {
-        try {
-            await authService.resendActivationToken(userEmail)
-            const notificationStore = useNotificationStore()
-            notificationStore.success("Email d'activation renvoyé avec succès")
-            return { success: true }
-        } catch (error: unknown) {
-            const notificationStore = useNotificationStore()
-            const axiosError = error as { response?: { data?: { detail?: string } } }
-            const message = axiosError.response?.data?.detail ?? "Erreur lors de l'envoi de l'email"
+            const message = error.response?.data?.detail ?? "Erreur lors de l'inscription"
             notificationStore.error(message)
             return { success: false, error: message }
         }
     }
 
     const activateInvitedAccount = async (inviteToken: string, password: string) => {
-        await authService.activateInvitedAccount(inviteToken, password)
+        try {
+            // On appelle la fonction correcte : 'activateAccount'
+            await authService.activateAccount({
+                token: inviteToken,
+                password: password
+            })
+            const notificationStore = useNotificationStore()
+            notificationStore.success("Compte activé avec succès !")
+            await router.push('/login')
+        } catch (error) {
+            const notificationStore = useNotificationStore()
+            notificationStore.error("Erreur d'activation")
+        }
     }
 
     const logout = () => {
         token.value = null
         userId.value = null
-        firstName.value = null
-        lastName.value = null
-        role.value = null
-        email.value = null
-        avatarUrl.value = null
         localStorage.clear()
         router.push('/login')
     }
 
     return {
-        token,
-        userId,
-        firstName,
-        lastName,
-        role,
-        email,
-        avatarUrl,
-        isAuthenticated,
-        login,
-        signup,
-        resendActivationEmail,
-        activateInvitedAccount,
-        logout,
+        token, userId, firstName, lastName, role, email, avatarUrl,
+        isAuthenticated, login, signup, activateInvitedAccount, logout
     }
+
 })

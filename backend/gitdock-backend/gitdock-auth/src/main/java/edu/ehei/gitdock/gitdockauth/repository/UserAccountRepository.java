@@ -97,4 +97,8 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, Long> 
 // Page<UserAccount> findAllByIsDeletedFalse(Pageable pageable); // Si tu veux de la pagination
 
 
+    // Cette méthode génère un SELECT 1 FROM user_account WHERE id = ?
+    boolean existsById(Long id);
+
+
 }

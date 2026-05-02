@@ -1,10 +1,11 @@
 /// <reference types="vite/client" />
 
-interface ImportMetaEnv {
-    readonly VITE_API_BASE_URL: string
-    readonly VITE_NOTIFICATION_WS_URL?: string
+declare module '*.vue' {
+    import type { DefineComponent } from 'vue'
+    const component: DefineComponent<{}, {}, any>
+    export default component
 }
 
-interface ImportMeta {
-    readonly env: ImportMetaEnv
-}
+declare module '@/stores/authStore';
+declare module '@/services/UserProgressService';
+declare module '@/services/UserBadgeService';

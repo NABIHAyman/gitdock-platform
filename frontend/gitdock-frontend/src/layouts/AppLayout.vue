@@ -19,4 +19,3 @@ import AppSidebar from '@/components/navigation/AppSidebar.vue'
 import NotificationToast from '@/components/common/NotificationToast.vue'
 import GitDockAiChat from '@/components/common/GitDockAiChat.vue'
 </script>
-

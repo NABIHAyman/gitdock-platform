@@ -299,4 +299,10 @@ public class UserAccountServiceImpl implements IUserAccountService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public boolean existsById(Long id) {
+        log.info("Vérification en base Auth pour l'ID : {}", id);
+        return userRepository.existsById(id);
+    }
 }

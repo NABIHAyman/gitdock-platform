@@ -1,112 +1,79 @@
-﻿namespace backend.Services;
-
-using backend.Domain;
-using backend.Data;
+﻿using backend.Domain;
 using backend.DTOs;
-using backend.Mappers; // INDISPENSABLE pour utiliser .ToDto() et .ToEntity()
-using Microsoft.EntityFrameworkCore;
+using backend.Mappers;
+using backend.Repositories;
 
-public class LevelService
+namespace backend.Services;
+
+public class LevelService : ILevelService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly ILevelRepository _levelRepository;
 
-    public LevelService(ApplicationDbContext context) => _context = context;
+    public LevelService(ILevelRepository levelRepository)
+    {
+        _levelRepository = levelRepository;
+    }
 
-    // 1. GET ALL (avec Mapping de sortie)
     public async Task<List<LevelResponseDto>> GetAllWithRequirementsAsync()
     {
-        var levels = await _context.Levels
-            .Include(l => l.LevelTagRequirements)
-            .ThenInclude(r => r.Tag)
-            .ToListAsync();
-
-        // On transforme chaque Level en LevelResponseDto
+        var levels = await _levelRepository.GetAllWithRequirementsAsync();
         return levels.Select(l => l.ToDto()).ToList();
     }
-    // 2. CREATE (avec Mapping d'entrée et de sortie)
+
     public async Task<LevelResponseDto> CreateLevelAsync(CreateLevelDto dto)
     {
-        // Utilise ton nouveau ToEntity() dans le Mapper
         var level = dto.ToEntity();
-
-        _context.Levels.Add(level);
-        await _context.SaveChangesAsync();
-
-        // Renvoie le DTO pour confirmer au Front
+        await _levelRepository.AddAsync(level);
+        await _levelRepository.SaveChangesAsync();
         return level.ToDto();
     }
-    // Dans LevelService.cs
+
     public async Task<bool> UpdateLevelAsync(Guid id, CreateLevelDto updateDto)
     {
-        try
+        var existingLevel = await _levelRepository.GetByIdWithRequirementsAsync(id);
+        if (existingLevel == null) return false;
+
+        // Mise à jour des champs simples
+        existingLevel.Name = updateDto.Name;
+        existingLevel.LevelRank = updateDto.LevelRank;
+        existingLevel.RequiredXP = updateDto.RequiredXP;
+        existingLevel.UpdatedAt = DateTime.UtcNow;
+
+        // Gestion des Requirements (on délègue au Repo pour nettoyer les anciens)
+        _levelRepository.RemoveRequirements(existingLevel.LevelTagRequirements);
+
+        if (updateDto.Requirements != null)
         {
-            // 1. Récupérer le niveau avec ses relations
-            var existingLevel = await _context.Levels
-                .Include(l => l.LevelTagRequirements)
-                .FirstOrDefaultAsync(l => l.Id == id);
-
-            if (existingLevel == null)
+            foreach (var reqDto in updateDto.Requirements)
             {
-                Console.WriteLine($"DEBUG: Level avec ID {id} non trouvé en DB !");
-                return false;
-            }
-
-            // 2. Mise à jour des champs simples
-            existingLevel.Name = updateDto.Name;
-            existingLevel.LevelRank = updateDto.LevelRank;
-            existingLevel.RequiredXP = updateDto.RequiredXP;
-            existingLevel.UpdatedAt = DateTime.UtcNow;
-
-            // 3. Mise à jour des Requirements (Table de jointure)
-            // On supprime les anciens
-            _context.LevelTagRequirements.RemoveRange(existingLevel.LevelTagRequirements);
-
-            // On ajoute les nouveaux
-            if (updateDto.Requirements != null)
-            {
-                foreach (var reqDto in updateDto.Requirements)
+                existingLevel.LevelTagRequirements.Add(new LevelTagRequirement
                 {
-                    _context.LevelTagRequirements.Add(new LevelTagRequirement
-                    {
-                        LevelId = id,
-                        TagId = reqDto.TagId,
-                        RequiredOccurrences = reqDto.RequiredOccurrences
-                    });
-                }
+                    LevelId = id,
+                    TagId = reqDto.TagId,
+                    RequiredOccurrences = reqDto.RequiredOccurrences
+                });
             }
+        }
 
-            // 4. Sauvegarde
-            await _context.SaveChangesAsync();
-            Console.WriteLine("DEBUG: Update réussi en base de données !");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            // C'est ici qu'on verra l'erreur de clé étrangère si un TagId est mauvais
-            Console.WriteLine("ERREUR DB: " + ex.Message);
-            if (ex.InnerException != null)
-                Console.WriteLine("INNER: " + ex.InnerException.Message);
-            return false;
-        }
+        await _levelRepository.SaveChangesAsync();
+        return true;
     }
+
     public async Task<bool> DeleteLevelAsync(Guid id)
     {
-        var level = await _context.Levels
-            .Include(l => l.LevelTagRequirements)
-            .FirstOrDefaultAsync(l => l.Id == id);
-
+        var level = await _levelRepository.GetByIdWithRequirementsAsync(id);
         if (level == null) return false;
 
-        // Mettre IsDeleted à true pour chaque requirement
-        foreach (var req in level.LevelTagRequirements)
-        {
-            req.IsDeleted = true; // À condition que cette colonne existe dans cette table
-        }
-
+        // Soft Delete sur le niveau et ses requirements
         level.IsDeleted = true;
         level.DeletedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        foreach (var req in level.LevelTagRequirements)
+        {
+            req.IsDeleted = true;
+        }
+
+        await _levelRepository.SaveChangesAsync();
         return true;
     }
 }

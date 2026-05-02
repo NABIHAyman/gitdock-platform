@@ -27,7 +27,7 @@ import TaskAll from '@/views/task/ViewTask/TaskAll.vue'
 import GamificationDashboardView from '@/views/gamification/DashboardView.vue'
 import GamificationUserDashboardView from '@/views/gamification/UserDashboardView.vue'
 
-// Typage des meta de routes — nécessaire pour que guards.ts soit content
+// Typage des meta de routes
 declare module 'vue-router' {
     interface RouteMeta {
         requiresAuth?: boolean
@@ -46,7 +46,7 @@ const routes: RouteRecordRaw[] = [
     { path: '/reset-password', name: 'reset-password', component: ResetPasswordView, meta: { guest: true } },
     { path: '/activate', name: 'activate', component: ActivationView, meta: { guest: true } },
 
-    // --- Auth (public, pas de requiresAuth) ---
+    // --- Auth (public) ---
     {
         path: '/accept-invitation',
         name: 'AcceptInvitation',
@@ -54,7 +54,7 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: false },
     },
 
-    // --- Projects ---
+    // --- Projects (REMIS À LA RACINE POUR RÉPARER L'ERREUR /projects) ---
     { path: '/projects', name: 'projects', component: ProjectsView, meta: { requiresAuth: true } },
     { path: '/projects/:id', name: 'project-details', component: ProjectStatsView, meta: { requiresAuth: true } },
     { path: '/projects/:id/parts', name: 'project-parts', component: ProjectPartsView, meta: { requiresAuth: true } },

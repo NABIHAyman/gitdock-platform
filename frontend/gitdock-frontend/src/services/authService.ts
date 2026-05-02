@@ -1,74 +1,73 @@
 import api from '@/services/api'
 
+// --- INTERFACES ---
+export interface RegisterCredentials {
+    firstName: string
+    lastName: string
+    email: string
+    username?: string
+}
+
 export interface LoginCredentials {
     email: string
     password: string
 }
 
-export interface RegisterCredentials {
-    firstName: string
-    lastName: string
-    email: string
-}
-
-export interface AuthUser {
-    id: number
-    firstName: string
-    lastName: string
-    email: string
-    role: string
-    avatarUrl?: string
-}
-
-export interface AuthResponse {
-    accessToken: string
-    user: AuthUser
-}
-
+// --- SERVICE ---
 export const authService = {
-    async login(credentials: LoginCredentials): Promise<AuthResponse> {
-        const response = await api.post<AuthResponse>('/auth/authenticate', credentials)
+
+    async signup(userData: RegisterCredentials) {
+        const response = await api.post('/auth/register', userData)
         return response.data
     },
 
-    async signup(credentials: RegisterCredentials): Promise<void> {
-        const payload = {
-            firstName: credentials.firstName,
-            lastName: credentials.lastName,
-            email: credentials.email,
-            username: credentials.email.split('@')[0],
-        }
-        await api.post('/auth/register', payload)
+    async login(credentials: LoginCredentials) {
+        const response = await api.post('/auth/authenticate', credentials)
+        return response.data
     },
 
-    async resendActivationToken(email: string): Promise<void> {
-        await api.post('/auth/user-activation/resend', null, { params: { email } })
+    /**
+     * Finalise l'activation (Mise à jour pour correspondre au @PostMapping("/confirm") du Java)
+     * URL complète : /api/auth/user-activation/confirm
+     */
+    async activateAccount(data: { token: string; password: string; confirmPassword?: string }) {
+        const response = await api.post('/auth/user-activation/confirm', data)
+        return response.data
     },
 
-    async validateActivationToken(token: string): Promise<boolean> {
-        const response = await api.get<boolean>('/auth/user-activation/validate', {
-            params: { token },
+    /**
+     * Valide le token (Mise à jour pour correspondre au @GetMapping("/validate") du Java)
+     * URL complète : /api/auth/user-activation/validate
+     */
+    async validateActivationToken(token: string) {
+        const response = await api.get('/auth/user-activation/validate', { params: { token } })
+        return response.data
+    },
+
+    /**
+     * Renvoie l'email (Déjà correct avec ton Java @PostMapping("/resend"))
+     * URL complète : /api/auth/user-activation/resend
+     */
+    async resendActivation(email: string) {
+        const response = await api.post('/auth/user-activation/resend', null, {
+            params: { email }
         })
         return response.data
     },
 
-    async activateAccount(token: string, password: string, confirmPassword: string): Promise<void> {
-        await api.post('/auth/user-activation/confirm', { token, password, confirmPassword })
-    },
-
-    async requestPasswordReset(email: string): Promise<void> {
-        await api.post('/auth/password-reset/request', null, { params: { email } })
-    },
-
-    async resetPassword(token: string, newPassword: string): Promise<void> {
-        await api.post('/auth/password-reset/confirm', { token, newPassword })
-    },
-
-    async activateInvitedAccount(token: string, password: string): Promise<AuthResponse> {
-        const response = await api.post<AuthResponse>('/auth/user-activation/accept-invitation', {
-            token,
-            password,
-        })
+    /**
+     * Demande de réinitialisation (Résout l'erreur TS2339)
+     */
+    async requestPasswordReset(email: string) {
+        const response = await api.post('/auth/request-password-reset', { email })
         return response.data
     },
+
+    /**
+     * Réinitialisation finale
+     */
+    async resetPassword(token: string, password: string) {
+        const response = await api.post('/auth/reset-password', { token, password })
+        return response.data
+    }
 }
