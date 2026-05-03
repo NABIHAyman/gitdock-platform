@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invitation à rejoindre un projet GitDock</title>
+    <style>
+        /* ... (Garde le même CSS que ton activation.html) ... */
+        body { font-family: "Segoe UI", sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+        .container { background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo { color: #2563eb; font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+        .welcome-text { font-size: 18px; color: #1f2937; margin-bottom: 20px; }
+        .activation-button { display: inline-block; background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; text-align: center; }
+        .info-box { background-color: #f3f4f6; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">🚀 GitDock</div>
+        <div class="welcome-text">Vous avez été invité !</div>
+    </div>
+
+    <p>Bonjour <strong th:text="${FIRST_NAME} + ' ' + ${LAST_NAME}">Jean Dupont</strong>,</p>
+
+    <p>
+        Vous avez été invité à collaborer sur le projet <strong th:text="${PROJECT_NAME}">Nom du Projet</strong> sur la plateforme GitDock.
+    </p>
+
+    <div class="info-box">
+        <strong>Que devez-vous faire ?</strong>
+        <p>Un compte a été pré-créé pour vous. Cliquez simplement sur le bouton ci-dessous pour définir votre mot de passe et accéder au projet.</p>
+    </div>
+
+    <div style="text-align: center">
+        <a th:href="${INVITATION_LINK}" class="activation-button">
+            🚀 Accepter l'invitation
+        </a>
+    </div>
+
+    <p>
+        Si vous ne vous attendiez pas à cette invitation, vous pouvez ignorer cet email.
+    </p>
+
+    <div class="footer">
+        <p>© 2026 GitDock. Tous droits réservés.</p>
+    </div>
+</div>
+</body>
+</html>
