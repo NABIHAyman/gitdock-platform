@@ -1,0 +1,132 @@
+services:
+  # --- Bases de Données & Infrastructure ---
+  gitdock-postgres:
+    image: postgres:15-alpine
+    container_name: gitdock-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - gitdock_global_network
+
+  gitdock-chromadb:
+    image: chromadb/chroma:latest
+    container_name: gitdock-chromadb
+    restart: always
+    ports:
+      - "8010:8000"
+    volumes:
+      - chromadb_data:/chroma/data
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    networks:
+      - gitdock_global_network
+
+  gitdock-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: gitdock-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - gitdock_global_network
+
+  # --- Microservices Métier ---
+
+  # 1. Service Gamification (.NET 9)
+  gitdock-gamification:
+    build:
+      context: ../gitdock-gamification/backend/backend
+      dockerfile: Dockerfile
+    container_name: gitdock-gamification
+    restart: on-failure
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=gitdock-postgres;Port=5432;Database=gitdock_gamification;Username=postgres;Password=postgres
+      - RabbitMQ__HostName=gitdock-rabbitmq
+      - Eureka__Client__ServiceUrl=http://host.docker.internal:8761/eureka/
+      - Eureka__Instance__PreferIpAddress=true
+      - Eureka__Instance__Port=5292
+      - ASPNETCORE_URLS=http://+:5292
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5292:5292"
+    depends_on:
+      - gitdock-postgres
+      - gitdock-rabbitmq
+    networks:
+      - gitdock_global_network
+
+  # 2. Service AI API (FastAPI - Utilisé par Vue.js via Gateway)
+  gitdock-ai-api:
+    build:
+      context: ../gitdock-ai
+      dockerfile: Dockerfile
+    container_name: gitdock-ai-api
+    restart: on-failure
+    environment:
+      - DB_HOST=gitdock-postgres
+      - CHROMA_HOST=gitdock-chromadb
+      - EUREKA_SERVER=http://host.docker.internal:8761/eureka/
+    env_file:
+      - ../gitdock-ai/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - gitdock-postgres
+      - gitdock-chromadb
+    networks:
+      - gitdock_global_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # 3. Service AI Dashboard (Streamlit - Utilisé par le Manager)
+  gitdock-ai-dashboard:
+    build:
+      context: ../gitdock-ai
+      dockerfile: Dockerfile
+    container_name: gitdock-ai-dashboard
+    # On surcharge le point d'entrée pour lancer Streamlit
+    command: streamlit run app_dashboard.py --server.port=8501 --server.address=0.0.0.0
+    restart: on-failure
+    environment:
+      - DB_HOST=gitdock-postgres
+      - CHROMA_HOST=gitdock-chromadb
+    env_file:
+      - ../gitdock-ai/.env
+    ports:
+      - "8501:8501"
+    depends_on:
+      - gitdock-postgres
+      - gitdock-chromadb
+    networks:
+      - gitdock_global_network
+
+  # --- Utilitaires ---
+  gitdock-dozzle:
+    image: amir20/dozzle:latest
+    container_name: gitdock-dozzle
+    ports:
+      - "8887:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - gitdock_global_network
+
+volumes:
+  postgres_data:
+  chromadb_data:
+
+networks:
+  gitdock_global_network:
+    name: gitdock_shared_net
+    driver: bridge

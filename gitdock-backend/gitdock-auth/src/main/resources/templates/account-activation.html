@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Activez votre compte GitDock</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            color: #2563eb;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .welcome-text {
+            font-size: 18px;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        .activation-button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .activation-button:hover {
+            background-color: #1d4ed8;
+        }
+        .info-box {
+            background-color: #f3f4f6;
+            border-left: 4px solid #2563eb;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .warning {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">🚀 GitDock</div>
+        <div class="welcome-text">Bienvenue dans l'équipe !</div>
+    </div>
+
+    <p>Bonjour <strong th:text="${FIRST_NAME} + ' ' + ${LAST_NAME}">Jean Dupont</strong>,</p>
+    <p>
+        Votre compte GitDock a été créé avec succès ! Pour commencer à
+        utiliser la plateforme, vous devez d'abord activer votre compte en
+        créant votre mot de passe.
+    </p>
+
+    <div class="info-box">
+        <strong>📋 Votre compte est actuellement :</strong>
+        <ul>
+            <li>✅ Créé et configuré</li>
+            <li>🔒 Verrouillé (en attente d'activation)</li>
+            <li>⏳ En attente de création du mot de passe</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center">
+        <a th:href="${ACTIVATION_LINK}" class="activation-button">
+            🔐 Créer mon mot de passe
+        </a>
+    </div>
+
+    <div class="warning">
+        <strong>⚠️ Important :</strong>
+        <ul>
+            <li>Ce lien d'activation expire dans 24 heures</li>
+            <li>Ne partagez pas ce lien avec d'autres personnes</li>
+            <li>Choisissez un mot de passe sécurisé</li>
+        </ul>
+    </div>
+
+    <p>
+        Une fois votre mot de passe créé, votre compte sera automatiquement
+        déverrouillé et vous pourrez vous connecter à la plateforme.
+    </p>
+
+    <p>
+        Si vous avez des questions ou besoin d'aide, n'hésitez pas à contacter
+        votre administrateur.
+    </p>
+
+    <p>
+        Cordialement,<br />
+        <strong>L'équipe GitDock</strong>
+    </p>
+
+    <div class="footer">
+        <p>
+            Cet email a été envoyé automatiquement. Merci de ne pas y répondre.
+        </p>
+        <p>© 2026 GitDock. Tous droits réservés.</p>
+    </div>
+</div>
+</body>
+</html>
