@@ -157,78 +157,6 @@ namespace backend.Migrations
                     b.ToTable("Tags");
                 });
 
-            modelBuilder.Entity("backend.Domain.UserBadge", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BadgeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("UnlockedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BadgeId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserBadges");
-                });
-
-            modelBuilder.Entity("backend.Domain.UserProgress", b =>
-                {
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<Guid>("CurrentLevelId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("TotalExperience")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("UserId");
-
-                    b.HasIndex("CurrentLevelId");
-
-                    b.ToTable("UserProgresses");
-                });
-
-            modelBuilder.Entity("backend.Domain.UserTagProgress", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("LastUpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Occurrences")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("TagId")
-                        .HasColumnType("uuid");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TagId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserTagProgresses");
-                });
-
             modelBuilder.Entity("backend.Domain.XpConfig", b =>
                 {
                     b.Property<Guid>("Id")
@@ -271,55 +199,6 @@ namespace backend.Migrations
                     b.Navigation("Tag");
                 });
 
-            modelBuilder.Entity("backend.Domain.UserBadge", b =>
-                {
-                    b.HasOne("backend.Domain.Badge", "Badge")
-                        .WithMany()
-                        .HasForeignKey("BadgeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("backend.Domain.UserProgress", "UserProgress")
-                        .WithMany("UserBadges")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Badge");
-
-                    b.Navigation("UserProgress");
-                });
-
-            modelBuilder.Entity("backend.Domain.UserProgress", b =>
-                {
-                    b.HasOne("backend.Domain.Level", "Level")
-                        .WithMany()
-                        .HasForeignKey("CurrentLevelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Level");
-                });
-
-            modelBuilder.Entity("backend.Domain.UserTagProgress", b =>
-                {
-                    b.HasOne("backend.Domain.Tag", "Tag")
-                        .WithMany()
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("backend.Domain.UserProgress", "UserProgress")
-                        .WithMany("UserTagProgresses")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tag");
-
-                    b.Navigation("UserProgress");
-                });
-
             modelBuilder.Entity("backend.Domain.Level", b =>
                 {
                     b.Navigation("LevelTagRequirements");
@@ -328,13 +207,6 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Domain.Tag", b =>
                 {
                     b.Navigation("LevelTagRequirements");
-                });
-
-            modelBuilder.Entity("backend.Domain.UserProgress", b =>
-                {
-                    b.Navigation("UserBadges");
-
-                    b.Navigation("UserTagProgresses");
                 });
 #pragma warning restore 612, 618
         }

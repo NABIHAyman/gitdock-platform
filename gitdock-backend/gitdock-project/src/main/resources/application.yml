@@ -1,5 +1,5 @@
 server:
-  port: 8083 # On utilise 8081 pour ne pas entrer en conflit avec Auth (8083)
+  port: 8083 # On utilise 8083 pour ne pas entrer en conflit avec Auth (8081)
   error:
     include-message: always
 
@@ -10,12 +10,12 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/gitdock_project
     username: postgres
-    password: postgres
+    password: ***REMOVED***
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update #update
     show-sql: true
     defer-datasource-initialization: true
     properties:
@@ -66,3 +66,5 @@ resilience4j:
         minimumNumberOfCalls: 5 # Attend au moins 5 requêtes avant de juger
         waitDurationInOpenState: 10s # Reste ouvert (bloqué) 10 secondes avant de retester
         failureRateThreshold: 50 # Si 50% des requêtes échouent, il disjoncte !
+
+

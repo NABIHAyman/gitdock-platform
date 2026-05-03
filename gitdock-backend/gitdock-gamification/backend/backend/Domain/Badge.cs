@@ -1,5 +1,4 @@
-﻿using backend.Enums;
-namespace backend.Domain
+﻿namespace backend.Domain
 {
     public class Badge
     {

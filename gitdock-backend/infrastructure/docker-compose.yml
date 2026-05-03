@@ -1,5 +1,5 @@
 services:
-  # --- Bases de Données & Infrastructure ---
+  # --- Postgres ---
   gitdock-postgres:
     image: postgres:15-alpine
     container_name: gitdock-postgres
@@ -15,12 +15,114 @@ services:
     networks:
       - gitdock_global_network
 
+  # --- PgAdmin (Port 5050) ---
+  gitdock-pgadmin:
+    image: dpage/pgadmin4:8.14
+    container_name: gitdock-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gitdock.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - gitdock-postgres
+    networks:
+      - gitdock_global_network
+
+
+  # --- MongoDB ---
+  gitdock-mongo:
+    image: mongo:6.0
+    container_name: gitdock-mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodb
+      MONGO_INITDB_ROOT_PASSWORD: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - gitdock_global_network
+
+  # --- Mongo Express (Port 8085) ---
+  gitdock-mongo-express:
+    image: mongo-express:1.0.2
+    container_name: gitdock-mongo-express
+    restart: always
+    ports:
+      - "8085:8081"
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: pass
+      ME_CONFIG_MONGODB_SERVER: gitdock-mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_MONGODB_AUTH_DATABASE: admin
+      ME_CONFIG_MONGODB_ADMINUSERNAME: mongodb
+      ME_CONFIG_MONGODB_ADMINPASSWORD: mongodb
+    depends_on:
+      - gitdock-mongo
+    networks:
+      - gitdock_global_network
+
+
+  # --- RabbitMQ ---
+  gitdock-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: gitdock-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - gitdock_global_network
+
+
+
+  # --- MySQL 8 ---
+  gitdock-mysql:
+    image: mysql:8.0
+    container_name: gitdock-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gitdock_tasks
+      MYSQL_USER: task_user
+      MYSQL_PASSWORD: ***REMOVED***
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_tasks_data:/var/lib/mysql
+    networks:
+      - gitdock_global_network
+
+  # --- PhpMyAdmin (Port 8088) ---
+  gitdock-phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: gitdock-phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: gitdock-mysql
+      PMA_PORT: 3306
+    ports:
+      - "8088:80"
+    depends_on:
+      - gitdock-mysql
+    networks:
+      - gitdock_global_network
+
+  # --- ChromaDB (Noyau Rust) ---
   gitdock-chromadb:
     image: chromadb/chroma:latest
     container_name: gitdock-chromadb
     restart: always
     ports:
-      - "8010:8000"
+      - "8000:8000"
     volumes:
       - chromadb_data:/chroma/data
     environment:
@@ -29,104 +131,46 @@ services:
     networks:
       - gitdock_global_network
 
-  gitdock-rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: gitdock-rabbitmq
+  # --- Ollama (IA Locale) ---
+  gitdock-ollama:
+    image: ollama/ollama:latest
+    container_name: gitdock-ollama
     restart: always
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
     networks:
       - gitdock_global_network
 
-  # --- Microservices Métier ---
-
-  # 1. Service Gamification (.NET 9)
-  gitdock-gamification:
-    build:
-      context: ../gitdock-gamification/backend/backend
-      dockerfile: Dockerfile
-    container_name: gitdock-gamification
-    restart: on-failure
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=gitdock-postgres;Port=5432;Database=gitdock_gamification;Username=postgres;Password=postgres
-      - RabbitMQ__HostName=gitdock-rabbitmq
-      - Eureka__Client__ServiceUrl=http://host.docker.internal:8761/eureka/
-      - Eureka__Instance__PreferIpAddress=true
-      - Eureka__Instance__Port=5292
-      - ASPNETCORE_URLS=http://+:5292
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "5292:5292"
-    depends_on:
-      - gitdock-postgres
-      - gitdock-rabbitmq
-    networks:
-      - gitdock_global_network
-
-  # 2. Service AI API (FastAPI - Utilisé par Vue.js via Gateway)
-  gitdock-ai-api:
-    build:
-      context: ../gitdock-ai
-      dockerfile: Dockerfile
-    container_name: gitdock-ai-api
-    restart: on-failure
-    environment:
-      - DB_HOST=gitdock-postgres
-      - CHROMA_HOST=gitdock-chromadb
-      - EUREKA_SERVER=http://host.docker.internal:8761/eureka/
-    env_file:
-      - ../gitdock-ai/.env
-    ports:
-      - "8000:8000"
-    depends_on:
-      - gitdock-postgres
-      - gitdock-chromadb
-    networks:
-      - gitdock_global_network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-  # 3. Service AI Dashboard (Streamlit - Utilisé par le Manager)
-  gitdock-ai-dashboard:
-    build:
-      context: ../gitdock-ai
-      dockerfile: Dockerfile
-    container_name: gitdock-ai-dashboard
-    # On surcharge le point d'entrée pour lancer Streamlit
-    command: streamlit run app_dashboard.py --server.port=8501 --server.address=0.0.0.0
-    restart: on-failure
-    environment:
-      - DB_HOST=gitdock-postgres
-      - CHROMA_HOST=gitdock-chromadb
-    env_file:
-      - ../gitdock-ai/.env
-    ports:
-      - "8501:8501"
-    depends_on:
-      - gitdock-postgres
-      - gitdock-chromadb
-    networks:
-      - gitdock_global_network
-
-  # --- Utilitaires ---
+  # --- pour afficher les logs de tous les services dans une seule interface ---
   gitdock-dozzle:
     image: amir20/dozzle:latest
     container_name: gitdock-dozzle
     ports:
       - "8887:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Donne à Dozzle le droit de lire Docker
+    restart: always
     networks:
       - gitdock_global_network
 
 volumes:
   postgres_data:
+  mongo_data:
+  mysql_tasks_data:
   chromadb_data:
+  ollama_data:
 
 networks:
   gitdock_global_network:
-    name: gitdock_shared_net
+    name: gitdock_shared_net # Un nom clair, net et précis pour toute l'équipe
     driver: bridge

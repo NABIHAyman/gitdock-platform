@@ -1,6 +1,4 @@
-﻿using backend.Enums;
-
-namespace backend.DTOs;
+﻿namespace backend.DTOs;
 
 public class BadgeResponseDto
 {
@@ -10,5 +8,5 @@ public class BadgeResponseDto
     public int Xp { get; set; }
     public string Icon { get; set; } = string.Empty;
     public string Color { get; set; } = string.Empty;
-    public BadgeType Type { get; set; } = BadgeType.Auto;
+    public string Type { get; set; } = string.Empty;
 }

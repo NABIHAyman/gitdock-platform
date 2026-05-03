@@ -1,36 +1,34 @@
-﻿using backend.Domain;
+﻿namespace backend.Mappers;
+using backend.Domain;
 using backend.DTOs;
-
-namespace backend.Mappers;
 
 public static class BadgeMapper
 {
     public static BadgeResponseDto ToDto(this Badge badge)
     {
-        if (badge == null) return null!;
         return new BadgeResponseDto
         {
             Id = badge.Id,
-            Title = badge.Title, // On utilise Title comme dans ton Domain
+            Title = badge.Title,
             Description = badge.Description,
             Xp = badge.Xp,
             Icon = badge.Icon,
             Color = badge.Color,
-            Type = badge.Type
+            Type = badge.Type.ToString() // Enum -> String
         };
     }
 
     public static Badge ToEntity(this CreateBadgeDto dto)
     {
-        if (dto == null) return null!;
         return new Badge
         {
-            Title = dto.Title, // On utilise Title comme dans ton Domain
+            Id = Guid.NewGuid(),
+            Title = dto.Title,
             Description = dto.Description,
             Xp = dto.Xp,
             Icon = dto.Icon,
             Color = dto.Color,
-            Type = dto.Type
+            Type = Enum.Parse<BadgeType>(dto.Type, true) // String -> Enum
         };
     }
 }

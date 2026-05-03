@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -16,12 +15,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -30,30 +28,48 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                // 1. Activer les CORS avec la config définie plus bas
-                .cors(Customizer.withDefaults())
 
-                // 2. Désactiver le CSRF (Cause n°1 des 403 sur les requêtes POST)
+        http
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // 3. Gestion des autorisations
-                .authorizeHttpRequests(req -> req
-                        // On autorise TOUT ce qui commence par /api/auth/ ou /auth/
-                        .requestMatchers("/auth/**", "/api/auth/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
+                .authorizeHttpRequests(auth -> auth
+
+                        // ✅ ACTUATOR FIX
+                        .requestMatchers("/actuator/**").permitAll()
+
+                        // 🔓 PUBLIC AUTH
+                        .requestMatchers(
+                                "/api/auth/authenticate",
+                                "/api/auth/register",
+                                "/api/auth/user-activation/**",
+                                "/api/auth/password-reset/**"
+                        ).permitAll()
+
+                        // 🔓 USERS
+                        .requestMatchers(
+                                "/api/users/**",
+                                "/users/**",
+                                "/api/auth/users/**"
+                        ).permitAll()
+
+                        // error
                         .requestMatchers("/error").permitAll()
-                        // Tout le reste demande un token JWT
+
+                        // 🔒 SECURED
+                        .requestMatchers("/api/auth/companies/**")
+                        .hasRole("SUPER_ADMIN")
+
                         .anyRequest().authenticated()
                 )
 
-                // 4. Mode Stateless (pas de session JSESSIONID)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 5. Stratégie d'authentification
                 .authenticationProvider(authenticationProvider)
 
-                // 6. Ajouter ton filtre JWT avant le filtre standard
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -61,17 +77,25 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        // Autoriser ton frontend
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
-        // Autoriser les méthodes standards
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        // Autoriser les headers nécessaires (dont Authorization pour le JWT)
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin"));
-        configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173"
+        ));
+
+        config.setAllowCredentials(true);
+        config.setAllowedHeaders(List.of("*"));
+
+        config.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", config);
+
         return source;
     }
 }
