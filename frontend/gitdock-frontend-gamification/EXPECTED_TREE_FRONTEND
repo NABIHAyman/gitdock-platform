@@ -1,0 +1,38 @@
+# ARBORESCENCE CIBLE POUR GITDOCK-FRONTEND
+
+```text
+gitdock-frontend/
++- .cursorignore
++- .env
++- API_CONTRACTS.md                 <-- Guide de vérité pour les routes API
++- INSTRUCTIONS_FRONTEND.md
++- EXPECTED_TREE_FRONTEND.md
++- package.json
++- docs/
+¦  +- FRONTEND_INTEGRATION_REPORT.md <-- NOUVEAU: Généré par Cursor (Mission 0)
++- src/
+   +- components/
+   ¦  +- task/                      <-- Importés de Maryam
+   ¦  +- gamification/              <-- Importés de Rihab
+   ¦  +- ...
+   +- router/
+   ¦  +- index.js                   <-- MODIFIÉ: Intègre les routes Task et Gamification
+   +- services/
+   ¦  +- api.ts                     <-- Instance Axios (VITE_API_BASE_URL, JWT via authStore)
+   ¦  +- authService.js
+   ¦  +- BadgeService.ts            <-- MODIFIÉ: Recâblé vers la Gateway (Mission 2)
+   ¦  +- LevelService.ts            <-- MODIFIÉ: Recâblé vers la Gateway
+   ¦  +- TagService.ts              <-- MODIFIÉ: Recâblé vers la Gateway
+   ¦  +- TaskService.ts             <-- NOUVEAU: Extrait des vues de Maryam (Mission 1)
+   +- stores/
+   ¦  +- authStore.js               <-- Source de vérité pour injecter le token et le userId
+   +- views/
+      +- task/                      <-- MODIFIÉ: Purgé des appels API directs (Fat Components)
+      ¦  +- AddTask.vue
+      ¦  +- DashboardTask.vue
+      ¦  +- DeleteTask.vue
+      ¦  +- UpdateTask.vue
+      ¦  +- ViewTask/TaskAll.vue
+      +- gamification/              <-- MODIFIÉ: Utilise authStore.user.id
+         +- DashboardView.vue
+         +- UserDashboardView.vue

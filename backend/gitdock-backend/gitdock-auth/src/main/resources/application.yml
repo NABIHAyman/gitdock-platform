@@ -1,0 +1,128 @@
+server:
+  # Le port d'écoute du serveur.
+  # On utilise souvent 8081 pour l'Auth Service pour laisser le 8080 à l'API Gateway ou au service principal.
+  port: 8081
+  error:
+    include-message: always
+
+spring:
+  application:
+    # Le nom du service. C'est ce nom qui apparaîtra dans Eureka et dans les logs.
+    name: gitdock-auth
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23li2o16E8oJxp6jUY
+            client-secret: ***REMOVED***
+            redirect-uri: "http://localhost:5173/oauth/callback/github"
+
+  # --- Configuration de la Base de Données (PostgreSQL) ---
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gitdock_auth
+    username: postgres
+    password: ***REMOVED***
+
+    driver-class-name: org.postgresql.Driver
+
+  # --- Configuration JPA / Hibernate ---
+  jpa:
+    hibernate:
+      # ATTENTION : 'create-drop' crée le schéma au démarrage et SUPPRIME TOUT à l'arrêt.
+      # Idéal pour le développement rapide, mais catastrophique pour la persistance à long terme.
+      # Pour garder les données, passez à 'update' ou 'validate'.
+      ddl-auto: create-drop
+
+    # Indispensable si vous utilisez un fichier data.sql pour initialiser des données :
+    # cela force Spring à attendre que les tables soient créées par Hibernate avant d'insérer les données.
+    defer-datasource-initialization: true
+
+    # Affiche les requêtes SQL dans la console (utile pour le débogage)
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true # Formate le SQL pour qu'il soit lisible
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # --- Initialisation SQL ---
+  sql:
+    init:
+      mode: always # Exécute toujours les scripts SQL d'initialisation (schema.sql / data.sql)
+
+  # --- Configuration Email (Mailtrap) ---
+  # Mailtrap est un "faux" serveur SMTP qui capture les emails pour les tests
+  # sans les envoyer aux vrais utilisateurs.
+  mail:
+    host: sandbox.smtp.mailtrap.io
+    port: 2525
+    username: ***REMOVED*** # Vos identifiants Mailtrap
+    password: ***REMOVED***
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# --- Configuration Eureka Client (Microservices) ---
+eureka:
+  client:
+    service-url:
+      # L'adresse du serveur Eureka (Discovery Service)
+      defaultZone: http://localhost:8761/eureka/
+    # Indique à ce service de s'enregistrer lui-même dans l'annuaire
+    register-with-eureka: true
+    # Permet à ce service de récupérer la liste des autres services (utile pour communiquer avec eux)
+    fetch-registry: true
+
+# --- Configuration Personnalisée (Injectée via @Value) ---
+application:
+  security:
+    jwt:
+      # La clé secrète utilisée pour signer les tokens (HMAC-SHA).
+      # Elle est injectée dans JwtService.java via @Value("${application.security.jwt.secret}")
+      secret: ***REMOVED***
+      expiration: 86400000 # 24h (en millisecondes) pour l'Access Token
+      refresh-token:
+        expiration: 604800000 # 7 jours (en millisecondes) pour le Refresh Token
+    activation:
+      token:
+        expiration: 24 # Durée de validité du lien d'activation (en heures)
+
+  mail:
+    # URL du Frontend (React/Vue/Angular) vers laquelle l'utilisateur sera redirigé depuis l'email.
+    # Le port 5173 est le port par défaut de Vite.js.
+    activation-url: http://localhost:5173/activate
+    reset-password-url: http://localhost:5173/reset-password
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+# --- Configuration des Logs ---
+logging:
+  level:
+    root: INFO
+    # Active les logs détaillés (DEBUG) pour votre propre code
+    edu.ehei.gitdock.gitdockauth: DEBUG
+    # Utile pour voir exactement quelles tables Hibernate crée ou supprime
+    org.hibernate.tool.schema: DEBUG
+
+    org.springframework.security: DEBUG
+    org.springframework.security.web: DEBUG
+    org.springframework.web: DEBUG
+  spring:
+    profiles:
+      active: docker
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info
+    endpoint:
+      health:
+        show-details: always

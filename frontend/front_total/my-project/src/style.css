@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================= DESIGN SYSTEM GITDOCK ================= */
+@layer components {
+
+  /* CARD */
+  .gd-card {
+    @apply bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm;
+  }
+
+  /* TABLE */
+  .gd-table {
+    @apply w-full text-sm;
+  }
+
+  .gd-table th {
+    @apply text-left px-6 py-3 text-gray-500 bg-gray-50 dark:bg-gray-800 font-medium;
+  }
+
+  .gd-tr {
+    @apply border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition;
+  }
+
+  /* BUTTONS */
+  .gd-btn-primary {
+    @apply bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition;
+  }
+
+  .gd-btn-secondary {
+    @apply bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg hover:opacity-80 transition;
+  }
+
+  .gd-btn-ghost {
+    @apply px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition;
+  }
+
+  /* BADGES */
+  .gd-badge {
+    @apply px-2 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-800;
+  }
+
+  .gd-badge-accent {
+    @apply px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700;
+  }
+
+  .gd-badge-success {
+    @apply px-2 py-1 text-xs rounded-full bg-green-100 text-green-700;
+  }
+
+  .gd-badge-warning {
+    @apply px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700;
+  }
+
+  .gd-badge-danger {
+    @apply px-2 py-1 text-xs rounded-full bg-red-100 text-red-700;
+  }
+  @layer components {
+
+  /* PAGE CONTAINER */
+  .gd-page {
+    @apply min-h-screen bg-surface text-text p-6;
+  }
+
+  /* HEADER */
+  .gd-header {
+    @apply flex items-center justify-between mb-6 bg-white p-5 rounded-xl shadow-sm border border-gray-100;
+  }
+
+  .gd-title {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  .gd-subtitle {
+    @apply text-sm text-muted mt-1;
+  }
+
+  /* CARD */
+  .gd-card {
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm;
+  }
+
+  .gd-card-body {
+    @apply p-5;
+  }
+
+  /* STATS GRID */
+  .gd-stats-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5;
+  }
+
+  .gd-stat {
+    @apply gd-card hover:shadow-md transition;
+  }
+
+  .gd-stat-icon {
+    @apply w-10 h-10 rounded-lg flex items-center justify-center;
+  }
+
+  .gd-stat-title {
+    @apply text-sm text-muted;
+  }
+
+  .gd-stat-value {
+    @apply text-xl font-semibold;
+  }
+
+  /* NAV CARDS */
+  .gd-nav-grid {
+    @apply grid grid-cols-2 sm:grid-cols-4 gap-4;
+  }
+
+  .gd-nav-item {
+    @apply gd-card p-4 flex flex-col items-center text-center hover:shadow-md transition;
+  }
+
+  /* BADGES */
+  .gd-badge {
+    @apply px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700;
+  }
+
+}
+
+}
