@@ -1,0 +1,43 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+
+    # =========================
+    # AUTH CLIENT
+    # =========================
+    App\Client\AuthClient:
+        arguments:
+            $authBaseUrl: '%env(AUTH_SERVICE_URL)%'
+
+    App\Client\AuthClientInterface: '@App\Client\AuthClient'
+
+    # =========================
+    # AUTH DECORATOR
+    # =========================
+    App\Client\AuthClientDecorator:
+        decorates: App\Client\AuthClient
+        arguments:
+            $client: '@App\Client\AuthClientDecorator.inner'
+
+    # =========================
+    # PROJECT CLIENT
+    # =========================
+    App\Client\ProjectClient:
+        arguments:
+            $baseUrl: '%env(PROJECT_SERVICE_URL)%'
+
+    App\Client\ProjectClientInterface: '@App\Client\ProjectClient'
+
+    # =========================
+    # PROJECT DECORATOR
+    # =========================
+    App\Client\ProjectClientDecorator:
+        decorates: App\Client\ProjectClient
+        arguments:
+            $client: '@App\Client\ProjectClientDecorator.inner'

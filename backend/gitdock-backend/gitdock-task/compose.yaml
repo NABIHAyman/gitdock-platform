@@ -1,0 +1,87 @@
+version: "3.9"
+
+services:
+
+  nginx_webserver:
+    build:
+      context: ./infra/
+      dockerfile: ./nginx/Dockerfile
+    container_name: nginx_webserver
+    ports:
+      - "80:80"
+    depends_on:
+      - php
+    networks:
+      - internal_network
+
+  php:
+    build:
+      context: ./infra/
+      dockerfile: ./php/Dockerfile
+    container_name: php_app
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - database
+    networks:
+      - internal_network
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8081
+
+  database:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: travel
+    ports:
+      - "3306:3306"
+    networks:
+      - internal_network
+
+  postgres:
+    image: postgres:16
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: gitdock_auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ***REMOVED***
+    ports:
+      - "5432:5432"
+    networks:
+      - internal_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - internal_network
+
+  auth-service:
+    build:
+      context: ../gitdock-auth
+    container_name: auth-service
+    ports:
+      - "8082:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal_network
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+networks:
+  internal_network:
+    name: gitdock_network
+    driver: bridge
