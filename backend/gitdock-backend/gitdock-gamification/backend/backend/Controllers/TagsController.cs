@@ -8,8 +8,13 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class TagsController : ControllerBase
 {
+    private readonly ITagService _tagService;
     private readonly TagService _tagService;
 
+    public TagsController(ITagService tagService)
+    {
+        _tagService = tagService;
+    }
     public TagsController(TagService tagService) => _tagService = tagService;
 
     [HttpGet]

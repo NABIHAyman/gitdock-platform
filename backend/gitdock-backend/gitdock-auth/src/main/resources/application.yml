@@ -23,8 +23,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/gitdock_auth
     username: postgres
-    password: ***REMOVED***
-
+    password: postgres
     driver-class-name: org.postgresql.Driver
 
   # --- Configuration JPA / Hibernate ---
@@ -54,17 +53,19 @@ spring:
   # --- Configuration Email (Mailtrap) ---
   # Mailtrap est un "faux" serveur SMTP qui capture les emails pour les tests
   # sans les envoyer aux vrais utilisateurs.
+  # --- Configuration Email (Gmail) ---
   mail:
-    host: sandbox.smtp.mailtrap.io
-    port: 2525
-    username: ***REMOVED*** # Vos identifiants Mailtrap
-    password: ***REMOVED***
+    host: smtp.gmail.com
+    port: 587
+    username: ***REMOVED***
+    password: ***REMOVED*** # <--- Très important !
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+            required: true
 
 # --- Configuration Eureka Client (Microservices) ---
 eureka:

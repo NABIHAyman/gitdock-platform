@@ -1,4 +1,6 @@
-﻿namespace backend.DTOs;
+using backend.Enums;
+
+namespace backend.DTOs;
 
 public class CreateBadgeDto
 {
@@ -8,4 +10,7 @@ public class CreateBadgeDto
     public string Icon { get; set; } = "mdi-trophy-outline";
     public string Color { get; set; } = "#5b13ec";
     public string Type { get; set; } = "Contribution";
+    public string Icon { get; set; } = string.Empty;
+    public string Color { get; set; } = string.Empty;
+    public BadgeType Type { get; set; } = BadgeType.Auto;
 }

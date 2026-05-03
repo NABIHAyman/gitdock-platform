@@ -1,3 +1,5 @@
+package edu.ehei.gitdock.gitdockauth.strategy.impl;
+
 package edu.ehei.gitdock.gitdockauth.strategy;
 
 import com.fasterxml.jackson.databind.JsonNode;

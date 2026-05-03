@@ -8,6 +8,10 @@ spring:
     web-application-type: reactive
   cloud:
     gateway:
+      # Supprime les headers en double (CORS) pour éviter les conflits entre Spring et .NET
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+
       discovery:
         locator:
           enabled: false
@@ -30,26 +34,31 @@ spring:
             maxAge: 3600
       # --- DEFINITION DES ROUTES ---
       routes:
+        # --- Authentication Service ---
         - id: auth-service
           uri: lb://GITDOCK-AUTH
           predicates:
             - Path=/api/auth/**
 
+        # --- Project Management Service ---
         - id: project-service
           uri: lb://GITDOCK-PROJECT
           predicates:
             - Path=/api/projects/**
 
+        # --- Git Synchronization Service ---
         - id: sync-service
           uri: lb://gitdock-sync
           predicates:
             - Path=/api/sync/**
 
+        # --- Notifications (REST & WebSocket) ---
         - id: notification-service
           uri: http://localhost:8085
           predicates:
             - Path=/api/notifications/**, /ws-notifications/**
 
+        # --- Task Management Service ---
         - id: task-service
           uri: http://localhost:8089
           predicates:
@@ -62,8 +71,14 @@ spring:
 
         - id: yam-service
           uri: http://localhost:8010
+        # --- AI Service (FastAPI / Python) ---
+        # Remis comme avant avec lb:// car il fonctionne déjà avec son IP
+        - id: ai-service
+          uri: http://localhost:8000
           predicates:
             - Path=/api/ai/**
+          filters:
+            - RewritePath=/api/ai/(?<segment>.*), /api/v1/${segment}
 
 eureka:
   client:
@@ -71,3 +86,11 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+        # --- Gamification Service (.NET 9) ---
+        # Configuration directe sur localhost pour éviter les problèmes de DNS Docker
+        - id: gamification-service
+          uri: http://localhost:5292
+          predicates:
+            - Path=/api/gamification/**
+          filters:
+            - RewritePath=/api/gamification/(?<segment>.*), /api/${segment}

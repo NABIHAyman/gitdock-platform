@@ -17,6 +17,7 @@ public class ProjectDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<Long> memberIds;
+
     private ManagerDTO manager; // Ces infos proviendront de gitdock-auth
 
     @Data
