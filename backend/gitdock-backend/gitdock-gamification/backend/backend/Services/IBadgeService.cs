@@ -10,6 +10,7 @@ public interface IBadgeService
     Task<BadgeResponseDto> CreateBadgeAsync(CreateBadgeDto dto);
     Task<bool> UpdateBadgeAsync(Guid id, CreateBadgeDto dto);
     Task<bool> DeleteBadgeAsync(Guid id);
+    Task<BadgeResponseDto> GetByIdAsync(Guid id);
 
     // La méthode nécessaire pour l'automatisme
     Task CheckAndAwardBadgesAsync(UserProgress progress);

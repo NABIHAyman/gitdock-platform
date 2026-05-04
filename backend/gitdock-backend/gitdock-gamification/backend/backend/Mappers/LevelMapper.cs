@@ -1,9 +1,16 @@
 ﻿namespace backend.Mappers;
+
 using backend.Domain;
 using backend.DTOs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public static class LevelMapper
 {
+    // =========================
+    // ENTITY -> DTO RESPONSE
+    // =========================
     public static LevelResponseDto ToDto(this Level level)
     {
         return new LevelResponseDto
@@ -12,32 +19,53 @@ public static class LevelMapper
             Name = level.Name,
             LevelRank = level.LevelRank,
             RequiredXP = level.RequiredXP,
-            // On réutilise directement AddLevelRequirementDto pour ne pas créer 50 fichiers
-            LevelTagRequirements = level.LevelTagRequirements?.Select(r => new AddLevelRequirementDto
-            {
-                TagId = r.TagId,
-                RequiredOccurrences = r.RequiredOccurrences
-            }).ToList() ?? new List<AddLevelRequirementDto>()
+            // On mappe vers la liste du DTO de réponse
+            LevelTagRequirements = level.LevelTagRequirements != null
+                ? level.LevelTagRequirements.Select(r => new AddLevelRequirementDto
+                {
+                    TagId = r.TagId,
+                    RequiredOccurrences = r.RequiredOccurrences
+                }).ToList()
+                : new List<AddLevelRequirementDto>()
         };
     }
+
+    // =========================
+    // CREATE DTO -> ENTITY
+    // =========================
     public static Level ToEntity(this CreateLevelDto dto)
     {
-        var level = new Level
+        var requirements = new List<LevelTagRequirement>();
+
+        // CORRECTION : On utilise LevelTagRequirements au lieu de Requirements
+        if (dto.LevelTagRequirements != null)
+        {
+            foreach (var r in dto.LevelTagRequirements)
+            {
+                requirements.Add(new LevelTagRequirement
+                {
+                    Id = Guid.NewGuid(),
+                    TagId = r.TagId,
+                    RequiredOccurrences = r.RequiredOccurrences
+                });
+            }
+        }
+
+        return new Level
         {
             Id = Guid.NewGuid(),
             Name = dto.Name,
             LevelRank = dto.LevelRank,
             RequiredXP = dto.RequiredXP,
-            // On mappe la liste des requirements reçue du Manager
-            LevelTagRequirements = dto.Requirements.Select(r => new LevelTagRequirement
-            {
-                TagId = r.TagId,
-                RequiredOccurrences = r.RequiredOccurrences
-                // Le LevelId sera lié automatiquement par Entity Framework
-            }).ToList()
+            LevelTagRequirements = requirements,
+            CreatedAt = DateTime.UtcNow,
+            IsDeleted = false
         };
-        return level;
     }
+
+    // =========================
+    // UPDATE SAFE (MAP)
+    // =========================
     public static void MapUpdate(this Level level, CreateLevelDto dto)
     {
         level.Name = dto.Name;
@@ -45,15 +73,23 @@ public static class LevelMapper
         level.RequiredXP = dto.RequiredXP;
         level.UpdatedAt = DateTime.UtcNow;
 
-        // Mise à jour des Requirements : on remplace l'ancienne liste
+        // On nettoie la collection pour que EF gère le remplacement proprement
+        level.LevelTagRequirements ??= new List<LevelTagRequirement>();
         level.LevelTagRequirements.Clear();
-        foreach (var req in dto.Requirements)
+
+        // CORRECTION : On utilise LevelTagRequirements au lieu de Requirements
+        if (dto.LevelTagRequirements != null)
         {
-            level.LevelTagRequirements.Add(new LevelTagRequirement
+            foreach (var req in dto.LevelTagRequirements)
             {
-                TagId = req.TagId,
-                RequiredOccurrences = req.RequiredOccurrences
-            });
+                level.LevelTagRequirements.Add(new LevelTagRequirement
+                {
+                    Id = Guid.NewGuid(),
+                    LevelId = level.Id,
+                    TagId = req.TagId,
+                    RequiredOccurrences = req.RequiredOccurrences
+                });
+            }
         }
     }
 }

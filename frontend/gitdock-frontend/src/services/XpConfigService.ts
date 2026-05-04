@@ -1,31 +1,16 @@
-import api from './api';
+// XpConfigService.ts
+import axios from 'axios';
 
-// Résout TS2305 & TS2352 : On ajoute tous les champs nécessaires
-export interface XpConfigDTO {
-  id?: number;
-  level: number;
-  xpRequired: number;
-  commitXp: number;   // Ajouté pour correspondre à ton objet
-  prXp: number;       // Ajouté
-  bugFixXp: number;   // Ajouté
-  description?: string;
-}
-
+// On crée une instance locale ou on utilise l'URL en dur pour tester
 export const xpConfigService = {
-  async getAll() {
-    const response = await api.get('/xp-configs');
+  async get() {
+    // On tape directement sur le port du microservice
+    const response = await axios.get('http://localhost:5292/api/XpConfig');
     return response.data;
   },
 
-  // Résout TS2554 : On s'assure que 'id' est bien attendu
-  async get(id: number) {
-    const response = await api.get(`/xp-configs/${id}`);
-    return response.data;
-  },
-
-  // Résout TS2554 : On attend l'id ET les données
-  async update(id: number, data: XpConfigDTO) {
-    const response = await api.put(`/xp-configs/${id}`, data);
+  async update(data: any) {
+    const response = await axios.put('http://localhost:5292/api/XpConfig', data);
     return response.data;
   }
 };

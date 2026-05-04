@@ -13,6 +13,7 @@ using backend.Clients;
 using MassTransit;
 using backend.Messaging.Consumers;
 using backend.Messaging.Producers;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,7 @@ builder.Services.AddAuthentication(options =>
 // --- 2. CONFIGURATION MASSTRANSIT & RABBITMQ ---
 builder.Services.AddMassTransit(x =>
 {
+    // Ajout de tous tes consommateurs
     x.AddConsumer<UserCreatedConsumer>();
     x.AddConsumer<GamificationConsumer>();
     x.AddConsumer<PullRequestMergedConsumer>();
@@ -56,13 +58,33 @@ builder.Services.AddMassTransit(x =>
             h.Password("guest");
         });
 
+        // CORRECTIF CRITIQUE : Accepter les messages JSON bruts sans enveloppe MassTransit
+        // C'est ce qui règle l'erreur "Value cannot be null. (Parameter 'envelope')"
+        cfg.UseRawJsonSerializer();
+
+        // Endpoint pour la création d'utilisateur
         cfg.ReceiveEndpoint("user-created-event-queue", e =>
         {
             e.ConfigureConsumer<UserCreatedConsumer>(context);
         });
 
+        // ENDPOINT PRINCIPAL POUR LA GAMIFICATION
         cfg.ReceiveEndpoint("gamification-events-queue", e =>
         {
+            // Liaison avec l'exchange de ton service Java
+            e.Bind("gitdock.exchange", s =>
+            {
+                s.RoutingKey = "commit.saved.event";
+                s.ExchangeType = "topic";
+            });
+
+            e.Bind("gitdock.exchange", s =>
+            {
+                s.RoutingKey = "pr.merged.event";
+                s.ExchangeType = "topic";
+            });
+
+            // Configuration des consommateurs sur cette queue
             e.ConfigureConsumer<GamificationConsumer>(context);
             e.ConfigureConsumer<PullRequestMergedConsumer>(context);
             e.ConfigureConsumer<BugFixedConsumer>(context);
@@ -109,14 +131,15 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowVueApp", policy => {
-        policy.WithOrigins("http://localhost:5173") // Ton front-end
+        policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // Important pour le passage des tokens/session
+              .AllowCredentials();
     });
 });
 
@@ -130,7 +153,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 // --- 5. PIPELINE HTTP ---
 var app = builder.Build();
 
-// Intercepteur d'erreurs pour le débuggage
+// Intercepteur d'erreurs pour le débuggage console
 app.Use(async (context, next) => {
      try {
          await next();
@@ -140,13 +163,12 @@ app.Use(async (context, next) => {
          Console.WriteLine($"!!! ERREUR DÉTECTÉE : {ex.Message}");
          if (ex.InnerException != null)
              Console.WriteLine($"!!! CAUSE INTERNE : {ex.InnerException.Message}");
-         Console.WriteLine($"!!! STACKTRACE : {ex.StackTrace}");
          Console.WriteLine("###############################################");
          throw;
      }
  });
 
-app.UseCors("AllowVueApp"); // Utilise le même nom que la police définie plus haut
+app.UseCors("AllowVueApp");
 
 if (app.Environment.IsDevelopment())
 {
@@ -162,7 +184,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Migration automatique
+// Migration automatique au démarrage
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

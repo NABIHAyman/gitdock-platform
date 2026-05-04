@@ -43,8 +43,8 @@ public class TagService : ITagService
         var tag = await _tagRepository.GetByIdAsync(id);
         if (tag == null) return false;
 
-        tag.IsDeleted = true; // Soft Delete
-        await _tagRepository.SaveChangesAsync();
+        tag.IsDeleted = true;
+        await _tagRepository.SaveChangesAsync(); // Repository gère le SaveChanges
         return true;
     }
 }

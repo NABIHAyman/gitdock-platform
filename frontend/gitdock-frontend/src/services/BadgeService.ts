@@ -11,27 +11,25 @@ export interface Badge {
     type: string;
 }
 
+// Modification dans @/services/BadgeService.ts
 export const badgeService = {
-    // Récupérer tous les badges
     async getAll(): Promise<Badge[]> {
-        const response = await api.get('/badges')
+        // Ajout du préfixe /gamification pour passer la Gateway
+        const response = await api.get('/gamification/badges')
         return response.data
     },
 
-    // Créer un badge
     async create(badge: Badge): Promise<Badge> {
-        const response = await api.post('/badges', badge)
+        const response = await api.post('/gamification/badges', badge)
         return response.data
     },
 
-    // Mettre à jour un badge
     async update(id: string, badge: Badge): Promise<Badge> {
-        const response = await api.put(`/badges/${id}`, badge)
+        const response = await api.put(`/gamification/badges/${id}`, badge)
         return response.data
     },
 
-    // Supprimer un badge
     async delete(id: string): Promise<void> {
-        await api.delete(`/badges/${id}`)
+        await api.delete(`/gamification/badges/${id}`)
     }
 };

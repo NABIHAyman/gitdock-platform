@@ -1,40 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { levelService } from '@/services/LevelService'
+import { ref, computed, onMounted } from 'vue'
+import { levelService, type CreateLevelDto, type LevelResponseDto } from '@/services/LevelService'
 import { tagService, type Tag } from '@/services/TagService'
 
-// --- STATES ---
-const levels = ref<any[]>([])
+// --- ÉTATS ---
+const levels = ref<LevelResponseDto[]>([])
 const tags = ref<Tag[]>([])
 const loading = ref(true)
 const showForm = ref(false)
 const isEditing = ref(false)
 const currentLevelId = ref<string | null>(null)
 
-// --- NOTIFICATION SYSTEM ---
-const snackbar = ref(false)
-const snackMessage = ref('')
-const snackColor = ref('success')
+// --- NOTIFICATIONS & DIALOGUES ---
+const snackbar = ref({ show: false, message: '', color: 'success' })
+const confirmDialog = ref({ show: false, levelId: null as string | null })
 
-const showNotify = (message: string, color: string = 'success') => {
-  snackMessage.value = message
-  snackColor.value = color
-  snackbar.value = true
+const showNotify = (msg: string, color: string = 'success') => {
+  snackbar.value = { show: true, message: msg, color: color }
 }
-
-// --- DELETE CONFIRMATION DIALOG STATE ---
-const confirmDialog = ref(false)
-const levelToDeleteId = ref<string | null>(null)
 
 // --- FORM STRUCTURE ---
 const form = ref({
   name: '',
   levelRank: 1,
-  requiredXP: 100,
-  items: [] as any[]
+  requiredXP: 1000,
+  items: [] as { tagId: string; requiredOccurrences: number }[]
 })
 
-// --- DATA FETCHING ---
+// --- LOGIQUE DATA ---
 const fetchData = async () => {
   loading.value = true
   try {
@@ -45,16 +38,14 @@ const fetchData = async () => {
     tags.value = tagsData
     levels.value = levelsData
   } catch (error) {
-    console.error("Loading error", error)
-    showNotify("Failed to synchronize progression data.", "error")
+    showNotify('Erreur de synchronisation', 'error')
   } finally {
     loading.value = false
   }
 }
 
-onMounted(fetchData)
+const getTag = (tagId: string) => tags.value.find(t => t.id === tagId)
 
-// --- TAG REQUIREMENTS LOGIC ---
 const addRequirement = () => {
   form.value.items.push({ tagId: '', requiredOccurrences: 1 })
 }
@@ -63,54 +54,47 @@ const removeRequirement = (index: number) => {
   form.value.items.splice(index, 1)
 }
 
-// --- SAVE ACTIONS ---
+// --- ACTIONS ---
 const saveLevel = async () => {
+  if (!form.value.name) return
+
+  const payload: CreateLevelDto = {
+    name: form.value.name,
+    levelRank: form.value.levelRank,
+    requiredXP: form.value.requiredXP,
+    levelTagRequirements: form.value.items
+        .filter(r => r.tagId !== '')
+        .map(r => ({
+          tagId: r.tagId,
+          requiredOccurrences: r.requiredOccurrences
+        }))
+  }
+
   try {
-    const payload = {
-      name: form.value.name,
-      levelRank: form.value.levelRank,
-      requiredXP: form.value.requiredXP,
-      requirements: form.value.items
-          .filter(r => r.tagId !== '')
-          .map(r => ({
-            tagId: r.tagId,
-            requiredOccurrences: r.requiredOccurrences
-          }))
-    }
-
     if (isEditing.value && currentLevelId.value) {
-      await levelService.update(currentLevelId.value, payload as any)
-      showNotify("Progression level updated successfully.")
+      await levelService.update(currentLevelId.value, payload)
+      showNotify('Palier mis à jour')
     } else {
-      await levelService.create(payload as any)
-      showNotify("New progression level deployed.")
+      await levelService.create(payload)
+      showNotify('Nouveau palier créé')
     }
-
     await fetchData()
     closeForm()
-  } catch (error: any) {
-    showNotify("API Error: Check console for details.", "error")
+  } catch (error) {
+    showNotify('Erreur lors de l\'enregistrement', 'error')
   }
 }
 
-// --- DELETE LOGIC ---
-const openConfirmDialog = (id: string) => {
-  levelToDeleteId.value = id
-  confirmDialog.value = true
-}
-
-const confirmDeleteLevel = async () => {
-  confirmDialog.value = false
-  if (levelToDeleteId.value) {
-    try {
-      await levelService.delete(levelToDeleteId.value)
-      await fetchData()
-      showNotify("Level successfully removed from path.")
-    } catch (error) {
-      showNotify("Error during level deletion.", "error")
-    } finally {
-      levelToDeleteId.value = null
-    }
+const executeDelete = async () => {
+  if (!confirmDialog.value.levelId) return
+  try {
+    await levelService.delete(confirmDialog.value.levelId)
+    showNotify('Niveau supprimé', 'info')
+    await fetchData()
+  } catch (error) {
+    showNotify('Échec de la suppression', 'error')
+  } finally {
+    confirmDialog.value.show = false
   }
 }
 
@@ -118,183 +102,149 @@ const confirmDeleteLevel = async () => {
 const openCreateForm = () => {
   isEditing.value = false
   currentLevelId.value = null
-  form.value = {
-    name: '',
-    levelRank: levels.value.length + 1,
-    requiredXP: 1000,
-    items: []
-  }
+  form.value = { name: '', levelRank: levels.value.length + 1, requiredXP: 1000, items: [] }
   showForm.value = true
 }
 
-const openEditForm = (level: any) => {
+const openEditForm = (level: LevelResponseDto) => {
   isEditing.value = true
   currentLevelId.value = level.id
   form.value = {
     name: level.name,
     levelRank: level.levelRank,
     requiredXP: level.requiredXP,
-    items: level.levelTagRequirements ? level.levelTagRequirements.map((r: any) => ({
-      tagId: r.tagId,
-      requiredOccurrences: r.requiredOccurrences
-    })) : []
+    items: level.levelTagRequirements ? level.levelTagRequirements.map(r => ({ ...r })) : []
   }
   showForm.value = true
 }
 
-const closeForm = () => {
-  showForm.value = false
-  isEditing.value = false
-  currentLevelId.value = null
-}
+const closeForm = () => { showForm.value = false }
+const maxRank = computed(() => levels.value.reduce((max, l) => Math.max(max, l.levelRank || 0), 0))
 
-const getTagName = (tagId: string) => {
-  const tag = tags.value.find(t => t.id === tagId)
-  return tag ? tag.name : 'Unknown'
-}
+onMounted(fetchData)
 </script>
 
 <template>
-  <div class="flex flex-col h-full overflow-hidden bg-slate-50/30">
+  <div class="flex flex-col h-full bg-slate-50 overflow-hidden">
+    <!-- HEADER -->
+    <header v-if="!showForm" class="h-16 bg-white border-b flex items-center gap-3 px-8 shrink-0">
+      <h2 class="text-lg font-bold text-slate-800">Progression Path</h2>
 
-    <header v-if="!showForm" class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-10">
-      <h2 class="text-xl font-bold tracking-tight text-slate-900">Progression Path</h2>
-      <v-btn @click="openCreateForm" color="#5b13ec" class="text-none rounded-xl font-bold px-5 text-white" elevation="0" height="44">
-        <v-icon start icon="mdi-plus"></v-icon> Add New Level
+      <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 ml-auto mr-3">
+        <v-icon icon="mdi-stairs-up" color="#5b13ec" size="15"></v-icon>
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Total</span>
+        <span class="text-sm font-black text-slate-800">{{ levels.length }}</span>
+        <span class="w-px h-4 bg-slate-200 mx-1"></span>
+        <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">MAX LVL {{ maxRank }}</span>
+      </div>
+
+      <v-btn @click="openCreateForm" color="#5b13ec" class="text-none rounded-lg font-bold text-white px-5" elevation="0" height="38">
+        <v-icon icon="mdi-plus" class="mr-1" size="18"></v-icon> Nouveau Niveau
       </v-btn>
     </header>
 
-    <div class="flex-1 overflow-y-auto relative">
-      <div v-if="!showForm" class="p-8 pb-40">
-        <div v-if="loading" class="flex justify-center p-20">
-          <v-progress-circular indeterminate color="#5b13ec"></v-progress-circular>
-        </div>
+    <div class="flex-1 overflow-y-auto p-6 relative">
+      <v-progress-linear v-if="loading" indeterminate color="#5b13ec" absolute top></v-progress-linear>
 
-        <div v-else class="max-w-4xl mx-auto space-y-4">
-          <div v-for="level in levels" :key="level.id"
-               class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm flex items-center justify-between relative group hover:shadow-md transition-all">
+      <!-- AFFICHAGE EN LISTE (L'UN SOUS L'AUTRE) -->
+      <div v-if="!showForm" class="max-w-4xl mx-auto space-y-3">
+        <div v-for="level in levels" :key="level.id"
+             class="bg-white border border-slate-200 rounded-2xl p-5 flex items-center justify-between group hover:border-[#5b13ec]/30 transition-all shadow-sm">
 
-            <div class="absolute top-4 right-8 flex gap-1">
-              <button @click="openEditForm(level)" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-[#5b13ec] flex items-center justify-center border border-slate-100 transition-colors">
-                <v-icon icon="mdi-pencil" size="16"></v-icon>
-              </button>
-              <button @click="openConfirmDialog(level.id!)" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-red-600 flex items-center justify-center border border-slate-100 transition-colors">
-                <v-icon icon="mdi-delete" size="16"></v-icon>
-              </button>
+          <div class="flex items-center gap-5">
+            <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
+              <span class="text-lg font-black text-[#5b13ec]">{{ level.levelRank }}</span>
             </div>
-
-            <div class="flex items-center gap-6">
-              <div class="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center border border-slate-100 shadow-inner">
-                <span class="text-2xl font-black text-[#5b13ec]">{{ level.levelRank }}</span>
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-slate-900">{{ level.name }}</h3>
-                <div class="flex items-center gap-2">
-                  <v-icon icon="mdi-lightning-bolt" size="16" class="text-amber-500"></v-icon>
-                  <p class="text-sm text-slate-400 font-bold uppercase tracking-tight">Required: {{ level.requiredXP }} XP</p>
-                </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-800">{{ level.name }}</h3>
+              <div class="flex items-center gap-1.5">
+                <v-icon icon="mdi-lightning-bolt" size="14" class="text-amber-500"></v-icon>
+                <p class="text-[11px] text-slate-400 font-bold uppercase">{{ level.requiredXP }} XP</p>
               </div>
             </div>
+          </div>
 
-            <div class="flex flex-wrap gap-2 justify-end max-w-md">
-               <span v-for="req in level.levelTagRequirements" :key="req.tagId"
-                     class="bg-[#5b13ec]/5 text-[#5b13ec] px-4 py-2 rounded-xl text-[10px] font-black border border-[#5b13ec]/10 uppercase tracking-tight">
-                 {{ getTagName(req.tagId) }} x{{ req.requiredOccurrences }}
-               </span>
-            </div>
+          <!-- Tags Requirements -->
+          <div class="flex flex-wrap gap-1.5 justify-end max-w-md">
+            <span v-for="(req, index) in level.levelTagRequirements" :key="index"
+                  :style="{ backgroundColor: getTag(req.tagId)?.color + '10', color: getTag(req.tagId)?.color, borderColor: getTag(req.tagId)?.color + '20' }"
+                  class="px-2.5 py-1 rounded-lg text-[9px] font-black border uppercase">
+              {{ getTag(req.tagId)?.name || 'Unknown' }} x{{ req.requiredOccurrences }}
+            </span>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-1 ml-6 border-l pl-4">
+            <button @click="openEditForm(level)" class="w-8 h-8 rounded-lg text-slate-400 hover:text-[#5b13ec] hover:bg-indigo-50 transition-all">
+              <v-icon icon="mdi-pencil" size="16"></v-icon>
+            </button>
+            <!-- Bouton Corbeille en ROUGE -->
+            <button @click="confirmDialog = { show: true, levelId: level.id! }"
+                    class="w-8 h-8 rounded-lg text-red-500 opacity-30 group-hover:opacity-100 hover:bg-red-50 transition-all">
+              <v-icon icon="mdi-delete" size="16"></v-icon>
+            </button>
           </div>
         </div>
       </div>
 
-      <div v-else class="h-full flex items-center justify-center p-8 bg-slate-50/50 backdrop-blur-sm animate-fade-in">
-        <div class="w-full max-w-3xl bg-white border border-slate-200 rounded-[3rem] p-12 shadow-2xl relative overflow-hidden overflow-y-auto max-h-[90vh]">
-          <div class="absolute top-0 left-0 w-3 h-full bg-[#5b13ec]"></div>
+      <!-- FORMULAIRE (STYLE TAG COMPACT) -->
+      <div v-else class="h-full flex items-center justify-center py-4">
+        <div class="w-full max-w-lg bg-white border rounded-[1.5rem] p-8 shadow-2xl relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-1 bg-[#5b13ec]"></div>
+          <h3 class="text-lg font-bold mb-6 text-slate-800">{{ isEditing ? 'Modifier le Palier' : 'Nouveau Palier' }}</h3>
 
-          <div class="flex justify-between items-start mb-10">
+          <div class="space-y-5">
+            <div class="flex gap-3">
+              <v-text-field v-model="form.name" label="Nom du Niveau" variant="outlined" rounded="lg" hide-details density="compact" class="flex-[2]"></v-text-field>
+              <v-text-field v-model.number="form.levelRank" type="number" label="Rang" variant="outlined" rounded="lg" hide-details density="compact" class="flex-1"></v-text-field>
+            </div>
+
+            <v-text-field v-model.number="form.requiredXP" type="number" label="XP Requis" variant="outlined" rounded="lg" hide-details density="compact" prepend-inner-icon="mdi-lightning-bolt"></v-text-field>
+
             <div>
-              <h3 class="text-3xl font-black tracking-tight text-slate-900">{{ isEditing ? 'Edit Level' : 'New Level' }}</h3>
-              <p class="text-slate-400 font-medium mt-1">Configure progression thresholds and milestones</p>
-            </div>
-            <v-btn icon="mdi-close" variant="tonal" @click="closeForm" rounded="xl"></v-btn>
-          </div>
-
-          <div class="space-y-6">
-            <div class="grid grid-cols-2 gap-6">
-              <v-text-field v-model="form.name" label="Level Name" variant="solo" bg-color="slate-50" rounded="xl" flat border hide-details></v-text-field>
-              <v-text-field v-model.number="form.levelRank" type="number" label="Rank Order" variant="solo" bg-color="slate-50" rounded="xl" flat border hide-details></v-text-field>
-            </div>
-
-            <v-text-field v-model.number="form.requiredXP" type="number" label="Required XP" variant="solo" bg-color="slate-50" rounded="xl" flat border hide-details prepend-inner-icon="mdi-lightning-bolt"></v-text-field>
-
-            <div class="mt-8">
-              <div class="flex items-center justify-between mb-4">
-                <p class="text-[11px] font-black uppercase text-slate-400 ml-1 tracking-widest">Tag Milestone Requirements</p>
-                <v-btn @click="addRequirement" size="small" variant="text" color="#5b13ec" class="font-bold text-none">
-                  <v-icon start icon="mdi-plus-circle-outline"></v-icon> Add Requirement
-                </v-btn>
+              <div class="flex items-center justify-between mb-2">
+                <p class="text-[10px] font-bold uppercase text-slate-400">Pré-requis par Tag</p>
+                <button @click="addRequirement" class="text-[10px] font-bold text-[#5b13ec] hover:underline">+ AJOUTER</button>
               </div>
-
-              <div class="space-y-3">
-                <div v-for="(req, index) in form.items" :key="index"
-                     class="flex gap-4 bg-slate-50 p-3 rounded-2xl border border-slate-100 items-center animate-fade-in">
-                  <v-select
-                      v-model="req.tagId"
-                      :items="tags"
-                      item-title="name"
-                      item-value="id"
-                      label="Select Tag"
-                      variant="solo" flat rounded="lg" hide-details class="flex-1"
-                  ></v-select>
-                  <v-text-field v-model.number="req.requiredOccurrences" type="number" label="Qty" variant="solo" flat rounded="lg" hide-details class="w-28 text-center"></v-text-field>
-                  <v-btn @click="removeRequirement(index)" icon="mdi-trash-can-outline" variant="text" color="red-lighten-2" density="comfortable"></v-btn>
+              <div class="bg-slate-50 rounded-xl border p-2 space-y-2 max-h-44 overflow-y-auto custom-scroll">
+                <div v-for="(req, index) in form.items" :key="index" class="flex gap-2 bg-white p-2 rounded-lg border border-slate-100 items-center shadow-sm">
+                  <v-select v-model="req.tagId" :items="tags" item-title="name" item-value="id" placeholder="Tag" variant="plain" hide-details density="compact" class="text-xs"></v-select>
+                  <input v-model.number="req.requiredOccurrences" type="number" class="w-10 text-center text-xs font-bold bg-slate-50 rounded py-1 outline-none" />
+                  <v-btn @click="removeRequirement(index)" icon="mdi-close" variant="text" color="red-lighten-2" size="small" density="comfortable"></v-btn>
                 </div>
+                <div v-if="form.items.length === 0" class="text-center py-4 text-[11px] text-slate-400 italic">Aucun tag requis</div>
               </div>
             </div>
 
-            <div class="pt-8 flex gap-4">
-              <v-btn @click="closeForm" variant="text" class="text-none rounded-2xl font-bold px-8 text-slate-400" height="64">Cancel</v-btn>
-              <v-btn @click="saveLevel" color="#5b13ec" class="text-none rounded-2xl font-bold px-10 text-white flex-1 shadow-lg" height="64" elevation="0">
-                {{ isEditing ? 'Update Level' : 'Deploy Level' }}
-              </v-btn>
+            <div class="flex gap-2 pt-4">
+              <v-btn @click="closeForm" variant="text" class="flex-1 text-none font-bold">Annuler</v-btn>
+              <v-btn @click="saveLevel" color="#5b13ec" class="flex-1 text-white font-bold text-none" elevation="0">Confirmer</v-btn>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <v-dialog v-model="confirmDialog" max-width="500">
-      <div class="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-3 h-full bg-red-500"></div>
-        <div class="flex flex-col items-center text-center">
-          <div class="w-20 h-20 bg-red-100 rounded-3xl flex items-center justify-center mb-8 border border-red-200 shadow-inner">
-            <v-icon icon="mdi-alert-octagon-outline" size="40" class="text-red-600"></v-icon>
-          </div>
-          <h3 class="text-3xl font-black tracking-tight text-slate-900 mb-3">Delete Level?</h3>
-          <p class="text-slate-500 font-medium mb-12 max-w-sm leading-relaxed">Are you sure you want to remove this level? <br> User progression paths might be affected.</p>
-        </div>
-        <div class="flex gap-4">
-          <v-btn variant="text" @click="confirmDialog = false" class="text-none rounded-2xl font-bold px-8 text-slate-400" height="64">Cancel</v-btn>
-          <v-btn @click="confirmDeleteLevel" color="#ef4444" class="text-none rounded-2xl font-bold px-10 text-white flex-1 shadow-lg" height="64" elevation="0">Confirm Delete</v-btn>
-        </div>
-      </div>
+    <!-- DIALOGUE SUPPRESSION -->
+    <v-dialog v-model="confirmDialog.show" max-width="450">
+      <v-card class="rounded-[1.5rem] p-4">
+        <v-card-title class="text-xl font-bold pt-4 px-6 text-red-600">Supprimer le niveau ?</v-card-title>
+        <v-card-text class="px-6 py-4 text-slate-500 text-sm">Action irréversible.</v-card-text>
+        <v-card-actions class="px-6 pb-6 pt-2 flex justify-end gap-3">
+          <v-btn variant="tonal" @click="confirmDialog.show = false">Annuler</v-btn>
+          <v-btn color="#ef4444" class="text-white font-bold" @click="executeDelete">Supprimer</v-btn>
+        </v-card-actions>
+      </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar" :color="snackColor" :timeout="3000" location="top" variant="flat" rounded="xl" elevation="12" class="mt-4">
-      <div class="flex items-center justify-center gap-3 w-full">
-        <v-icon :icon="snackColor === 'success' ? 'mdi-check-circle' : 'mdi-alert-circle'" color="white" size="22"></v-icon>
-        <span class="font-bold text-white">{{ snackMessage }}</span>
-      </div>
-      <template v-slot:actions>
-        <v-btn variant="text" @click="snackbar = false" icon="mdi-close" color="white" size="small"></v-btn>
-      </template>
+    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" rounded="pill">
+      <div class="text-center font-bold text-xs">{{ snackbar.message }}</div>
     </v-snackbar>
-
   </div>
 </template>
 
 <style scoped>
-:deep(.v-field) { border: 1px solid #f1f5f9 !important; }
-.animate-fade-in { animation: fadeIn 0.3s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-::-webkit-scrollbar { width: 0px; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+.custom-scroll::-webkit-scrollbar { width: 4px; }
 </style>

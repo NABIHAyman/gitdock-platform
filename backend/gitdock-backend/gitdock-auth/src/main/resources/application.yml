@@ -58,7 +58,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: ***REMOVED***
-    password: ***REMOVED*** # <--- Très important !
+    password: ***REMOVED***    # <--- Très important !
     properties:
       mail:
         smtp:

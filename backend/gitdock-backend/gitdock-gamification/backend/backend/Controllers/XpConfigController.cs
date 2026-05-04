@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization; // <--- C'est cette ligne qui manque !
 
 namespace backend.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     //[AllowAnonymous]

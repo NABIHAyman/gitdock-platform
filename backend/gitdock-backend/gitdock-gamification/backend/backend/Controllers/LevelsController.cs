@@ -1,9 +1,6 @@
-﻿using backend.Domain;
-using backend.DTOs;
-using backend.Mappers; // Très important pour utiliser .ToDto()
+﻿using backend.DTOs;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
@@ -13,42 +10,38 @@ public class LevelsController : ControllerBase
 {
     private readonly ILevelService _levelService;
 
-    public LevelsController(ILevelService levelService)
-    {
-        _levelService = levelService;
-    }
+    public LevelsController(ILevelService levelService) => _levelService = levelService;
+
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll() => Ok(await _levelService.GetAllWithRequirementsAsync());
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await _levelService.GetAllWithRequirementsAsync();
-        return Ok(result);
+        var level = await _levelService.GetByIdAsync(id);
+        if (level == null)
+            return NotFound(new { message = $"Le niveau avec l'ID {id} n'existe pas." });
+        return Ok(level);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(CreateLevelDto dto)
+    public async Task<IActionResult> Create([FromBody] CreateLevelDto dto)
     {
         var result = await _levelService.CreateLevelAsync(dto);
-        return CreatedAtAction(nameof(GetAll), new { id = result.Id }, result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
+
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(string id, [FromBody] CreateLevelDto dto)
+    public async Task<IActionResult> Update(Guid id, [FromBody] CreateLevelDto dto)
     {
-        // Ajoute un point d'arrêt (F9) sur la ligne en dessous
-        if (!Guid.TryParse(id, out var guidId))
-        {
-            return BadRequest("L'ID n'est pas un GUID valide.");
-        }
-
-        var success = await _levelService.UpdateLevelAsync(guidId, dto);
-        if (!success) return NotFound();
-
-        return NoContent();
+        var success = await _levelService.UpdateLevelAsync(id, dto);
+        return success ? NoContent() : NotFound();
     }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _levelService.DeleteLevelAsync(id);
-        if (!deleted) return NotFound();
-        return NoContent(); // Code 204 : succès sans contenu
+        var success = await _levelService.DeleteLevelAsync(id);
+        return success ? NoContent() : NotFound();
     }
 }

@@ -31,7 +31,7 @@ export const authService = {
      * URL complète : /api/auth/user-activation/confirm
      */
     async activateAccount(data: { token: string; password: string; confirmPassword?: string }) {
-        const response = await api.post('/auth/user-activation/confirm', data)
+        const response = await api.post('/auth/user-activation/accept-invitation', data)
         return response.data
     },
 
@@ -69,5 +69,10 @@ export const authService = {
     async resetPassword(token: string, password: string) {
         const response = await api.post('/auth/reset-password', { token, password })
         return response.data
-    }
+    },
+
+    async acceptInvitation(data: { token: string; password: string; confirmPassword: string }) {
+        const response = await api.post('/auth/user-activation/accept-invitation', data)
+        return response.data
+    },
 }

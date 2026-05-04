@@ -1,16 +1,19 @@
 namespace backend.Messaging.Events;
+using System.Text.Json.Serialization;
 
 public class CommitSavedEvent
 {
-    // L'identifiant unique de l'utilisateur (relié à GitDock-Auth)
-    public long UserId { get; set; }
+    // Doit matcher 'authorUserId' du DTO Java
+    [JsonPropertyName("authorUserId")]
+    public long AuthorUserId { get; set; }
 
-    // Le message du commit (ex: "feat: add login safety")
-    public string Message { get; set; } = string.Empty;
+    // Doit matcher 'hash' du DTO Java
+    public string Hash { get; set; }
 
-    // Le hash du commit (facultatif, mais utile pour l'unicité)
-    public string CommitHash { get; set; } = string.Empty;
+    // Doit matcher 'projectId' du DTO Java
+    public long ProjectId { get; set; }
 
-    // La date à laquelle le commit a été enregistré
-    public DateTime PushedAt { get; set; }
+    // Optionnels mais utiles
+    public int Additions { get; set; }
+    public int Deletions { get; set; }
 }

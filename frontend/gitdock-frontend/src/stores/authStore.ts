@@ -64,17 +64,18 @@ export const useAuthStore = defineStore('auth', () => {
 
     const activateInvitedAccount = async (inviteToken: string, password: string) => {
         try {
-            // On appelle la fonction correcte : 'activateAccount'
-            await authService.activateAccount({
+            await authService.acceptInvitation({
                 token: inviteToken,
-                password: password
+                password: password,
+                confirmPassword: password
             })
             const notificationStore = useNotificationStore()
             notificationStore.success("Compte activé avec succès !")
-            await router.push('/login')
+            setTimeout(async () => await router.push('/login'), 2000)
         } catch (error) {
             const notificationStore = useNotificationStore()
             notificationStore.error("Erreur d'activation")
+            throw error
         }
     }
 

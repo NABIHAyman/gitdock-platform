@@ -94,4 +94,10 @@ public class BadgeService : IBadgeService
         // On n'oublie pas de sauver les nouveaux badges attribués !
         await _userBadgeRepository.SaveChangesAsync();
     }
+    public async Task<BadgeResponseDto> GetByIdAsync(Guid id)
+    {
+        // Utilise _repository (le nom défini dans ton constructeur)
+        var badge = await _repository.GetByIdAsync(id);
+        return badge != null ? badge.ToDto() : null;
+    }
 }

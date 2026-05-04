@@ -7,5 +7,5 @@ public class CreateLevelDto
     public int RequiredXP { get; set; }
 
     // Le manager envoie aussi les pré-requis ici
-    public List<AddLevelRequirementDto> Requirements { get; set; } = new();
+    public List<AddLevelRequirementDto> LevelTagRequirements { get; set; } = new();
 }

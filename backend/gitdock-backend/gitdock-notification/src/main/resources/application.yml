@@ -32,16 +32,17 @@ spring:
 
   # --- Mail (SMTP) – ici on reprend Mailtrap comme dans gitdock-auth ---
   mail:
-    host: sandbox.smtp.mailtrap.io
-    port: 2525
+    host: smtp.gmail.com
+    port: 587
     username: ***REMOVED***        # À remplacer par tes identifiants Mailtrap
-    password: ***REMOVED***        # À remplacer par ton mot de passe Mailtrap
+    password: ***REMOVED***    # À remplacer par ton mot de passe Mailtrap
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+            required: true
 
   # --- Thymeleaf pour les templates d'emails ---
   thymeleaf:
