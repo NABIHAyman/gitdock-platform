@@ -37,7 +37,7 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.user.email) localStorage.setItem('email', response.user.email)
             if (response.user.avatarUrl) localStorage.setItem('avatarUrl', response.user.avatarUrl)
 
-            await router.push('/dashboard/projects') // Utilise await ici
+            await router.push('/dashboard/home') // Utilise await ici
             return { success: true }
         } catch (error: any) {
             const notificationStore = useNotificationStore()

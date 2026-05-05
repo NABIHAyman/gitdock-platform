@@ -19,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. CONFIGURATION SÉCURITÉ (JWT) ---
 var jwtKey = "***REMOVED***";
-var key = Encoding.ASCII.GetBytes(jwtKey);
+var key = Encoding.UTF8.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -49,6 +49,7 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<PullRequestMergedConsumer>();
     x.AddConsumer<BugFixedConsumer>();
     x.AddConsumer<CommitSavedConsumer>();
+    x.AddConsumer<CollaboratorAddedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -90,10 +91,21 @@ builder.Services.AddMassTransit(x =>
             e.ConfigureConsumer<BugFixedConsumer>(context);
             e.ConfigureConsumer<CommitSavedConsumer>(context);
         });
+        cfg.ReceiveEndpoint("collaborator-added-queue", e =>
+        {
+            e.Bind("gitdock.exchange", s =>
+            {
+                s.RoutingKey = "collaborator.added.event";
+                s.ExchangeType = "topic";
+            });
+            e.ConfigureConsumer<CollaboratorAddedConsumer>(context);
+        });
     });
 });
 
 // --- 3. SERVICES & REPOSITORIES ---
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -113,6 +125,9 @@ builder.Services.AddScoped<IXpConfigRepository, XpConfigRepository>();
 builder.Services.AddScoped<IUserProgressRepository, UserProgressRepository>();
 builder.Services.AddScoped<IUserBadgeRepository, UserBadgeRepository>();
 builder.Services.AddScoped<IUserTagProgressRepository, UserTagProgressRepository>();
+// Repositories
+builder.Services.AddScoped<IContributorRepository, ContributorRepository>();
+
 
 // Services
 builder.Services.AddScoped<INotificationProducer, NotificationProducer>();
@@ -123,6 +138,13 @@ builder.Services.AddScoped<IUserTagProgressService, UserTagProgressService>();
 builder.Services.AddScoped<IUserBadgeService, UserBadgeService>();
 builder.Services.AddScoped<ILevelService, LevelService>();
 builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<IContributorService, ContributorService>();
+
+// Clients HTTP
+builder.Services.AddHttpClient<IProjectServiceClient, ProjectServiceClient>(client =>
+{
+    client.BaseAddress = new Uri("http://host.docker.internal:8083/"); // port direct gitdock-project
+});
 
 builder.Services.AddSingleton<BadgeStrategyFactory>();
 

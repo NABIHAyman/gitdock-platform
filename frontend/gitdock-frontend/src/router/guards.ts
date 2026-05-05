@@ -12,12 +12,12 @@ export function setupRouterGuards(router: Router): void {
 
         // 2. Route Super Admin → vérifie le rôle
         if (to.meta.requiresSuperAdmin && authStore.role !== 'ROLE_SUPER_ADMIN') {
-            return next('/projects')
+            return next('/dashboard/home')
         }
 
         // 3. Route guest → redirige si déjà connecté
         if (to.meta.guest && authStore.isAuthenticated) {
-            return next('/projects')
+            return next('/dashboard/home')
         }
 
         next()

@@ -18,7 +18,10 @@ public class AuthServiceClient : IAuthServiceClient
     public async Task<List<UserSummaryDto>> GetUserSummariesAsync(List<long> userIds)
     {
         try {
-            var response = await _httpClient.PostAsJsonAsync("api/auth/users/summaries", userIds);
+            // ✅ GET avec query params : /api/auth/users/summaries?ids=1&ids=2&ids=3
+            var queryString = string.Join("&", userIds.Select(id => $"ids={id}"));
+            var response = await _httpClient.GetAsync($"api/auth/users/summaries?{queryString}");
+
             return response.IsSuccessStatusCode
                 ? await response.Content.ReadFromJsonAsync<List<UserSummaryDto>>() ?? new List<UserSummaryDto>()
                 : new List<UserSummaryDto>();

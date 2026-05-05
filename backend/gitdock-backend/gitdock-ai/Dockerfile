@@ -15,4 +15,7 @@ COPY . .
 EXPOSE 8501
 
 # Commande de lancement
-CMD ["streamlit", "run", "src/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Change la commande pour utiliser le vrai nom du fichier à la racine
+# Au lieu de streamlit run...
+# Si main.py est au même niveau que routes/ et core/
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

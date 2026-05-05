@@ -18,6 +18,7 @@ public class RabbitMQConfig {
     public static final String ROUTING_KEY_WEBHOOK = "webhook.result";
     public static final String QUEUE_WEBHOOK_RESULT = "gitdock.webhook.result.queue";
     public static final String ROUTING_KEY_COMMIT_SAVED = "project.commit.saved";
+    public static final String ROUTING_KEY_COLLABORATOR_ADDED = "collaborator.added.event";
 
     @Bean
     public TopicExchange gitdockExchange() {

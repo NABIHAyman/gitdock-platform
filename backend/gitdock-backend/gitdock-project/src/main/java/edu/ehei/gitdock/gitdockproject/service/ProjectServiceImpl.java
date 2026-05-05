@@ -440,6 +440,22 @@ public class ProjectServiceImpl implements IProjectService {
 
         userProjectRepository.save(userProject);
 
+        // Si c'est un DEV, on prévient la gamification
+        if (projectRole == ProjectRole.DEVELOPER) {
+            CollaboratorAddedEventDTO gamifEvent = CollaboratorAddedEventDTO.builder()
+                    .userId(user.getId())
+                    .projectId(projectId)
+                    .role(projectRole.name())
+                    .build();
+
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE_NAME,
+                    RabbitMQConfig.ROUTING_KEY_COLLABORATOR_ADDED,
+                    gamifEvent
+            );
+            log.info("Event collaborator.added envoyé pour userId={}", user.getId());
+        }
+
         // 👇 NOUVEAU : On prévient l'utilisateur qu'il a été ajouté au projet
         // (Notification In-App)
         java.util.Map<String, String> payload = java.util.Map.of(

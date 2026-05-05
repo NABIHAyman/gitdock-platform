@@ -5,6 +5,16 @@ const gamificationApi = axios.create({
     headers: { 'Content-Type': 'application/json' }
 })
 
+// ✅ Même logique que api.ts
+gamificationApi.interceptors.request.use(config => {
+    const token = localStorage.getItem('token')
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+})
+
+
 // --- INTERFACES ---
 export interface ContributorBadge {
     badgeId: string
@@ -24,6 +34,12 @@ export interface Contributor {
     badges: ContributorBadge[]
 }
 
+export interface ContributorsByProject {
+    projectId: number
+    projectName: string
+    contributors: Contributor[]
+}
+
 export interface Badge {
     id: string
     title: string
@@ -31,23 +47,26 @@ export interface Badge {
     icon: string
     color: string
     xp: number
+    type: string | number
 }
 
 // --- SERVICE ---
 export const contributorService = {
-    // Tous les contributeurs avec leur progression
     async getAll(): Promise<Contributor[]> {
         const response = await gamificationApi.get<Contributor[]>('/Contributors')
         return response.data
     },
 
-    // Tous les badges disponibles (pour le manager)
-    async getAllBadges(): Promise<Badge[]> {
-        const response = await gamificationApi.get<Badge[]>('/Badges')  // ← Badges avec S
+    async getByProject(): Promise<ContributorsByProject[]> {
+        const response = await gamificationApi.get<ContributorsByProject[]>('/Contributors/by-project')
         return response.data
     },
 
-    // Attribution manuelle d'un badge
+    async getAllBadges(): Promise<Badge[]> {
+        const response = await gamificationApi.get<Badge[]>('/Badges')
+        return response.data
+    },
+
     async awardBadge(userId: number, badgeId: string): Promise<void> {
         await gamificationApi.post('/UserBadge/award', { userId, badgeId })
     }

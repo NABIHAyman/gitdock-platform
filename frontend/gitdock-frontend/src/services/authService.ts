@@ -31,7 +31,7 @@ export const authService = {
      * URL complète : /api/auth/user-activation/confirm
      */
     async activateAccount(data: { token: string; password: string; confirmPassword?: string }) {
-        const response = await api.post('/auth/user-activation/accept-invitation', data)
+        const response = await api.post('/auth/user-activation/confirm', data)
         return response.data
     },
 

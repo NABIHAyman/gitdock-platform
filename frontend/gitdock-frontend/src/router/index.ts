@@ -27,6 +27,9 @@ import TaskAll from '@/views/task/ViewTask/TaskAll.vue'
 import GamificationDashboardView from '@/views/gamification/DashboardView.vue'
 import GamificationUserDashboardView from '@/views/gamification/UserDashboardView.vue'
 
+import DashboardHomeView from '@/views/dashboard/DashboardHomeView.vue'
+
+
 // Typage des meta de routes
 declare module 'vue-router' {
     interface RouteMeta {
@@ -76,7 +79,7 @@ const routes: RouteRecordRaw[] = [
         component: RouterAppLayout,
         meta: { requiresAuth: true },
         children: [
-            { path: '', redirect: '/projects' },
+            { path: '', redirect: '/home' },
 
             // Tasks
             { path: 'tasks', name: 'dashboard-task', component: DashboardTask },
@@ -88,6 +91,8 @@ const routes: RouteRecordRaw[] = [
             // Gamification
             { path: 'gamification', name: 'gamification-dashboard', component: GamificationDashboardView },
             { path: 'gamification/user', name: 'gamification-user-dashboard', component: GamificationUserDashboardView },
+            // Dans children :
+            { path: 'home', name: 'dashboard-home', component: DashboardHomeView },
         ],
     },
 
