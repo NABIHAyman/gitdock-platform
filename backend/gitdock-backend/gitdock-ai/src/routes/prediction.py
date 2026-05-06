@@ -9,20 +9,25 @@ fetcher = GitFetcher()
 engine = AnomalyEngine()
 
 @router.get("/analyze-all")
-async def analyze_all_projects():
+async def analyze_all_projects(projects: str = None):
     if not os.path.exists("data/anomaly_dataset.csv"):
         return {"report": [], "message": "Aucune donnée disponible"}
 
     df = pd.read_csv("data/anomaly_dataset.csv")
-    report = []
+    project_list = [p.strip() for p in projects.split(",")] if projects else None
 
+    report = []
     for project_name in df['project'].unique():
+        if project_list:
+            match = any(p.lower() in project_name.lower() for p in project_list)
+            if not match:
+                continue
         proj_df = df[df['project'] == project_name]
         results = engine.predict(proj_df)
         anomalies = results[results['status'] == "Anomaly"]
         report.append({
-            "project_name":   project_name,
-            "total_commits":  len(proj_df),
+            "project_name": project_name,
+            "total_commits": len(proj_df),
             "anomalies_found": len(anomalies),
             "details": anomalies[['sha','message','status','reason']].to_dict(orient='records')
         })
@@ -44,8 +49,8 @@ async def analyze_project(project_name: str):
     anomalies = results[results['status'] == "Anomaly"]
     return {
         "project": project_name,
-        "repo":    url,
-        "total":   len(results),
+        "repo": url,
+        "total": len(results),
         "anomalies": len(anomalies),
         "details": anomalies[['sha','message','status','reason']].to_dict(orient='records')
     }

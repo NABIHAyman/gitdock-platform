@@ -271,7 +271,19 @@ const analyzeProject = async () => {
 const loadGlobalReport = async () => {
   globalLoading.value = true
   try {
-    const res = await axios.get(`${AI_API}/analyze-all`)
+    // Envoie les URLs des projets (pas les noms)
+    const projectUrls = projects.value.map((p: any) => {
+      try {
+        const url = new URL(p.url)
+        return url.pathname.replace('/', '').replace('.git', '')  // ex: RihabAddou/Todo
+      } catch {
+        return p.name
+      }
+    }).join(',')
+
+    const res = await axios.get(`${AI_API}/analyze-all`, {
+      params: { projects: projectUrls }
+    })
     globalReport.value = res.data.report || []
     stats.value.totalAnomalies = globalReport.value.reduce((s: number, r: any) => s + r.anomalies_found, 0)
     stats.value.totalCommits = globalReport.value.reduce((s: number, r: any) => s + r.total_commits, 0)
