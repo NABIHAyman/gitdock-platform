@@ -1,398 +1,146 @@
 <template>
-  <v-app>
-    <div class="min-h-screen bg-[#eef2f5] d-flex justify-center align-center pa-4">
-      <v-sheet
-        class="d-flex rounded-3xl overflow-hidden"
-        max-width="1360"
-        width="100%"
-        elevation="24"
-        style="background: white;"
-      >
-        <!-- Sidebar -->
-        <aside
-          class="d-flex flex-column gap-6 pa-7"
-          style="width: 280px; background: #f8fafd; border-right: 1px solid #e9edf2;"
-        >
-          <!-- Logo -->
-          <div class="d-flex align-center gap-2" style="color: #0b1b33; font-weight: 700; font-size: 1.5rem;">
-            <v-avatar size="8" color="#3b82f6"></v-avatar>
-            TaskFlow
-          </div>
-          <div class="text-caption font-weight-bold text-uppercase" style="color: #5e6f88; margin-top: -0.5rem;">
-            Workspace
-          </div>
+  <div class="space-y-6">
 
-          <!-- Search -->
-          <div
-            class="d-flex align-center rounded-pill px-4 py-2"
-            style="border: 1px solid #dee4eb; box-shadow: 0 2px 4px rgba(0,0,0,0.02); background: white;"
-          >
-            <i class="fa fa-search" style="color: #8b9eb5; font-size: 0.875rem;"></i>
-            <input
-              type="text"
-              placeholder="Search tasks, projects..."
-              class="w-100 outline-none"
-              style="border: none; background: transparent; font-size: 0.875rem;"
-            />
-          </div>
-
-          <router-link to="/addtask" style="text-decoration: none; width: 100%;">
-  <v-btn
-    color="#1d4ed8"
-    rounded="pill"
-    block
-    class="text-none font-weight-bold"
-    style="box-shadow: 0 6px 12px rgba(29,78,216,0.25);"
-    prepend-icon="fa fa-plus"
-  >
-    Assign Task
-  </v-btn>
-</router-link>
-          <!-- Four percentage circles -->
-          <div class="d-flex justify-space-between">
-            <div
-              v-for="(item, i) in circles"
-              :key="i"
-              class="d-flex flex-column align-center"
-            >
-              <v-avatar
-                size="48"
-                class="d-flex align-center justify-center font-weight-bold"
-                style="background: white; color: #1e293b; border-width: 3px; border-style: solid;"
-                :style="circleBorderStyle(i)"
-              >
-                {{ item.value }}
-              </v-avatar>
+    <!-- HEADER -->
+    <div class="relative overflow-hidden bg-gradient-to-r from-[#5b13ec] via-indigo-600 to-violet-700 rounded-2xl p-6 shadow-xl">
+      <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+      </div>
+      <div class="relative flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <div class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+              <v-icon icon="mdi-clipboard-text-outline" color="white" size="18"></v-icon>
             </div>
+            <span class="text-white/70 text-xs font-bold uppercase tracking-widest">Workspace</span>
           </div>
-
-          <!-- Navigation -->
-          <v-list dense nav>
-            <v-list-item
-              v-for="(item, index) in navItems"
-              :key="item.title"
-              :active="index === 0"
-              class="rounded-xl"
-              active-color="primary"
-              style="margin-bottom: 4px;"
-            >
-              <v-list-item-icon>
-                <i :class="item.icon"></i>
-              </v-list-item-icon>
-              <v-list-item-title>{{ item.title }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-grow-1 d-flex flex-column gap-7 pa-8" style="overflow-y: auto; background: white;">
-          <!-- Stats Cards -->
-          <v-row dense>
-            <v-col
-              v-for="stat in stats"
-              :key="stat.title"
-              cols="12" sm="6" md="3"
-            >
-              <v-card
-                variant="outlined"
-                class="pa-5 rounded-2xl"
-                style="background: #f9fcff; border-color: #edf2f7;"
-              >
-                <div class="text-caption font-weight-medium" style="color: #5a6f8c;">{{ stat.title }}</div>
-                <div class="text-h3 font-weight-bold" style="color: #0b1b33;">{{ stat.value }}</div>
-              </v-card>
-            </v-col>
-          </v-row>
-
-          <!-- Charts Row -->
-          <v-row dense>
-            <!-- Task Distribution -->
-<v-col cols="12" md="6">
-  <v-card variant="outlined" class="pa-6 rounded-2xl" style="background: #f9fcff; border-color: #edf2f7;">
-    <div class="d-flex justify-space-between align-center mb-5">
-      <span class="font-weight-semibold" style="color: #1e293b;">Task Distribution</span>
-      <router-link
-        to="/TaskAll"
-        class="text-primary text-caption font-medium"
-        style="text-decoration: none;"
-      >
-        View All
-      </router-link>
-    </div>
-
-    <div class="d-flex flex-column gap-2">
-      <!-- To Do -->
-      <div class="d-flex align-center gap-2" style="color: #2d3f59;">
-        <v-avatar size="12" color="#f97316" class="rounded-circle"></v-avatar>
-        To Do
-        <span class="ml-auto font-weight-bold">
-          {{ getStatusCount('To Do') }}
-        </span>
-      </div>
-
-      <!-- In Progress -->
-      <div class="d-flex align-center gap-2" style="color: #2d3f59;">
-        <v-avatar size="12" color="#3b82f6" class="rounded-circle"></v-avatar>
-        In Progress
-        <span class="ml-auto font-weight-bold">
-          {{ getStatusCount('In Progress') }}
-        </span>
-      </div>
-
-      <!-- Done -->
-      <div class="d-flex align-center gap-2" style="color: #2d3f59;">
-        <v-avatar size="12" color="#22c55e" class="rounded-circle"></v-avatar>
-        Done
-        <span class="ml-auto font-weight-bold">
-          {{ getStatusCount('Done') }}
-        </span>
+          <h1 class="text-2xl font-black text-white">Task Management</h1>
+          <p class="text-white/60 text-xs mt-0.5">Gérez vos tâches et suivez l'avancement de votre équipe.</p>
+        </div>
+        <router-link to="/addtask" class="no-underline">
+          <button class="flex items-center gap-2 px-5 py-2.5 bg-white text-[#5b13ec] rounded-xl text-xs font-black shadow-lg hover:bg-purple-50 transition-all">
+            <v-icon icon="mdi-plus" size="16"></v-icon>
+            ASSIGN TASK
+          </button>
+        </router-link>
       </div>
     </div>
 
-    <!-- Bars (optionnel dynamique) -->
-    <div class="d-flex align-end gap-3 mt-5" style="height: 60px;">
-      <div
-        v-for="bar in taskBars"
-        :key="bar.color"
-        class="flex-grow-1 rounded-xl"
-        style="background: #e6edf4; display: flex; align-items: flex-end;"
-      >
-        <div
-          class="w-100 rounded-xl"
-          :style="{ height: bar.height + 'px', background: bar.color }"
-        ></div>
+    <!-- STATS GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div v-for="stat in stats" :key="stat.title"
+           class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div :class="['w-12 h-12 rounded-xl flex items-center justify-center', stat.bgClass]">
+          <v-icon :icon="stat.icon" :color="stat.iconColor" size="24"></v-icon>
+        </div>
+        <div>
+          <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">{{ stat.title }}</p>
+          <h3 class="text-2xl font-black text-slate-800">{{ stat.value }}</h3>
+        </div>
       </div>
     </div>
 
-  </v-card>
-</v-col>
+    <!-- TABLE -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[450px]">
+      <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+        <h2 class="text-lg font-black text-slate-800">Recent Activity</h2>
+        <v-btn to="/TaskAll" variant="text" color="deep-purple" class="text-xs font-bold">View All</v-btn>
+      </div>
 
-            <!-- Weekly Completion Rate -->
-            <v-col cols="12" md="6">
-              <v-card variant="outlined" class="pa-6 rounded-2xl" style="background: #f9fcff; border-color: #edf2f7;">
-                <div class="font-weight-semibold mb-5" style="color: #1e293b;">Weekly Completion Rate</div>
-                <div class="d-flex justify-space-between text-caption font-weight-medium px-1" style="color: #6f85a2;">
-                  <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-                </div>
-                <div class="d-flex align-end gap-1.5 mt-2" style="height: 140px;">
-                  <div v-for="(h, idx) in weeklyHeights" :key="idx" class="flex-grow-1 rounded-2xl" style="background: #e2eaf3; display: flex; align-items: flex-end;">
-                    <div class="w-100 rounded-2xl" :style="{ height: h + 'px', background: 'linear-gradient(180deg, #4b7bec, #2f5fcf)' }"></div>
-                  </div>
-                </div>
-              </v-card>
-            </v-col>
-          </v-row>
-
-          <!-- Recent Activity Table with Edit/Delete Buttons -->
-          <v-card variant="outlined" class="pa-6 rounded-2xl" style="background: #f9fcff; border-color: #edf2f7;">
-            <div class="d-flex justify-space-between align-center mb-3">
-              <span class="font-weight-semibold" style="color: #1e293b;">Recent Activity</span>
-              <a href="#" class="text-primary text-caption font-medium" style="text-decoration: none;">View All</a>
+      <v-table class="px-4 pb-4">
+        <thead>
+        <tr class="text-slate-400 text-xs font-black uppercase">
+          <th class="py-4">Task</th>
+          <th>Status</th>
+          <th>Assigned To</th>
+          <th>Deadline</th>
+          <th class="text-right">Options</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="(task, index) in tasks" :key="task.id" class="hover:bg-purple-50/30 transition-colors">
+          <td class="py-4 font-bold text-slate-700">{{ task.name }}</td>
+          <td>
+            <v-chip :color="task.chipColor" size="x-small" class="font-black px-3 rounded-lg" variant="flat">
+              {{ task.status.toUpperCase() }}
+            </v-chip>
+          </td>
+          <td class="text-sm text-slate-600 font-medium">{{ task.user }}</td>
+          <td class="text-sm text-slate-500 italic">{{ task.time }}</td>
+          <td class="text-right">
+            <div class="flex justify-end gap-1">
+              <v-btn icon="mdi-pencil" size="x-small" color="deep-purple-lighten-4" variant="flat"
+                     class="rounded-lg" @click="editTask(index)"></v-btn>
+              <v-btn icon="mdi-delete" size="x-small" color="red-lighten-4" variant="flat"
+                     class="rounded-lg" @click="goToDelete(index)"></v-btn>
             </div>
+          </td>
+        </tr>
+        </tbody>
+      </v-table>
 
-            <v-simple-table dense>
-              <thead>
-                <tr style="color: #50657e; font-size: 13px; font-weight: 600; border-bottom: 1px solid #dfe7ef;">
-                  <th class="text-left pb-3">Task</th>
-                  <th class="text-left pb-3">Action</th>
-                  <th class="text-left pb-3">User</th>
-                  <th class="text-left pb-3">Time</th>
-                  <th class="text-left pb-3">Manager</th>
-                  <th class="text-left pb-3">Collaborator</th>
-                  <th class="text-left pb-3">Options</th>
-                </tr>
-              </thead>
-              <tbody style="color: #1e2b3e;">
-                <tr v-for="(task, index) in tasks" :key="index" style="border-bottom: 1px solid #eaedf2;">
-                  <td>{{ task.name }}</td>
-                  <td>
-                    <v-chip size="small" :color="task.color" text-color="white">{{ task.status }}</v-chip>
-                  </td>
-                  <td>{{ task.user }}</td>
-                  <td>{{ task.time }}</td>
-                  <td>{{ task.manager || '—' }}</td>
-                  <td>{{ task.collaborator || '—' }}</td>
-                  <td class="d-flex gap-2">
-                    <v-btn small color="#3b82f6" text @click="editTask(index)">
-                      Edit
-                    </v-btn>
-                    <v-btn small color="#ef4444" text @click="deleteTask(index)">
-                      Delete
-                    </v-btn>
-                  </td>
-                </tr>
-              </tbody>
-            </v-simple-table>
-          </v-card>
-        </main>
-      </v-sheet>
+      <div v-if="tasks.length === 0" class="flex flex-col items-center justify-center py-20 text-slate-400">
+        <v-icon icon="mdi-clipboard-off-outline" size="48" class="mb-2 opacity-20"></v-icon>
+        <p class="text-sm font-bold italic">Aucune tâche trouvée.</p>
+      </div>
     </div>
-  </v-app>
+
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { TaskService, type TaskListItemDTO } from '@/services/TaskService'
 
 const router = useRouter()
-
-// ---------------- NAV ----------------
-const navItems = [
-  { title: 'Dashboard', icon: 'fa fa-tachometer-alt' },
-  { title: 'Projects', icon: 'fa fa-project-diagram' },
-  { title: 'Tasks', icon: 'fa fa-tasks' },
-  { title: 'Users', icon: 'fa fa-users' },
-  { title: 'Settings', icon: 'fa fa-cog' }
-]
-
-// ---------------- UI ----------------
-const circles = [
-  { value: '12%' },
-  { value: '5%' },
-  { value: '24%' },
-  { value: '8%' }
-]
-
-const taskBars = ref([
-  { color: '#f97316', height: 28 },
-  { color: '#3b82f6', height: 21 },
-  { color: '#22c55e', height: 14 }
-])
-
-const weeklyHeights = ref([42, 28, 56, 34, 62, 25, 47])
-
-const circleBorderStyle = (index: number) => {
-  const borders = [
-    { top: '#f97316', left: '#f97316' },
-    { right: '#3b82f6', bottom: '#3b82f6' },
-    { top: '#a855f7', right: '#a855f7' },
-    { left: '#10b981', bottom: '#10b981' }
-  ]
-
-  return {
-    borderTopColor: borders[index]?.top ?? 'transparent',
-    borderLeftColor: borders[index]?.left ?? 'transparent',
-    borderRightColor: borders[index]?.right ?? 'transparent',
-    borderBottomColor: borders[index]?.bottom ?? 'transparent',
-    borderWidth: '3px',
-    borderStyle: 'solid'
-  }
-}
-
-// ---------------- TASK TYPE ----------------
-interface Task {
-  id: number
-  name: string
-  status: string
-  color: string
-  user: string
-  time: string
-  manager?: string
-  collaborator?: string
-}
-
-// ---------------- STATE ----------------
-const tasks = ref<Task[]>([])
+const tasks  = ref<any[]>([])
 
 const stats = ref([
-  { title: 'TOTAL TASKS', value: 0 },
-  { title: 'IN PROGRESS', value: 0 },
-  { title: 'COMPLETED', value: 0 },
-  { title: 'OVERDUE', value: 0 }
+  { title: 'Total Tasks', value: 0, icon: 'mdi-format-list-bulleted', iconColor: '#5b13ec', bgClass: 'bg-purple-100' },
+  { title: 'In Progress', value: 0, icon: 'mdi-progress-clock',       iconColor: '#6d28d9', bgClass: 'bg-violet-100' },
+  { title: 'Completed',   value: 0, icon: 'mdi-check-circle',          iconColor: '#22c55e', bgClass: 'bg-green-100'  },
+  { title: 'Overdue',     value: 0, icon: 'mdi-alert-circle',          iconColor: '#ef4444', bgClass: 'bg-red-100'    },
 ])
 
-// ✅ COUNTERS (POUR TON UI)
-const todoCount = computed(() =>
-  tasks.value.filter(t => t.status === 'To Do').length
-)
+const statusChipColor = (status: string) => {
+  if (status === 'Done')        return 'success'
+  if (status === 'In Progress') return 'deep-purple'
+  if (status === 'Overdue')     return 'error'
+  return 'warning'
+}
 
-const inProgressCount = computed(() =>
-  tasks.value.filter(t => t.status === 'In Progress').length
-)
-
-const doneCount = computed(() =>
-  tasks.value.filter(t => t.status === 'Done').length
-)
-
-// ---------------- FETCH TASKS ----------------
 const fetchTasks = async () => {
   try {
     const data = (await TaskService.list()) as TaskListItemDTO[]
-
     tasks.value = data.map((t: any) => ({
-      id: t.id,
-      name: t.title ?? '—',
-      status: t.status ?? 'To Do',
-      color:
-        t.status === 'Done'
-          ? '#22c55e'
-          : t.status === 'In Progress'
-          ? '#3b82f6'
-          : '#f97316',
-      user: t.assignedTo ?? '—',
-      time: t.dueDate
-        ? new Date(t.dueDate).toLocaleString()
-        : '—',
-
-      // ✅ FIX IMPORTANT
-      manager: t.assignedBy ?? '—',
-      collaborator: t.collaborator ?? '—'
+      id:        t.id,
+      name:      t.title    ?? '—',
+      status:    t.status   ?? 'To Do',
+      chipColor: statusChipColor(t.status ?? ''),
+      user:      t.assignedTo != null ? String(t.assignedTo) : 'Unassigned',
+      time:      t.dueDate  ? new Date(t.dueDate).toLocaleDateString() : '—',
     }))
-
     updateStats()
   } catch (error) {
-    console.error('API error:', error)
+    console.error('API Error:', error)
   }
 }
 
-// ---------------- UPDATE STATS ----------------
 const updateStats = () => {
-  stats.value = [
-    { title: 'TOTAL TASKS', value: tasks.value.length },
-    { title: 'IN PROGRESS', value: inProgressCount.value },
-    { title: 'COMPLETED', value: doneCount.value },
-    { title: 'OVERDUE', value: getStatusCount('Overdue') }
-  ]
+  stats.value[0].value = tasks.value.length
+  stats.value[1].value = tasks.value.filter(t => t.status === 'In Progress').length
+  stats.value[2].value = tasks.value.filter(t => t.status === 'Done').length
+  stats.value[3].value = tasks.value.filter(t => t.status === 'Overdue').length
 }
 
-// ---------------- SAFE COUNT ----------------
-const getStatusCount = (status: string) => {
-  return tasks.value.filter(t => t.status === status).length
-}
+const editTask   = (index: number) => router.push({ name: 'task-edit',   params: { id: tasks.value[index].id } })
+const goToDelete = (index: number) => router.push({ name: 'task-delete', params: { id: tasks.value[index].id } })
 
-// ---------------- EDIT ----------------
-const editTask = (index: number) => {
-  const task = tasks.value[index]
-  if (!task) return
-router.push({ name: 'task-edit', params: { id: task.id } })
-}
-
-// ---------------- DELETE ----------------
-// ✅ On ajoute "async" car on va faire un appel réseau
-const deleteTask = async (index: number) => {
-  const task = tasks.value[index]
-  if (!task) return
-
-  // Petite sécurité habituelle
-  if (!confirm('Voulez-vous vraiment supprimer cette tâche ?')) return
-
-  try {
-    // 1. On demande au backend Symfony de faire le "Soft Delete"
-    await TaskService.softDelete(task.id)
-
-    // 2. Si le backend n'a pas crashé (pas d'erreur), on met à jour l'écran
-    tasks.value.splice(index, 1)
-    updateStats()
-    
-  } catch (error) {
-    console.error('Erreur lors de la suppression :', error)
-    alert('Impossible de supprimer la tâche. Vérifiez la connexion au serveur.')
-  }
-}
-
-// ---------------- INIT ----------------
-onMounted(() => {
-  fetchTasks()
-})
+onMounted(fetchTasks)
 </script>
+
+<style scoped>
+.v-table { background: transparent !important; }
+.v-table :deep(th) { border-bottom: 2px solid #f1f5f9 !important; }
+</style>

@@ -1,238 +1,227 @@
+<template>
+  <div class="space-y-4 max-w-4xl mx-auto">
+    <!-- HEADER COMPACT -->
+    <div class="relative overflow-hidden bg-gradient-to-r from-[#5b13ec] via-indigo-600 to-violet-700 rounded-2xl p-5 shadow-lg">
+      <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 right-0 w-48 h-48 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+      </div>
+      <div class="relative flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+              <v-icon icon="mdi-plus-circle-outline" color="white" size="16"></v-icon>
+            </div>
+            <span class="text-white/70 text-[10px] font-bold uppercase tracking-widest">Task Management</span>
+          </div>
+          <h1 class="text-xl font-black text-white">Add New Task</h1>
+        </div>
+        <button
+            @click="router.push('/dashboardtask')"
+            class="flex items-center gap-2 px-4 py-2 bg-white text-[#5b13ec] rounded-xl text-[11px] font-black shadow hover:bg-purple-50 transition-all"
+        >
+          <v-icon icon="mdi-arrow-left" size="14"></v-icon>
+          RETOUR
+        </button>
+      </div>
+    </div>
+
+    <!-- FORM CARD -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div class="h-1.5 bg-gradient-to-r from-[#5b13ec] to-violet-500"></div>
+
+      <div class="p-6">
+        <!-- Title & Status -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+          <div class="md:col-span-2">
+            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Task Title</label>
+            <input
+                v-model="task.title"
+                type="text"
+                placeholder="Nom de la tâche..."
+                class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm font-medium focus:outline-none focus:border-[#5b13ec] transition-colors bg-transparent"
+            />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Status</label>
+            <select
+                v-model="task.status"
+                class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent cursor-pointer"
+            >
+              <option value="To Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Done">Done</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-5">
+          <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Description</label>
+          <textarea
+              v-model="task.description"
+              rows="2"
+              placeholder="Détails de la mission..."
+              class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent resize-none"
+          ></textarea>
+        </div>
+
+        <!-- Date & Assignee -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          <div>
+            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Due Date</label>
+            <input
+                v-model="task.dueDate"
+                type="date"
+                class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent"
+            />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Assigned To</label>
+            <select
+                v-model="task.assignedTo"
+                class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent"
+            >
+              <option :value="null">Unassigned</option>
+              <option v-for="u in formData.users" :key="u.id" :value="u.id">{{ u.fullName }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Classification Grid (Epic, Part, Level) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+          <div>
+            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Epic</label>
+            <select v-model="task.epic" class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent">
+              <option :value="null">None</option>
+              <option v-for="e in formData.epics" :key="e.id" :value="e.id">{{ e.title }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Part</label>
+            <select v-model="task.part" class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent">
+              <option :value="null">None</option>
+              <option v-for="p in formData.parts" :key="p.id" :value="p.id">{{ p.name }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Level</label>
+            <select v-model="task.level" class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent">
+              <option :value="null">None</option>
+              <option v-for="l in formData.levels" :key="l.id" :value="l.id">{{ l.name }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Priority -->
+        <div class="mb-8">
+          <label class="text-[11px] text-slate-400 font-bold uppercase mb-3 block">Priority</label>
+          <div class="flex items-center gap-3">
+            <button
+                v-for="p in priorities"
+                :key="p.value"
+                type="button"
+                @click="task.priority = p.value"
+                :class="[
+                'px-4 py-1.5 rounded-full text-[10px] font-black transition-all border-2',
+                task.priority === p.value ? `${p.bg} text-white border-transparent shadow-md scale-105` : `bg-white border-slate-100 text-slate-400 hover:border-slate-200`
+              ]"
+            >
+              {{ p.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- FOOTER ACTIONS -->
+        <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-50">
+          <button
+              type="button"
+              @click="router.push('/dashboardtask')"
+              class="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-50 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+              @click="handleCreate"
+              :disabled="submitting || !task.title"
+              class="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-[#5b13ec] text-white text-xs font-black shadow-lg hover:bg-violet-700 disabled:opacity-40 transition-all"
+          >
+            <v-icon v-if="submitting" icon="mdi-loading" size="14" class="animate-spin"></v-icon>
+            {{ submitting ? 'En cours...' : 'CONFIRM' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { TaskService, type TaskFormDataDTO } from '@/services/TaskService'
-import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'vue-router'
+import { TaskService, type TaskCreateUpdatePayload, type TaskFormDataDTO } from '@/services/TaskService'
 
-const authStore = useAuthStore()
+const router = useRouter()
+const submitting = ref(false)
 
-// ---------------- Task Model ----------------
-const task = ref({
-  id: null as string | null,
+const task = ref<TaskCreateUpdatePayload>({
   title: '',
   description: '',
-  dueDate: '',
-  priority: 'Medium',
   status: 'To Do',
-  assignee: null,
+  priority: 'Medium',
+  dueDate: null,
+  assignedTo: null,
+  assignedBy: null,
+  projectId: null,
   epic: null,
   part: null,
   level: null
 })
 
-// ---------------- Form Data ----------------
-const epics = ref<TaskFormDataDTO['epics']>([])
-const parts = ref<TaskFormDataDTO['parts']>([])
-const levels = ref<TaskFormDataDTO['levels']>([])
-const teamMembers = ref<any[]>([])
-
-const fetchFormData = async (): Promise<void> => {
-  try {
-    const data = await TaskService.getFormData()
-
-    epics.value = data.epics || []
-    parts.value = data.parts || []
-    levels.value = data.levels || []
-
-    teamMembers.value = (data.users || []).map((user: any) => ({
-      ...user,
-      fullName: `${user.firstName} ${user.lastName}`.trim()
-    }))
-  } catch (err) {
-    console.error('Fetch error:', err)
-  }
-}
-
-onMounted(() => {
-  fetchFormData()
+const formData = ref<TaskFormDataDTO>({
+  epics: [],
+  parts: [],
+  levels: [],
+  users: []
 })
 
-// ---------------- Submit Task ----------------
-const submitTask = async (): Promise<void> => {
+const priorities = [
+  { value: 'Low', label: 'LOW', bg: 'bg-green-500' },
+  { value: 'Medium', label: 'MEDIUM', bg: 'bg-amber-500' },
+  { value: 'High', label: 'HIGH', bg: 'bg-red-500' }
+]
+
+const loadData = async () => {
   try {
-    const assignedToId = (task.value.assignee as any)?.id || null
-    const dueDateStr = task.value.dueDate ? task.value.dueDate : null
-    const assignedById = (authStore as any).userId ?? null
-
-    const data = await TaskService.create({
-      title: task.value.title,
-      description: task.value.description,
-      status: task.value.status,
-      dueDate: dueDateStr,
-      assignedTo: assignedToId,
-      assignedBy: assignedById,
-      epic: (task.value.epic as any)?.id || null,
-      part: (task.value.part as any)?.id || null,
-      level: (task.value.level as any)?.id || null,
-    })
-
-    alert(`Task "${data.title}" created successfully!`)
-    task.value.id = (data as any).id ?? null
-    cancel()
-  } catch (error) {
-    console.error('API Error:', error)
-  }
-}
-
-// ---------------- DELETE (FIX TS7006) ----------------
-// Added explicit type ': string | null' to fix TS7006
-const deleteTask = async (id: string | null): Promise<void> => {
-  if (!id) {
-    alert('Missing ID')
-    return
-  }
-
-  if (!confirm('Are you sure you want to delete this task?')) return
-
-  try {
-    await TaskService.softDelete(id)
-    alert('Task deleted!')
-    cancel()
+    formData.value = await TaskService.getFormData()
   } catch (err) {
-    console.error('Delete error:', err)
+    console.error('Failed to load form data', err)
   }
 }
 
-// ---------------- Reset Form ----------------
-const cancel = (): void => {
-  task.value = {
-    id: null,
-    title: '',
-    description: '',
-    dueDate: '',
-    priority: 'Medium',
-    status: 'To Do',
-    assignee: null,
-    epic: null,
-    part: null,
-    level: null
+const handleCreate = async () => {
+  if (!task.value.title) return
+  submitting.value = true
+  try {
+    await TaskService.create(task.value)
+    router.push('/dashboardtask')
+  } catch (err) {
+    console.error('Creation failed', err)
+    alert('Erreur lors de la création de la tâche.')
+  } finally {
+    submitting.value = false
   }
 }
+
+onMounted(loadData)
 </script>
 
-<template>
-  <v-container class="py-12 d-flex justify-center">
-    <v-col cols="12" md="6">
-      <v-card class="pa-6 rounded-2xl" elevation="6" style="background: #f9fcff; border-color: #edf2f7;">
-        <h2 class="text-h5 font-weight-bold mb-2" style="color: #1e293b;">Add New Task</h2>
-        <p class="text-subtitle-1 mb-6" style="color: #5a6f8c;">
-          Configure your task details and assign it to your team members.
-        </p>
-
-        <v-form @submit.prevent="submitTask">
-          <v-text-field
-              v-model="task.title"
-              label="Task Name"
-              placeholder="e.g., Redesign landing page"
-              variant="outlined"
-              class="mb-4"
-              density="comfortable"
-          >
-            <template #append>
-              <v-icon color="#3b82f6">mdi-pencil-outline</v-icon>
-            </template>
-          </v-text-field>
-
-          <v-textarea
-              v-model="task.description"
-              label="Description"
-              placeholder="Describe the task objectives..."
-              variant="outlined"
-              class="mb-4"
-              rows="3"
-              density="comfortable"
-          ></v-textarea>
-
-          <v-text-field
-              v-model="task.dueDate"
-              label="Due Date"
-              variant="outlined"
-              type="date"
-              class="mb-4"
-              density="comfortable"
-              append-icon="mdi-calendar"
-          ></v-text-field>
-
-          <div class="mb-4">
-            <div class="font-weight-medium mb-2" style="color: #1e293b;">Priority</div>
-            <v-radio-group v-model="task.priority" row>
-              <v-radio label="Low" value="Low" color="#22c55e"></v-radio>
-              <v-radio label="Medium" value="Medium" color="#facc15"></v-radio>
-              <v-radio label="High" value="High" color="#ef4444"></v-radio>
-            </v-radio-group>
-          </div>
-
-          <v-select
-              v-model="task.assignee"
-              :items="teamMembers"
-              label="Assign To"
-              variant="outlined"
-              class="mb-4"
-              density="comfortable"
-              return-object
-              item-title="fullName"
-              item-value="id"
-          ></v-select>
-
-          <v-select
-              v-model="task.epic"
-              :items="epics"
-              label="Epic"
-              variant="outlined"
-              class="mb-4"
-              density="comfortable"
-              return-object
-              item-title="title"
-              item-value="id"
-          ></v-select>
-
-          <v-select
-              v-model="task.part"
-              :items="parts"
-              label="Part"
-              variant="outlined"
-              class="mb-4"
-              density="comfortable"
-              return-object
-              item-title="name"
-              item-value="id"
-          ></v-select>
-
-          <v-select
-              v-model="task.level"
-              :items="levels"
-              label="Level"
-              variant="outlined"
-              class="mb-4"
-              density="comfortable"
-              return-object
-              item-title="name"
-              item-value="id"
-          ></v-select>
-
-          <v-text-field
-              v-model="task.status"
-              label="Status"
-              variant="outlined"
-              readonly
-              density="comfortable"
-              class="mb-6"
-          ></v-text-field>
-
-          <div class="d-flex justify-center gap-4">
-            <v-btn variant="outlined" color="#6f85a2" rounded="pill" @click="cancel">Cancel</v-btn>
-            <v-btn color="#1d4ed8" rounded="pill" type="submit" class="text-none font-weight-bold">Add Task</v-btn>
-            <v-btn
-                color="#ef4444"
-                rounded="pill"
-                class="text-none font-weight-bold"
-                @click="deleteTask(task.id)"
-                v-if="task.id"
-            >
-              Delete
-            </v-btn>
-          </div>
-        </v-form>
-      </v-card>
-    </v-col>
-  </v-container>
-</template>
+<style scoped>
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0px center;
+  background-size: 14px;
+}
+</style>
