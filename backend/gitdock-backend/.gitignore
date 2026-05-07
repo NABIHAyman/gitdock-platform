@@ -1,0 +1,190 @@
+# ==============================================================================
+# gitdock-backend — .gitignore GLOBAL (Bouclier Ultime)
+# Ce fichier protège l'ensemble du monorepo backend contre les fuites de secrets.
+# Fusionne son contenu avec tout .gitignore existant à ce niveau.
+# ==============================================================================
+
+
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+.kotlin
+
+# ========================
+# 🔴 SECRETS & CREDENTIALS
+# ========================
+# Fichiers de secrets locaux — JAMAIS sur Git
+.env
+.env.local
+.env.*.local
+*.env.old
+
+# Sauvegardes de fichiers de config
+*.old
+*.bak
+*.backup
+application.yml.old
+application.properties.old
+appsettings.json.old
+
+# Fichiers de clés et certificats
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+*.truststore
+
+# ========================
+# ☕ JAVA / MAVEN
+# ========================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Fichiers Maven wrapper
+.mvn/
+
+# ========================
+# 🐍 PYTHON (gitdock-yam)
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+
+# Python / YAM
+gitdock-yam/.env
+gitdock-yam/.env.docker
+
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+
+# Modèles ML sérialisés (trop lourds et spécifiques à l'environnement)
+*.pkl
+*.model
+*.h5
+
+# ========================
+# 🐘 PHP / SYMFONY (gitdock-task)
+# ========================
+/vendor/
+.env.test.local
+.env.dev.local
+var/cache/
+var/log/
+var/sessions/
+
+# Symfony / PHP
+gitdock-task/.env.local
+gitdock-task/.env.local.php
+gitdock-task/.env.*.local
+gitdock-task/config/jwt/private.pem
+gitdock-task/config/jwt/public.pem
+
+# ========================
+# 🎯 .NET (gitdock-gamification)
+# ========================
+*.user
+*.suo
+.vs/
+[Bb]in/
+[Oo]bj/
+appsettings.Development.json
+appsettings.Production.json
+gitdock-gamification/**/appsettings.Docker.json
+
+
+# ========================
+# 🐳 DOCKER
+# ========================
+.docker/
+docker-compose.override.yml
+docker-compose.local.yml
+
+# ========================
+# 🛠 IDEs & ÉDITEURS
+# ========================
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### IntelliJ IDEA ###
+.idea
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
+*.iws
+*.iml
+*.ipr
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# Eclipse / STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ========================
+# 💻 OS
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# ========================
+# 📊 LOGS
+# ========================
+*.log
+logs/
+
+
+# Spring Boot — jamais commiter les .env locaux
+gitdock-auth/.env.local
+gitdock-project/.env.local
+gitdock-notification/.env.local
+gitdock-sync/.env.local
+gitdock-gateway/.env.local
+
+
+# ---- Divers ----
+*.pem
+*.key
+*.p12
+*.jks
+.env.local
+.env.prod

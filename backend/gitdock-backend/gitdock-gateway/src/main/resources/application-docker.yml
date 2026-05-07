@@ -1,0 +1,56 @@
+# Surcharge du profil Docker pour gitdock-gateway
+# Ce fichier est activé par SPRING_PROFILES_ACTIVE=docker
+# Il remplace les URLs localhost par les noms de conteneurs Docker internes.
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"   # frontend dev local
+              - "http://localhost:4173"   # preview Vite build
+
+      routes:
+        # Les services Java sont joignables via Eureka (lb://)
+        - id: auth-service
+          uri: lb://GITDOCK-AUTH
+          predicates:
+            - Path=/api/auth/**
+
+        - id: project-service
+          uri: lb://GITDOCK-PROJECT
+          predicates:
+            - Path=/api/projects/**
+
+        - id: sync-service
+          uri: lb://GITDOCK-SYNC
+          predicates:
+            - Path=/api/sync/**
+
+        # Les services non-Java sont joints par nom de conteneur Docker
+        - id: notification-service
+          uri: http://gitdock-notification:8085
+          predicates:
+            - Path=/api/notifications/**, /ws-notifications/**
+
+        - id: task-service
+          uri: http://nginx_webserver:80
+          predicates:
+            - Path=/api/tasks/**
+
+        - id: gamification-service
+          uri: http://gitdock-gamification:5292
+          predicates:
+            - Path=/api/badges/**, /api/levels/**, /api/tags/**, /api/xpconfig/**
+
+        - id: yam-service
+          uri: http://gitdock-yam:8010
+          predicates:
+            - Path=/api/yam/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://gitdock-discovery:8761/eureka/

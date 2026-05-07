@@ -1,0 +1,351 @@
+services:
+  # ==========================================
+  # 1. SERVICE DE DÉCOUVERTE (EUREKA)
+  # ==========================================
+  gitdock-discovery:
+    build:
+      context: ../gitdock-discovery
+    container_name: gitdock-discovery
+    restart: always
+    ports:
+      - "8761:8761"
+    networks:
+      - gitdock_net
+
+  # ==========================================
+  # 2. BASES DE DONNÉES & INFRASTRUCTURE
+  # ==========================================
+  gitdock-postgres:
+    image: postgres:15-alpine
+    container_name: gitdock-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - gitdock_net
+
+  gitdock-mysql:
+    image: mysql:8.0
+    container_name: gitdock-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gitdock_tasks
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - gitdock_net
+
+  gitdock-mongodb:
+    image: mongo:6
+    container_name: gitdock-mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodb
+      MONGO_INITDB_ROOT_PASSWORD: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - gitdock_net
+
+  gitdock-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: gitdock-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - gitdock_net
+
+  gitdock-redis:
+    image: redis:alpine
+    container_name: gitdock-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - gitdock_net
+
+  gitdock-chromadb:
+    image: chromadb/chroma:latest
+    container_name: gitdock-chromadb
+    restart: always
+    ports:
+      - "8010:8000"
+    volumes:
+      - chromadb_data:/chroma/data
+    networks:
+      - gitdock_net
+
+  # ==========================================
+  # 3. OUTILS D'ADMINISTRATION & IA
+  # ==========================================
+  gitdock-pgadmin:
+    image: dpage/pgadmin4:8.14
+    container_name: gitdock-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gitdock.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - gitdock-postgres
+    networks:
+      - gitdock_net
+
+  gitdock-phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5.2.3
+    container_name: gitdock-phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: gitdock-mysql
+      PMA_PORT: 3306
+    ports:
+      - "8088:80"
+    depends_on:
+      - gitdock-mysql
+    networks:
+      - gitdock_net
+
+  gitdock-mongo-express:
+    image: mongo-express:latest
+    container_name: gitdock-mongo-express
+    restart: always
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: mongodb
+      ME_CONFIG_MONGODB_ADMINPASSWORD: mongodb
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:mongodb@gitdock-mongodb:27017/
+      ME_CONFIG_BASICAUTH: false
+    ports:
+      - "8086:8081"
+    depends_on:
+      - gitdock-mongodb
+    networks:
+      - gitdock_net
+
+  gitdock-ollama:
+    image: ollama/ollama:latest
+    container_name: gitdock-ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - gitdock_net
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  gitdock-dozzle:
+    image: amir20/dozzle:latest
+    container_name: gitdock-dozzle
+    restart: always
+    ports:
+      - "8887:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - gitdock_net
+
+  # ==========================================
+  # 4. MICROSERVICES (Logique Métier)
+  # ==========================================
+  auth-service:
+    build:
+      context: ../gitdock-auth
+    container_name: auth-service
+    restart: always
+    ports:
+      - "8081:8081"
+    env_file:
+      - ../gitdock-auth/.env.local
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - gitdock-postgres
+      - gitdock-rabbitmq
+      - gitdock-discovery
+    networks:
+      - gitdock_net
+
+  gitdock-project:
+    build:
+      context: ../gitdock-project
+    container_name: gitdock-project
+    restart: always
+    ports:
+      - "8083:8083"
+    env_file:
+      - ../gitdock-project/.env.local
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - gitdock-postgres
+      - gitdock-rabbitmq
+      - gitdock-discovery
+      - auth-service
+    networks:
+      - gitdock_net
+
+  gitdock-sync:
+    build:
+      context: ../gitdock-sync
+    container_name: gitdock-sync
+    restart: always
+    ports:
+      - "8084:8084"
+    env_file:
+      - ../gitdock-sync/.env.local
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - gitdock-rabbitmq
+      - gitdock-discovery
+      - auth-service
+    networks:
+      - gitdock_net
+
+  gitdock-notification:
+    build:
+      context: ../gitdock-notification
+    container_name: gitdock-notification
+    restart: always
+    ports:
+      - "8085:8085"
+    env_file:
+      - ../gitdock-notification/.env.local
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - gitdock-postgres
+      - gitdock-rabbitmq
+      - gitdock-discovery
+    networks:
+      - gitdock_net
+
+  gitdock-gateway:
+    build:
+      context: ../gitdock-gateway
+    container_name: gitdock-gateway
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../gitdock-gateway/.env.local
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - gitdock-discovery
+      - auth-service
+      - gitdock-project
+      - gitdock-sync
+      - gitdock-notification
+    networks:
+      - gitdock_net
+
+  php-app:
+    build:
+      context: ../gitdock-task/infra/php
+    container_name: php_app
+    restart: always
+    volumes:
+      - ../gitdock-task:/var/www/html
+    env_file:
+      - ../gitdock-task/.env.docker
+    depends_on:
+      - gitdock-mysql
+      - gitdock-rabbitmq
+    networks:
+      - gitdock_net
+
+  nginx-task:
+    build:
+      context: ../gitdock-task/infra/nginx
+    container_name: nginx_webserver
+    restart: always
+    ports:
+      - "8089:80"
+    depends_on:
+      - php-app
+    networks:
+      - gitdock_net
+
+  gitdock-yam:
+    build:
+      context: ../gitdock-yam
+    container_name: gitdock-yam
+    restart: always
+    ports:
+      - "8012:8010"
+    env_file:
+      - ../gitdock-yam/.env
+    depends_on:
+      - gitdock-postgres
+      - gitdock-chromadb
+      - gitdock-discovery
+      - gitdock-ollama
+    networks:
+      - gitdock_net
+
+  gitdock-gamification:
+    build:
+      context: ../gitdock-gamification/backend/backend
+    container_name: gitdock-gamification
+    restart: always
+    ports:
+      - "5292:5292"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+    depends_on:
+      - gitdock-postgres
+      - gitdock-rabbitmq
+      - gitdock-discovery
+      - gitdock-redis
+    networks:
+      - gitdock_net
+
+  gitdock-sentinel:
+    build:
+      context: ../gitdock-sentinel
+    container_name: gitdock-sentinel
+    restart: always
+    ports:
+      - "8013:8010" # Exposé sur 8013, tourne sur 8010 en interne
+    env_file:
+      - ../gitdock-sentinel/.env
+    depends_on:
+      - gitdock-rabbitmq # Sentinel utilise RabbitMQ/Kafka
+      - gitdock-chromadb
+      - gitdock-discovery
+      - gitdock-ollama
+    networks:
+      - gitdock_net
+
+volumes:
+  postgres_data:
+  mysql_data:
+  chromadb_data:
+  ollama_data:
+  mongo_data:
+
+networks:
+  gitdock_net:
+    name: gitdock_shared_net
+    driver: bridge

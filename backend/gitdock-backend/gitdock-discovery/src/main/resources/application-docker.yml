@@ -1,0 +1,9 @@
+# Surcharge du profil Docker pour gitdock-discovery
+# Ce fichier est activé par SPRING_PROFILES_ACTIVE=docker
+
+eureka:
+  instance:
+    hostname: gitdock-discovery
+  client:
+    register-with-eureka: false
+    fetch-registry: false

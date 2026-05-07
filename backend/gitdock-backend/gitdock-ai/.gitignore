@@ -1,0 +1,29 @@
+# --- Environnement Virtuel (Indispensable d'ignorer, trop lourd) ---
+.venv/
+venv/
+env/
+
+# --- Sécurité (TRÈS IMPORTANT pour ton PFA) ---
+.env
+# Empêche de pusher ton mot de passe "***REMOVED***" et tes API Tokens
+.streamlit/secrets.toml
+
+# --- Caches Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# --- Base de données Vectorielle (ChromaDB) ---
+# On ignore l'index local car il se régénère et pèse lourd
+chroma_db/
+data/chroma_db/
+
+# --- IDE & Système ---
+.vscode/
+.idea/
+.DS_Store
+
+# --- Note pour Rihab ---
+# On ne met PAS 'data/*.csv' ni 'models/' ici 
+# car tu veux que tes amies les voient sur GitHub.

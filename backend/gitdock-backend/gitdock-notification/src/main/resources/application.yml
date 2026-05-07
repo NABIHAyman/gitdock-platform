@@ -1,0 +1,65 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: gitdock-notification
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:gitdock_notification}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: ${THYMELEAF_CACHE:false}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+
+application:
+  mail:
+    activation-url: ${FRONTEND_URL:http://localhost:5173}/activate
+    reset-password-url: ${FRONTEND_URL:http://localhost:5173}/reset-password
+    invitation-url: ${FRONTEND_URL:http://localhost:5173}/accept-invitation
+
+logging:
+  level:
+    root: INFO
+    edu.ehei.gitdock.gitdocknotification: DEBUG
+    org.springframework.mail: DEBUG
+    org.springframework.amqp: DEBUG

@@ -1,0 +1,87 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  main:
+    web-application-type: reactive
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+      discovery:
+        locator:
+          enabled: false
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "${FRONTEND_URL:http://localhost:5173}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      routes:
+        # --- Auth Service (Java — Eureka lb://) ---
+        - id: auth-service
+          uri: lb://GITDOCK-AUTH
+          predicates:
+            - Path=/api/auth/**
+
+        # --- Project Service (Java — Eureka lb://) ---
+        - id: project-service
+          uri: lb://GITDOCK-PROJECT
+          predicates:
+            - Path=/api/projects/**
+
+        # --- Sync Service (Java — Eureka lb://) ---
+        - id: sync-service
+          uri: lb://GITDOCK-SYNC
+          predicates:
+            - Path=/api/sync/**
+
+        # --- Notification Service (Java) ---
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/notifications/**, /ws-notifications/**
+
+        # --- Task Service (PHP/Symfony via nginx) ---
+        - id: task-service
+          uri: ${TASK_SERVICE_URL:http://localhost:8089}
+          predicates:
+            - Path=/api/tasks/**
+
+        # --- Gamification Service (.NET 9) ---
+        # Option A : routes directes (pas de RewritePath)
+        - id: gamification-service
+          uri: ${GAMIFICATION_SERVICE_URL:http://localhost:5292}
+          predicates:
+            - Path=/api/badges/**, /api/levels/**, /api/tags/**, /api/xpconfig/**
+
+        # --- YAM Service (FastAPI / Python) ---
+        - id: yam-service
+          uri: ${YAM_SERVICE_URL:http://localhost:8012}
+          predicates:
+            - Path=/api/yam/**
+
+        # --- GITDOCK-AI (FastAPI / Python) ---
+        - id: ai-service
+          uri: ${AI_SERVICE_URL:http://localhost:8012}
+          predicates:
+            - - Path=/api/v1/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
