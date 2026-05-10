@@ -1,0 +1,663 @@
+================================================================================
+GITDOCK — CARTOGRAPHIE COMPLÈTE MODE DEV
+Batches 1, 2, 3 analysés — 19 fichiers de config lus
+================================================================================
+
+
+================================================================================
+ARCHITECTURE GLOBALE
+================================================================================
+
+Deux machines reliées par Tailscale VPN :
+
+Machine Windows (dev principal)
+  Tailscale IP : windows-host
+  Services : tous les microservices Java/.NET/PHP/Python + frontend + infra Docker principale
+
+Ubuntu Server (distant, puissant)
+  Tailscale IP : ubuntu-host
+  Services : gitdock-sentinel (CLI) + infra Docker Sentinel (Kafka, ChromaDB B, Ollama GPU)
+
+Communications cross-machine via Tailscale :
+  - gitdock-sync (Windows) → Kafka (Ubuntu) : ubuntu-host:9092
+  - gitdock-sentinel (Ubuntu) → RabbitMQ (Windows) : windows-host:5672
+  - gitdock-sentinel (Ubuntu) → Eureka (Windows) : windows-host:8761
+  - gitdock-frontend (Windows) → WebSocket Sentinel (Ubuntu) : ws://ubuntu-host:8010
+
+
+================================================================================
+POINT D'ENTRÉE
+================================================================================
+
+Frontend dev server : http://localhost:5173
+API Gateway (point d'entrée unique backend) : http://localhost:8080/api
+VITE_API_BASE_URL=http://localhost:8080/api  (défini dans .env frontend)
+
+
+================================================================================
+ROUTING TABLE — API GATEWAY (application.yml)
+================================================================================
+
+Port gateway : 8080
+CORS allowed origin : http://localhost:5173
+
+/api/auth/**
+  → lb://GITDOCK-AUTH (Eureka load balancer)
+  → cible réelle : http://localhost:8081
+
+/api/projects/**
+  → lb://GITDOCK-PROJECT (Eureka load balancer)
+  → cible réelle : http://localhost:8083
+
+/api/sync/**
+  → lb://GITDOCK-SYNC (Eureka load balancer)
+  → cible réelle : http://localhost:8084
+
+/api/notifications/**
+  → http://localhost:8085 (URL directe, pas Eureka)
+
+/ws-notifications/**
+  → http://localhost:8085 (URL directe)
+
+/api/tasks/**
+  → http://localhost:8089 (URL directe)
+
+/api/badges/**
+/api/levels/**
+/api/tags/**
+/api/xpconfig/**
+  → http://localhost:5292 (URL directe)
+
+/api/yam/**
+  → http://localhost:8012 (URL directe)
+
+/api/v1/**
+  → [BUG] uri: manquante → BROKEN, crash/500 au runtime
+
+ROUTES MANQUANTES dans le gateway (404 depuis frontend) :
+  /api/contributors/**
+  /api/user-progress/**
+  /api/user-badges/**
+  /api/leaderboard/**
+  /api/progress/**
+
+
+================================================================================
+EUREKA DISCOVERY
+================================================================================
+
+URL : http://localhost:8761
+Tailscale : http://windows-host:8761/eureka/ (utilisée par Sentinel et Sync)
+Lancé via : Docker (seul service Java conteneurisé)
+
+Services enregistrés :
+  gitdock-auth         → localhost:8081
+  gitdock-project      → localhost:8083
+  gitdock-sync         → localhost:8084
+  gitdock-notification → localhost:8085 (enregistré mais gateway l'appelle en direct)
+  GITDOCK-GAMIFICATION → localhost:5292
+  gitdock-yam          → localhost:8010 [BUG: devrait être 8012]
+  "gitdock-yam"        → [BUG: c'est en réalité gitdock-sentinel, APP_NAME mal configuré]
+
+
+================================================================================
+MICROSERVICES BACKEND — MODE DEV (lancés via IDE ou CLI)
+================================================================================
+
+--- gitdock-auth ---
+Tech        : Java / Spring Boot
+Port DEV    : 8081
+URL         : http://localhost:8081
+Via Gateway : /api/auth/**
+DB          : gitdock_auth @ PostgreSQL localhost:5432
+Credentials DB : postgres / postgres
+Eureka ID   : gitdock-auth
+JWT         : access 24h / refresh 7j
+JWT secret  : ***REMOVED***
+OAuth2      : GitHub → redirect http://localhost:5173/oauth/callback/github
+Mail URLs   : http://localhost:5173/activate
+              http://localhost:5173/reset-password
+Messaging   : RabbitMQ publisher → localhost:5672 (guest/guest)
+Swagger     : à confirmer (Springdoc ?)
+Vars requises sans défaut : MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD
+Lancement   : Run depuis IntelliJ (profil default)
+
+--- gitdock-project ---
+Tech        : Java / Spring Boot
+Port DEV    : 8083
+URL         : http://localhost:8083
+Via Gateway : /api/projects/**
+DB          : gitdock_project @ PostgreSQL localhost:5432
+Credentials DB : postgres / postgres
+Eureka ID   : gitdock-project
+JWT secret  : ***REMOVED*** (cohérent)
+Feign client : → GITDOCK-AUTH via Eureka + Resilience4j circuit breaker
+Appelé par  : gitdock-gamification (:5292) et gitdock-task (:8089) en appel direct
+Messaging   : RabbitMQ (config non trouvée dans application.yml — à vérifier RabbitMQConfig.java)
+Swagger     : à confirmer
+Lancement   : Run depuis IntelliJ
+
+--- gitdock-sync ---
+Tech        : Java / Spring Boot
+Port DEV    : 8084
+URL         : http://localhost:8084
+Via Gateway : /api/sync/**
+DB          : aucune (worker asynchrone)
+Eureka ID   : gitdock-sync
+Messaging   : RabbitMQ subscriber ← localhost:5672
+              Kafka producer → ubuntu-host:9092 (IP Ubuntu hardcodée en default)
+              Topic Kafka produit : cleaned-commits
+Lancement   : Run depuis IntelliJ
+
+--- gitdock-notification ---
+Tech        : Java / Spring Boot
+Port DEV    : 8085
+URL         : http://localhost:8085
+Via Gateway : /api/notifications/** et /ws-notifications/**
+DB          : gitdock_notification @ PostgreSQL localhost:5432
+Credentials DB : postgres / postgres
+Eureka ID   : gitdock-notification (enregistré mais gateway ignore Eureka pour ce service)
+WebSocket   : STOMP + SockJS
+  Endpoint  : /ws-notifications (accessible via gateway : http://localhost:8080/ws-notifications)
+  Subscribe : /topic/*
+  Publish   : /app/*
+  VITE_NOTIFICATION_WS_URL=http://localhost:8080/ws-notifications
+Messaging   : RabbitMQ subscriber ← localhost:5672
+Mail URLs   : http://localhost:5173/activate
+              http://localhost:5173/reset-password
+              http://localhost:5173/accept-invitation
+Vars requises sans défaut : MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD
+Lancement   : Run depuis IntelliJ
+
+--- gitdock-gamification ---
+Tech        : .NET 9 / ASP.NET Core
+Port DEV    : 5292 (HTTP) / 7261 (HTTPS)
+URL         : http://localhost:5292
+Swagger     : http://localhost:5292/swagger
+Via Gateway : /api/badges/**, /api/levels/**, /api/tags/**, /api/xpconfig/**
+DB          : gitdock_gamification @ PostgreSQL localhost:5432 (Host=localhost;Port=5432)
+              Redis : localhost:6379
+Credentials DB : postgres / postgres
+Eureka ID   : GITDOCK-GAMIFICATION (instance ID : GITDOCK-GAMIFICATION:5292)
+CORS        : http://localhost:5173
+Appels directs :
+  → gitdock-auth    : http://localhost:8081 (via AuthServiceClient.cs)
+    endpoints : GET /api/auth/users/summaries?ids=...
+                GET /api/auth/users/{id}/exists
+  → gitdock-project : http://localhost:8083 (via ProjectServiceClient.cs)
+    endpoints : GET /api/projects/dashboard/collaborators-grouped
+    JWT forwarding : oui (recopie Authorization header)
+Messaging   : RabbitMQ subscriber/publisher ← → localhost:5672 (guest/guest)
+Lancement   : dotnet run (profil http)
+
+--- gitdock-task ---
+Tech        : Symfony / PHP
+Port DEV    : 8089
+URL         : http://localhost:8089
+Via Gateway : /api/tasks/**
+DB          : gitdock_tasks @ MySQL localhost:3306 (root/root)
+Appels directs :
+  → gitdock-auth    : $authBaseUrl/users/{id} et $authBaseUrl/users?ids=...
+    (authBaseUrl injecté via DI — valeur exacte à confirmer dans services.yaml/.env)
+  → gitdock-project : $baseUrl/api/projects/{id}
+    JWT forwarding : oui ($_SERVER['HTTP_AUTHORIZATION'])
+Messaging   : Symfony Messenger / RabbitMQ
+Lancement   : symfony server:start --port=8089
+
+--- gitdock-yam ---
+Tech        : FastAPI / Python
+Port DEV    : 8012 (main.py uvicorn)
+URL         : http://localhost:8012
+Swagger     : http://localhost:8012/docs
+Ping        : GET http://localhost:8012/api/yam/ping
+Via Gateway : /api/yam/** → http://localhost:8012 (URL directe)
+DB          : MongoDB localhost:27017 (mongodb/mongodb) — historique chat
+ChromaDB    : localhost:8010 (instance A, infra Windows)
+Ollama      : http://localhost:11434
+LLM défaut  : Gemini (gemini-2.5-flash)
+LLM backup  : Ollama (gemma4:e4b)
+Eureka      : enregistré sur http://localhost:8761/eureka/ — [BUG] port Eureka = 8010 ≠ port réel 8012
+Lancement   : uvicorn src.main:app --host 0.0.0.0 --port 8012 --reload
+
+--- gitdock-ai ---
+Tech        : FastAPI + Streamlit / Python
+Port DEV    : 8000 (main.py — la doc disait 8010, c'était faux)
+URL         : http://localhost:8000
+Swagger     : http://localhost:8000/docs
+Healthcheck : GET http://localhost:8000/health
+Routes      : /api/v1/** (prediction)
+Via Gateway : /api/v1/** → [BUG] uri manquante dans gateway → BROKEN
+DB          : gitdock_project @ PostgreSQL (DB_HOST=gitdock-postgres par défaut — à remplacer par 127.0.0.1 en DEV)
+Docker      : absent du docker-compose (pas de mode Docker prévu)
+CORS        : middleware entièrement commenté → [BUG] frontend bloqué CORS
+Lancement   : set DB_HOST=127.0.0.1 && set DB_PORT=5432 && set DB_USER=postgres && set DB_PASSWORD=postgres && set DB_NAME=gitdock_project && streamlit run app_dashboard.py
+
+--- gitdock-sentinel ---
+Tech        : FastAPI / Python
+Machine     : Ubuntu Server distant (ubuntu-host)
+Port DEV    : 8010 (lancement CLI, hors Docker)
+Port Docker : 8013 interne→8010 (service commenté dans docker-compose, non utilisé)
+URL Ubuntu  : http://ubuntu-host:8010
+Swagger     : http://ubuntu-host:8010/docs
+Healthcheck : GET http://ubuntu-host:8010/api/sentinel/health
+WebSocket   : ws://ubuntu-host:8010/api/ws/sentinel
+Flush ChromaDB : DELETE http://ubuntu-host:8010/api/sentinel/flush-chroma
+ChromaDB    : http://127.0.0.1:8005 (instance B locale Ubuntu)
+Kafka       : 127.0.0.1:9092 (local Ubuntu) ← topic cleaned-commits
+              groupe consommateur : gitdock-sentinel-group-v4
+RabbitMQ ←  : windows-host:5672 → queue gitdock.sentinel.sync.request.queue (routing key: sync.request)
+RabbitMQ →  : windows-host:5672 → exchange gitdock.exchange (routing key: sentinel.audit.result)
+Eureka      : http://windows-host:8761/eureka/ — [BUG] APP_NAME=gitdock-yam → s'enregistre sous le mauvais nom
+Ollama      : http://127.0.0.1:11434 (GPU Quadro M620)
+Modèle LLM  : gemma4:e4b (Ollama) / gemini-2.5-flash (Gemini, défaut)
+Embedding   : all-MiniLM-L6-v2
+Lancement   : source venv/bin/activate && python -m uvicorn src.main:app --host 0.0.0.0 --port 8010 --reload
+Scripts     : python scripts/chaos_producer.py (chaos complet)
+              python scripts/chaos_producer_lite.py (4 commits ciblés démo)
+
+
+================================================================================
+FRONTEND
+================================================================================
+
+Tech        : Vue 3 + Vite
+Port DEV    : 5173
+URL         : http://localhost:5173
+Lancement   : npm run dev
+
+Variables d'environnement (.env) :
+  VITE_API_BASE_URL=http://localhost:8080/api
+  VITE_API_BADGE_URL=http://localhost:8080/api/badges
+  VITE_API_PROGRESS_URL=http://localhost:8080/api/progress  [BUG: route inexistante dans gateway]
+  VITE_NOTIFICATION_WS_URL=http://localhost:8080/ws-notifications
+  VITE_AI_API_URL → non défini (ligne JS invalide dans .env — voir bugs)
+
+Points d'appel sortants :
+  API principale      : via api.ts → VITE_API_BASE_URL → localhost:8080/api (gateway)
+  WS Notifications    : STOMP/SockJS → http://localhost:8080/ws-notifications (via gateway)
+  WS Sentinel         : ws://ubuntu-host:8010/api/ws/sentinel [BUG: hardcodé dans CommitRadar.vue]
+  AI API fallback     : http://localhost:8080/api/v1 [BUG: route BROKEN dans gateway]
+
+Vite proxy (vite.config.js) :
+  /api → http://localhost:8083  [BUG: bypass gateway, pointe sur project service direct]
+
+
+================================================================================
+INFRASTRUCTURE DOCKER — MACHINE WINDOWS
+================================================================================
+
+PostgreSQL
+  Port         : 5432
+  Credentials  : postgres / postgres
+  Init SQL     : infrastructure/init.sql
+  Bases        : gitdock_auth, gitdock_project, gitdock_notification, gitdock_gamification
+
+PgAdmin
+  Port         : 5050 (interne 80)
+  URL          : http://localhost:5050
+  Login        : admin@gitdock.com / admin
+
+MySQL
+  Port         : 3306
+  Credentials  : root / root
+  Base         : gitdock_tasks
+
+PhpMyAdmin
+  Port         : 8088 (interne 80)
+  URL          : http://localhost:8088
+  Host MySQL   : gitdock-mysql (réseau Docker)
+
+MongoDB
+  Port         : 27017
+  Credentials  : mongodb / mongodb
+  Utilisé par  : gitdock-yam (historique chat)
+
+Mongo Express
+  Port         : 8086 (interne 8081)
+  URL          : http://localhost:8086
+
+RabbitMQ
+  AMQP         : localhost:5672
+  Tailscale    : windows-host:5672 (accès Sentinel et Sync depuis Ubuntu)
+  UI           : http://localhost:15672
+  Credentials  : guest / guest
+  Exchange     : gitdock.exchange
+
+Redis
+  Port         : 6379
+  Utilisé par  : gitdock-gamification
+
+ChromaDB (instance A — pour YAM)
+  Port externe : 8010 (interne 8000)
+  URL          : http://localhost:8010
+  Utilisé par  : gitdock-yam uniquement
+
+Ollama (Windows)
+  Port         : 11434
+  URL          : http://localhost:11434
+  Utilisé par  : gitdock-yam
+
+Dozzle (logs temps réel)
+  Port         : 8887 (interne 8080)
+  URL          : http://localhost:8887
+
+Eureka Discovery (seul service Java Docker)
+  Port         : 8761
+  URL          : http://localhost:8761
+
+
+================================================================================
+INFRASTRUCTURE DOCKER — UBUNTU SERVER (ubuntu-host)
+================================================================================
+
+ChromaDB (instance B — pour Sentinel uniquement)
+  Port externe : 8005 (interne 8000)
+  URL locale   : http://127.0.0.1:8005
+  Collection   : gitdock_code_chunks
+  Volume       : gitdock_chroma_data
+
+Kafka
+  Port         : 9092
+  Advertised   : PLAINTEXT://ubuntu-host:9092
+  Volume       : gitdock_kafka_data
+  Accès local  : 127.0.0.1:9092 (Sentinel)
+  Accès réseau : ubuntu-host:9092 (gitdock-sync depuis Windows)
+  Topic actif  : cleaned-commits
+
+Kafka UI
+  Port         : 8090 (interne 8080)
+  URL          : http://ubuntu-host:8090
+  Cluster      : GitDock-Local → ubuntu-host:9092
+
+Ollama (Ubuntu / GPU)
+  Port         : 11434
+  URL locale   : http://127.0.0.1:11434 (pour Sentinel)
+  URL distante : http://ubuntu-host:11434
+  GPU          : Quadro M620
+  Modèle       : gemma4:e4b
+
+Note : le service gitdock-sentinel-app est commenté dans le docker-compose Ubuntu.
+       Sentinel tourne uniquement en CLI sur Ubuntu.
+
+
+================================================================================
+TOPOLOGIE MESSAGING
+================================================================================
+
+RabbitMQ (principal — Windows localhost:5672 / Tailscale windows-host:5672)
+  Producteurs :
+    gitdock-auth         → publie (ex: événements utilisateur, activation)
+    gitdock-sentinel     → routing key sentinel.audit.result → exchange gitdock.exchange
+  Consommateurs :
+    gitdock-notification ← écoute les événements pour envoyer emails/notifs
+    gitdock-gamification ← écoute les événements projet pour XP/badges
+    gitdock-sync         ← écoute (détails à confirmer dans RabbitMQConfig.java)
+    gitdock-task         ← écoute via Symfony Messenger
+    gitdock-sentinel     ← queue gitdock.sentinel.sync.request.queue (routing key: sync.request)
+
+Kafka (Ubuntu ubuntu-host:9092)
+  Producteur  : gitdock-sync → topic cleaned-commits
+  Consommateur: gitdock-sentinel ← topic cleaned-commits
+                  groupe : gitdock-sentinel-group-v4
+
+
+================================================================================
+APPELS INTER-SERVICES (HTTP direct, hors Gateway)
+================================================================================
+
+gitdock-gamification → gitdock-auth
+  URL    : http://localhost:8081
+  Endpoints : GET /api/auth/users/summaries?ids=...
+              GET /api/auth/users/{id}/exists
+
+gitdock-gamification → gitdock-project
+  URL    : http://localhost:8083
+  Endpoints : GET /api/projects/dashboard/collaborators-grouped
+  JWT    : forwarding activé (recopie Authorization header)
+
+gitdock-task → gitdock-auth
+  URL    : $authBaseUrl (injecté DI — valeur à confirmer dans services.yaml)
+  Endpoints : GET {authBaseUrl}/users/{id}
+              GET {authBaseUrl}/users?ids=...
+
+gitdock-task → gitdock-project
+  URL    : $baseUrl (injecté DI — valeur à confirmer)
+  Endpoints : GET {baseUrl}/api/projects/{id}
+  JWT    : forwarding activé ($_SERVER['HTTP_AUTHORIZATION'])
+
+gitdock-project → gitdock-auth
+  Via Eureka (Feign client) + Resilience4j circuit breaker
+
+
+================================================================================
+COMMANDES DE LANCEMENT COMPLET (MODE DEV)
+================================================================================
+
+Ordre de démarrage recommandé :
+
+1. Infrastructure Docker (Windows) :
+   cd infrastructure && docker-compose up -d
+
+2. Infra Sentinel (Ubuntu) :
+   cd gitdock-sentinel && docker-compose up -d
+
+3. gitdock-sentinel (Ubuntu — CLI) :
+   source venv/bin/activate
+   python -m uvicorn src.main:app --host 0.0.0.0 --port 8010 --reload
+
+4. Services Java via IntelliJ (dans cet ordre) :
+   gitdock-discovery → gitdock-auth → gitdock-project → gitdock-sync → gitdock-notification → gitdock-gateway
+
+5. gitdock-gamification :
+   dotnet run --project backend/backend (profil http → port 5292)
+
+6. gitdock-task :
+   symfony server:start --port=8089
+
+7. gitdock-yam :
+   uvicorn src.main:app --host 0.0.0.0 --port 8012 --reload
+
+8. gitdock-ai :
+   set DB_HOST=127.0.0.1 && set DB_PORT=5432 && set DB_USER=postgres && set DB_PASSWORD=postgres && set DB_NAME=gitdock_project && streamlit run app_dashboard.py
+
+9. gitdock-frontend :
+   npm run dev
+
+
+PROCÉDURE DE RESET AVANT DÉMO :
+1. sudo pkill -9 python  (tuer processus fantômes sur Ubuntu)
+2. Kafka UI → Topic cleaned-commits → Clear Messages
+3. DELETE http://ubuntu-host:8010/api/sentinel/flush-chroma
+4. Vérifier qu'aucun chaos_producer.py ne tourne
+
+
+================================================================================
+BUGS CRITIQUES (7)
+================================================================================
+
+BUG-01 | API Gateway — ai-service sans uri
+  Fichier  : gitdock-gateway/src/main/resources/application.yml
+  Problème : La route /api/v1/** n'a pas de uri: défini. Le gateway crash ou renvoie 500
+             sur tout appel à /api/v1/**.
+  Fix      : Ajouter uri: http://localhost:8000 dans la config de ai-service.
+
+BUG-02 | gitdock-sentinel .env — APP_NAME=gitdock-yam
+  Fichier  : gitdock-sentinel/.env
+  Problème : Sentinel s'enregistre sur Eureka sous le nom "gitdock-yam".
+             Deux instances "gitdock-yam" sur Eureka → routing imprévisible.
+  Fix      : Corriger APP_NAME=gitdock-sentinel dans .env.
+
+BUG-03 | Frontend .env — ligne JS invalide
+  Fichier  : gitdock-frontend/.env
+  Problème : La dernière ligne est du code JavaScript :
+             const AI_API = import.meta.env.VITE_AI_API_URL || 'http://localhost:8080/api/v1'
+             Ce n'est pas du .env valide. Vite ignore cette ligne.
+             VITE_AI_API_URL n'est donc jamais défini. Le fallback code-side pointe sur
+             /api/v1/** qui est la route BROKEN (BUG-01).
+  Fix      : Remplacer par VITE_AI_API_URL=http://localhost:8000 (port réel de gitdock-ai).
+
+BUG-04 | CommitRadar.vue — WebSocket Sentinel hardcodé
+  Fichier  : gitdock-frontend/src/views/sentinel/CommitRadar.vue
+  Problème : const WS_URL = 'ws://ubuntu-host:8010/api/ws/sentinel' est hardcodé.
+             Cassé pour tout développeur hors réseau Tailscale.
+  Fix      : Externaliser en VITE_SENTINEL_WS_URL dans .env.
+             const WS_URL = import.meta.env.VITE_SENTINEL_WS_URL || 'ws://ubuntu-host:8010/api/ws/sentinel'
+
+BUG-05 | gitdock-ai — Middleware CORS commenté
+  Fichier  : gitdock-ai/main.py
+  Problème : Toute la section CORSMiddleware est commentée. Le frontend reçoit
+             une CORS error bloquante sur toute requête vers localhost:8000.
+  Fix      : Décommenter le middleware CORS et restreindre allow_origins à ["http://localhost:5173"].
+
+BUG-06 | vite.config.js — Proxy bypass le Gateway
+  Fichier  : gitdock-frontend/vite.config.js
+  Problème : proxy '/api' → http://localhost:8083 (Project service direct).
+             Si VITE_API_BASE_URL est bien défini dans .env, ce proxy n'est pas
+             utilisé par api.ts. Mais si .env est absent ou mal chargé, tous les
+             appels /api/* vont sur le Project service en bypassant auth, tasks,
+             gamification et notification.
+  Fix      : Corriger la cible du proxy vers http://localhost:8080 ou supprimer le proxy.
+
+BUG-07 | gitdock-yam — Eureka enregistre le mauvais port
+  Fichier  : gitdock-yam/src/core/config.py
+  Problème : app_port=8010 (valeur par défaut pour Eureka) mais main.py lance
+             uvicorn sur le port 8012. Eureka dit que YAM est sur :8010 alors
+             qu'il écoute sur :8012. Le gateway utilisant une URL directe (:8012),
+             le service fonctionne mais Eureka est faux.
+  Fix      : Corriger app_port=8012 dans config.py ou définir APP_PORT=8012 dans .env.
+
+
+================================================================================
+AVERTISSEMENTS (6)
+================================================================================
+
+WARN-01 | API Gateway — Routes gamification manquantes
+  Les endpoints /api/contributors/**, /api/user-progress/**, /api/user-badges/**,
+  /api/leaderboard/** ne sont pas routés dans application.yml.
+  Résultat : 404 depuis le frontend en passant par le gateway.
+  Fix : Ajouter ces paths dans la route gamification-service.
+
+WARN-02 | API Gateway — /api/progress non routé
+  VITE_API_PROGRESS_URL=http://localhost:8080/api/progress dans .env frontend
+  mais aucune route /api/progress/** dans le gateway.
+  Fix : Ajouter la route ou corriger la variable frontend.
+
+WARN-03 | gitdock-auth — GitHub OAuth secrets hardcodés
+  client-id et client-secret GitHub présents en clair comme valeurs par défaut
+  dans application.yml. Risque de sécurité si le fichier est versionné.
+  Fix : Forcer via .env : GITHUB_CLIENT_ID et GITHUB_CLIENT_SECRET sans valeur par défaut.
+
+WARN-04 | gitdock-sync — Kafka bootstrap IP hardcodée
+  Valeur par défaut KAFKA_HOST=ubuntu-host dans application.yml.
+  Sans variable d'env KAFKA_HOST définie, Kafka est injoignable hors réseau Tailscale.
+  Fix : S'assurer que KAFKA_HOST=ubuntu-host est dans le .env de gitdock-sync.
+
+WARN-05 | gitdock-project — RabbitMQ absent de application.yml
+  Aucune section spring.rabbitmq dans le fichier de config.
+  Soit la config est dans une classe @Configuration Java, soit elle est manquante.
+  À vérifier dans RabbitMQConfig.java.
+
+WARN-06 | api.ts — Double interceptor request.use redondant
+  Deux interceptors s'enchaînent : le premier lit le token depuis Pinia (authStore),
+  le second relit depuis localStorage. Le second peut écraser le premier.
+  Fix : Supprimer le second interceptor (localStorage) et conserver uniquement celui
+  basé sur Pinia.
+
+
+================================================================================
+FAUX BUGS CORRIGÉS (3)
+================================================================================
+
+FAUX-BUG-01 | Conflit de port gitdock-ai vs gitdock-sentinel
+  Rapport initial disait que gitdock-ai tournait sur :8010 comme Sentinel.
+  Réalité : gitdock-ai tourne sur :8000 (main.py, ligne uvicorn port=8000).
+  Aucun conflit.
+
+FAUX-BUG-02 | Ambiguïté port ChromaDB (:8010 vs :8005)
+  Il n'y a pas une ChromaDB mais deux instances séparées sur deux machines :
+  - Instance A (Windows) : port externe 8010 → utilisée par gitdock-yam
+  - Instance B (Ubuntu)  : port externe 8005 → utilisée par gitdock-sentinel
+  Aucun conflit.
+
+FAUX-BUG-03 | gitdock-yam chroma_port=8010 perçu comme conflit
+  config.py déclare chroma_port=8010. C'est correct : YAM parle à l'instance A
+  de ChromaDB qui est bien sur le port 8010 (docker-compose Windows).
+  Pas de conflit.
+
+
+================================================================================
+TABLEAU RÉCAPITULATIF DES PORTS
+================================================================================
+
+SERVICE                     PORT(S)    TECH           MACHINE
+--------------------------  ---------  -------------  ----------
+gitdock-frontend            5173       Vue 3 + Vite   Windows
+gitdock-gateway             8080       Spring Cloud   Windows
+gitdock-auth                8081       Spring Boot    Windows
+gitdock-project             8083       Spring Boot    Windows
+gitdock-sync                8084       Spring Boot    Windows
+gitdock-notification        8085       Spring Boot    Windows
+gitdock-yam                 8012       FastAPI        Windows
+gitdock-ai                  8000       FastAPI        Windows
+gitdock-gamification        5292       .NET 9         Windows
+gitdock-task                8089       Symfony/PHP    Windows
+gitdock-sentinel            8010       FastAPI        Ubuntu
+---
+PostgreSQL                  5432       Docker         Windows
+PgAdmin                     5050       Docker         Windows
+MySQL                       3306       Docker         Windows
+PhpMyAdmin                  8088       Docker         Windows
+MongoDB                     27017      Docker         Windows
+Mongo Express               8086       Docker         Windows
+RabbitMQ (AMQP)             5672       Docker         Windows
+RabbitMQ (UI)               15672      Docker         Windows
+Redis                       6379       Docker         Windows
+ChromaDB A (YAM)            8010       Docker         Windows
+Ollama (Windows)            11434      Docker         Windows
+Eureka Discovery            8761       Docker         Windows
+Dozzle                      8887       Docker         Windows
+---
+ChromaDB B (Sentinel)       8005       Docker         Ubuntu
+Kafka                       9092       Docker         Ubuntu
+Kafka UI                    8090       Docker         Ubuntu
+Ollama (Ubuntu/GPU)         11434      Natif          Ubuntu
+
+
+================================================================================
+URLS SWAGGER / DOCS
+================================================================================
+
+gitdock-yam       : http://localhost:8012/docs
+gitdock-ai        : http://localhost:8000/docs
+gitdock-sentinel  : http://ubuntu-host:8010/docs
+gitdock-gamification : http://localhost:5292/swagger
+gitdock-auth      : à confirmer (Springdoc OpenAPI ?)
+gitdock-project   : à confirmer
+gitdock-sync      : à confirmer
+gitdock-notification : à confirmer
+
+
+================================================================================
+HEALTHCHECKS
+================================================================================
+
+gitdock-ai       : GET http://localhost:8000/health
+gitdock-sentinel : GET http://ubuntu-host:8010/api/sentinel/health
+gitdock-yam      : GET http://localhost:8012/api/yam/ping
+gitdock-* Java   : GET http://localhost:{port}/actuator/health (si Actuator configuré)
+
+
+================================================================================
+INFORMATIONS MANQUANTES (à compléter)
+================================================================================
+
+- Valeur exacte de authBaseUrl injecté dans gitdock-task (services.yaml ou .env)
+- Valeur exacte de baseUrl (project) injecté dans gitdock-task
+- Config RabbitMQ de gitdock-project (RabbitMQConfig.java)
+- Confirmation présence/absence de Springdoc OpenAPI sur les services Java
+- Contenu de notificationStore.ts (URL WS potentiellement hardcodée)
+- Contenu des .env.local de chaque service Java (utilisés en Docker mode)
+
+================================================================================
+FIN DU DOCUMENT
+================================================================================

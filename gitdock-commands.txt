@@ -1,0 +1,911 @@
+================================================================================
+GITDOCK — COMMANDES DE LANCEMENT COMPLÈTES (MODE DEV)
+Console Windows : PowerShell ou CMD
+================================================================================
+Dernière mise à jour : batch 4 intégré — mission cartographie complète
+================================================================================
+
+
+================================================================================
+0. PRÉREQUIS — VÉRIFICATIONS AVANT LANCEMENT
+================================================================================
+
+# Vérifier que Docker tourne
+docker info
+
+# Vérifier les ports déjà occupés (PowerShell)
+netstat -ano | findstr ":8080"
+netstat -ano | findstr ":8081"
+netstat -ano | findstr ":8083"
+netstat -ano | findstr ":8084"
+netstat -ano | findstr ":8085"
+netstat -ano | findstr ":8761"
+netstat -ano | findstr ":5292"
+netstat -ano | findstr ":8089"
+netstat -ano | findstr ":8012"
+netstat -ano | findstr ":8000"
+netstat -ano | findstr ":5173"
+
+# Tuer un processus qui occupe un port (remplacer XXXX par le PID trouvé)
+taskkill /PID XXXX /F
+
+# Vérifier Java
+java -version
+
+# Vérifier .NET
+dotnet --version
+
+# Vérifier PHP / Symfony CLI
+php -v
+symfony version
+
+# Vérifier Python
+python --version
+
+# Vérifier Node.js / npm
+node -v
+npm -v
+
+# Vérifier Maven (si utilisé)
+mvn -v
+
+
+================================================================================
+1. INFRASTRUCTURE DOCKER — MACHINE WINDOWS
+================================================================================
+
+# Répertoire : /infrastructure
+
+cd infrastructure
+
+# --- DÉMARRAGE ---
+# Lancer toute l'infrastructure en arrière-plan
+docker-compose up -d
+
+# Lancer un seul container
+docker-compose up -d gitdock-postgres
+docker-compose up -d gitdock-mysql
+docker-compose up -d gitdock-mongodb
+docker-compose up -d gitdock-rabbitmq
+docker-compose up -d gitdock-redis
+docker-compose up -d gitdock-chromadb
+docker-compose up -d gitdock-ollama
+docker-compose up -d gitdock-pgadmin
+docker-compose up -d gitdock-phpmyadmin
+docker-compose up -d gitdock-mongo-express
+docker-compose up -d gitdock-dozzle
+docker-compose up -d gitdock-discovery
+
+# --- ARRÊT ---
+# Arrêter tous les containers (sans supprimer les volumes)
+docker-compose stop
+
+# Arrêter ET supprimer les containers (volumes conservés)
+docker-compose down
+
+# Arrêter ET supprimer containers + volumes (RESET COMPLET — perte des données)
+docker-compose down -v
+
+# --- REBUILD ---
+# Rebuild sans cache et relancer (pour gitdock-discovery)
+docker-compose build --no-cache gitdock-discovery
+docker-compose up -d gitdock-discovery
+
+# Rebuild tout (utile après modification d'un Dockerfile)
+docker-compose build --no-cache
+docker-compose up -d
+
+# --- LOGS ---
+# Logs temps réel de tous les services
+docker-compose logs -f
+
+# Logs d'un service spécifique
+docker-compose logs -f gitdock-postgres
+docker-compose logs -f gitdock-rabbitmq
+docker-compose logs -f gitdock-discovery
+
+# --- STATUS ---
+docker-compose ps
+
+# --- REDÉMARRAGE ---
+docker-compose restart gitdock-postgres
+docker-compose restart gitdock-rabbitmq
+docker-compose restart gitdock-discovery
+
+# --- ACCÈS SHELL DANS UN CONTAINER ---
+docker exec -it gitdock-postgres psql -U postgres
+docker exec -it gitdock-mysql mysql -u root -p
+docker exec -it gitdock-rabbitmq bash
+docker exec -it gitdock-redis redis-cli
+
+
+================================================================================
+2. INFRASTRUCTURE DOCKER — UBUNTU SERVER (via SSH)
+================================================================================
+
+# Connexion SSH à l'Ubuntu
+ssh user@ubuntu-host
+
+# Répertoire : /home/ubuntu/workspace/gitdock-sentinel (adapter si besoin)
+cd /home/ubuntu/workspace/gitdock-sentinel
+
+# --- DÉMARRAGE INFRA SENTINEL (ChromaDB B + Kafka + Kafka UI) ---
+docker-compose up -d chromadb
+docker-compose up -d kafka
+docker-compose up -d kafka-ui
+
+# Ou tout en une fois
+docker-compose up -d
+
+# --- ARRÊT ---
+docker-compose stop
+docker-compose down
+
+# Reset complet (perd les données ChromaDB et Kafka)
+docker-compose down -v
+
+# --- REBUILD ---
+docker-compose build --no-cache
+docker-compose up -d
+
+# --- LOGS ---
+docker-compose logs -f chromadb
+docker-compose logs -f kafka
+docker-compose logs -f kafka-ui
+
+# --- STATUS ---
+docker-compose ps
+
+# --- Vérifier ports occupés sur Ubuntu ---
+sudo lsof -i :8005
+sudo lsof -i :9092
+sudo lsof -i :8010
+
+
+================================================================================
+3. GITDOCK-DISCOVERY (Eureka) — déjà dans Docker Windows
+================================================================================
+
+# Démarré automatiquement avec l'infra Docker Windows (étape 1)
+# Vérifier qu'il est up :
+curl http://localhost:8761
+
+# URL Eureka dashboard :
+# http://localhost:8761
+
+
+================================================================================
+4. SERVICES JAVA — LANCEMENT VIA MAVEN (CLI)
+================================================================================
+
+# Chaque service se lance depuis son répertoire racine.
+# Si ton projet utilise Gradle, remplace "mvn spring-boot:run" par "./gradlew bootRun"
+
+# --- gitdock-auth ---
+cd gitdock-auth
+mvn spring-boot:run
+# Avec profil spécifique (ex: si application-local.yml existe)
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+
+# --- gitdock-project ---
+cd gitdock-project
+mvn spring-boot:run
+
+# --- gitdock-sync ---
+cd gitdock-sync
+mvn spring-boot:run
+
+# --- gitdock-notification ---
+cd gitdock-notification
+mvn spring-boot:run
+
+# --- gitdock-gateway ---
+cd gitdock-gateway
+mvn spring-boot:run
+
+# --- BUILD JAR (sans lancer) ---
+cd gitdock-auth
+mvn clean package -DskipTests
+
+# --- BUILD JAR et lancer le jar ---
+mvn clean package -DskipTests
+java -jar target/gitdock-auth-*.jar
+
+# --- NETTOYAGE CACHE MAVEN ---
+# Nettoyer le dossier target (sorties de build)
+mvn clean
+
+# Supprimer le cache local Maven (~/.m2/repository) — réinstalle tout
+# PowerShell
+Remove-Item -Recurse -Force "$env:USERPROFILE\.m2\repository"
+
+# CMD
+rmdir /s /q "%USERPROFILE%\.m2\repository"
+
+# Forcer la re-résolution des dépendances
+mvn dependency:purge-local-repository
+
+# --- TESTS ---
+mvn test
+mvn test -Dtest=NomDeLaClasse
+
+# --- GRADLE (si applicable) ---
+./gradlew bootRun
+./gradlew clean build
+./gradlew clean build -x test
+./gradlew dependencies
+
+
+================================================================================
+5. GITDOCK-GAMIFICATION (.NET 9)
+================================================================================
+
+cd gitdock-gamification/backend/backend
+
+# --- LANCEMENT (profil HTTP, port 5292) ---
+dotnet run --launch-profile http
+
+# Ou simplement (prend le premier profil disponible)
+dotnet run
+
+# --- LANCEMENT HTTPS (port 7261) ---
+dotnet run --launch-profile https
+
+# --- BUILD ---
+dotnet build
+
+# --- BUILD RELEASE ---
+dotnet build -c Release
+
+# --- NETTOYER LE CACHE .NET ---
+dotnet clean
+dotnet nuget locals all --clear
+
+# Supprimer les dossiers bin et obj
+# PowerShell
+Remove-Item -Recurse -Force bin, obj
+
+# CMD
+rmdir /s /q bin
+rmdir /s /q obj
+
+# --- RESTAURER LES DÉPENDANCES ---
+dotnet restore
+
+# --- REBUILD COMPLET ---
+dotnet clean
+dotnet restore
+dotnet build
+
+# --- PUBLIER ---
+dotnet publish -c Release -o ./publish
+
+# --- TESTS ---
+dotnet test
+
+
+================================================================================
+6. GITDOCK-TASK (Symfony / PHP)
+================================================================================
+
+cd gitdock-task
+
+# --- LANCEMENT SERVEUR DEV ---
+symfony server:start --port=8089
+
+# En arrière-plan (daemon)
+symfony server:start --port=8089 --daemon
+
+# --- ARRÊT ---
+symfony server:stop
+
+# --- STATUS ---
+symfony server:status
+
+# --- LOGS ---
+symfony server:log
+
+# --- INSTALLATION DES DÉPENDANCES PHP ---
+composer install
+
+# --- MISE À JOUR DES DÉPENDANCES ---
+composer update
+
+# --- VIDER LE CACHE SYMFONY ---
+php bin/console cache:clear
+php bin/console cache:warmup
+
+# Vider cache pour un environnement spécifique
+php bin/console cache:clear --env=dev
+php bin/console cache:clear --env=prod
+
+# Supprimer manuellement le dossier cache
+# PowerShell
+Remove-Item -Recurse -Force var/cache
+# CMD
+rmdir /s /q var\cache
+
+# --- MIGRATIONS DOCTRINE ---
+php bin/console doctrine:migrations:migrate
+php bin/console doctrine:migrations:status
+php bin/console doctrine:schema:update --force
+
+# --- GÉNÉRER LES CLÉS JWT ---
+php bin/console lexik:jwt:generate-keypair
+
+# --- VIDER LES QUEUES MESSENGER ---
+php bin/console messenger:consume async -vv
+php bin/console messenger:failed:show
+php bin/console messenger:failed:retry
+
+# --- LANCER LE CONSUMER MESSENGER (RabbitMQ) ---
+php bin/console messenger:consume async
+
+# --- TESTS ---
+php bin/phpunit
+
+# --- VÉRIFIER LA CONFIG ---
+php bin/console debug:config
+php bin/console debug:router
+
+
+================================================================================
+7. GITDOCK-YAM (FastAPI / Python) — Machine Windows
+================================================================================
+
+cd gitdock-yam
+
+# --- CRÉER L'ENVIRONNEMENT VIRTUEL (première fois) ---
+python -m venv venv
+
+# --- ACTIVER LE VENV ---
+# PowerShell
+.\venv\Scripts\Activate.ps1
+
+# CMD
+.\venv\Scripts\activate.bat
+
+# Si PowerShell bloque l'exécution de scripts :
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# --- INSTALLER LES DÉPENDANCES ---
+pip install -r requirements.txt
+
+# Mettre à jour pip
+python -m pip install --upgrade pip
+
+# --- LANCEMENT EN DEV ---
+uvicorn src.main:app --host 0.0.0.0 --port 8012 --reload
+
+# Avec logs détaillés
+uvicorn src.main:app --host 0.0.0.0 --port 8012 --reload --log-level debug
+
+# --- DÉSACTIVER LE VENV ---
+deactivate
+
+# --- VIDER LE CACHE PIP ---
+pip cache purge
+
+# --- VIDER LE CACHE PYTHON (__pycache__) ---
+# PowerShell
+Get-ChildItem -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
+Get-ChildItem -Recurse -Filter "*.pyc" | Remove-Item -Force
+
+# CMD
+for /d /r . %d in (__pycache__) do @if exist "%d" rd /s /q "%d"
+
+# --- RÉINSTALLATION PROPRE ---
+pip freeze > requirements_backup.txt
+pip uninstall -r requirements.txt -y
+pip install -r requirements.txt
+
+# --- REBUILD VENV COMPLET ---
+deactivate
+# PowerShell
+Remove-Item -Recurse -Force venv
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+# --- TESTS ---
+pytest
+pytest -v
+pytest --cov=src
+
+
+================================================================================
+8. GITDOCK-AI (FastAPI + Streamlit / Python) — Machine Windows
+================================================================================
+
+cd gitdock-ai
+
+# --- CRÉER ET ACTIVER LE VENV ---
+python -m venv venv
+
+# PowerShell
+.\venv\Scripts\Activate.ps1
+
+# CMD
+.\venv\Scripts\activate.bat
+
+# --- INSTALLER LES DÉPENDANCES ---
+pip install -r requirements.txt
+
+# --- LANCEMENT (CMD — variables d'environnement nécessaires) ---
+set DB_HOST=127.0.0.1 && set DB_PORT=5432 && set DB_USER=postgres && set DB_PASSWORD=postgres && set DB_NAME=gitdock_project && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# --- LANCEMENT (PowerShell) ---
+$env:DB_HOST="127.0.0.1"; $env:DB_PORT="5432"; $env:DB_USER="postgres"; $env:DB_PASSWORD="postgres"; $env:DB_NAME="gitdock_project"; python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# --- LANCEMENT DASHBOARD STREAMLIT ---
+# CMD
+set DB_HOST=127.0.0.1 && set DB_PORT=5432 && set DB_USER=postgres && set DB_PASSWORD=postgres && set DB_NAME=gitdock_project && streamlit run app_dashboard.py
+
+# PowerShell
+$env:DB_HOST="127.0.0.1"; $env:DB_PORT="5432"; $env:DB_USER="postgres"; $env:DB_PASSWORD="postgres"; $env:DB_NAME="gitdock_project"; streamlit run app_dashboard.py
+
+# --- LANCEMENT AVEC FICHIER .env (si créé) ---
+# Créer un fichier .env dans gitdock-ai/ avec toutes les variables,
+# puis lancer :
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+streamlit run app_dashboard.py
+
+# --- CACHE ET NETTOYAGE ---
+pip cache purge
+
+# PowerShell
+Get-ChildItem -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
+Remove-Item -Recurse -Force venv
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+
+================================================================================
+9. GITDOCK-SENTINEL (FastAPI / Python) — Ubuntu Server
+================================================================================
+
+# Connexion SSH
+ssh user@ubuntu-host
+
+cd /home/ubuntu/workspace/gitdock-sentinel
+
+# --- ACTIVER LE VENV ---
+source venv/bin/activate
+
+# --- INSTALLER LES DÉPENDANCES (première fois ou après update) ---
+pip install -r requirements.txt
+
+# --- LANCEMENT PRINCIPAL ---
+python -m uvicorn src.main:app --host 0.0.0.0 --port 8010 --reload
+
+# Ou via chemin complet (sans activation venv)
+/home/ubuntu/workspace/gitdock-sentinel/venv/bin/python -m uvicorn src.main:app --host 0.0.0.0 --port 8010 --reload
+
+# Lancement en arrière-plan (nohup)
+nohup python -m uvicorn src.main:app --host 0.0.0.0 --port 8010 --reload > sentinel.log 2>&1 &
+
+# Voir les logs en direct
+tail -f sentinel.log
+
+# --- SCRIPTS DE TEST ---
+# Chaos Monkey (simulation de failles — boucle infinie)
+python scripts/chaos_producer.py
+
+# Chaos Monkey Lite (4 commits ciblés pour démo)
+python scripts/chaos_producer_lite.py
+
+# --- ARRÊTER SENTINEL ---
+# Trouver le PID
+lsof -i :8010
+# ou
+ps aux | grep uvicorn
+
+# Tuer le processus
+kill -9 <PID>
+
+# Tuer tous les processus Python (ATTENTION : tue tout)
+sudo pkill -9 python
+
+# --- VENV UBUNTU ---
+# Créer le venv (si absent)
+python3 -m venv venv
+
+# Activer
+source venv/bin/activate
+
+# Désactiver
+deactivate
+
+# Rebuild venv
+deactivate
+rm -rf venv
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# --- VIDER LE CACHE PYTHON (Ubuntu) ---
+find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null
+find . -name "*.pyc" -delete
+
+
+================================================================================
+10. GITDOCK-FRONTEND (Vue 3 / Vite)
+================================================================================
+
+cd gitdock-frontend
+
+# --- INSTALLATION (première fois) ---
+npm install
+
+# Forcer la réinstallation propre
+npm ci
+
+# --- LANCEMENT DEV ---
+npm run dev
+
+# Le frontend sera disponible sur http://localhost:5173
+
+# --- BUILD PRODUCTION ---
+npm run build
+
+# Prévisualiser le build production
+npm run preview
+
+# --- VIDER LE CACHE NPM ---
+npm cache clean --force
+
+# Supprimer node_modules et réinstaller
+# PowerShell
+Remove-Item -Recurse -Force node_modules
+Remove-Item -Force package-lock.json
+npm install
+
+# CMD
+rmdir /s /q node_modules
+del package-lock.json
+npm install
+
+# Ou avec npm ci (plus strict, basé sur package-lock.json)
+npm ci
+
+# --- VIDER LE CACHE VITE ---
+# PowerShell
+Remove-Item -Recurse -Force node_modules/.vite
+Remove-Item -Recurse -Force dist
+
+# CMD
+rmdir /s /q node_modules\.vite
+rmdir /s /q dist
+
+# --- LINTER ET FORMATAGE ---
+npm run lint
+npm run format
+
+
+================================================================================
+11. COMMANDES DOCKER GLOBALES (NETTOYAGE SYSTÈME)
+================================================================================
+
+# Voir tous les containers (actifs + arrêtés)
+docker ps -a
+
+# Voir toutes les images
+docker images
+
+# Voir tous les volumes
+docker volume ls
+
+# Voir tous les réseaux
+docker network ls
+
+# --- NETTOYAGE ---
+# Supprimer les containers arrêtés
+docker container prune
+
+# Supprimer les images non utilisées
+docker image prune
+
+# Supprimer les images non utilisées (toutes, même taggées)
+docker image prune -a
+
+# Supprimer les volumes non utilisés
+docker volume prune
+
+# Supprimer le cache de build
+docker builder prune
+
+# Supprimer TOUT ce qui n'est pas utilisé (containers, images, volumes, cache)
+docker system prune -a --volumes
+
+# Nettoyage sans confirmation
+docker system prune -a --volumes -f
+
+# --- INSPECTER ---
+docker inspect gitdock-postgres
+docker logs gitdock-rabbitmq
+docker logs -f gitdock-discovery --tail 100
+
+# --- STATS RESSOURCES ---
+docker stats
+
+# --- REBUILD FORCÉ SANS CACHE (un service) ---
+docker-compose build --no-cache gitdock-discovery
+docker-compose up -d --force-recreate gitdock-discovery
+
+# --- REBUILD FORCÉ SANS CACHE (tout) ---
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+
+# --- RÉSEAU DOCKER ---
+# Voir les containers sur le réseau gitdock
+docker network inspect gitdock_shared_net
+
+
+================================================================================
+12. COMMANDES DE VÉRIFICATION (HEALTH CHECKS)
+================================================================================
+
+# --- Depuis Windows (PowerShell) ---
+
+# Eureka
+curl http://localhost:8761
+
+# API Gateway
+curl http://localhost:8080/actuator/health
+
+# gitdock-auth
+curl http://localhost:8081/actuator/health
+
+# gitdock-project
+curl http://localhost:8083/actuator/health
+
+# gitdock-sync
+curl http://localhost:8084/actuator/health
+
+# gitdock-notification
+curl http://localhost:8085/actuator/health
+
+# gitdock-gamification
+curl http://localhost:5292/health
+
+# gitdock-task
+curl http://localhost:8089
+
+# gitdock-yam
+curl http://localhost:8012/api/yam/ping
+
+# gitdock-ai
+curl http://localhost:8000/health
+
+# gitdock-sentinel (Ubuntu)
+curl http://ubuntu-host:8010/api/sentinel/health
+
+# RabbitMQ
+curl http://localhost:15672
+
+# ChromaDB A (Windows)
+curl http://localhost:8010/api/v1/heartbeat
+
+# ChromaDB B (Ubuntu)
+curl http://ubuntu-host:8005/api/v1/heartbeat
+
+# Kafka UI
+curl http://ubuntu-host:8090
+
+# PostgreSQL (via psql)
+docker exec -it gitdock-postgres psql -U postgres -c "\l"
+
+# --- PowerShell (Invoke-WebRequest) ---
+Invoke-WebRequest -Uri http://localhost:8080/actuator/health -Method GET
+Invoke-WebRequest -Uri http://localhost:8761 -Method GET
+
+
+================================================================================
+13. KAFKA — COMMANDES UTILES
+================================================================================
+
+# Depuis Ubuntu (dans le container Kafka)
+docker exec -it gitdock-kafka bash
+
+# Lister les topics
+kafka-topics.sh --list --bootstrap-server localhost:9092
+
+# Décrire un topic
+kafka-topics.sh --describe --topic cleaned-commits --bootstrap-server localhost:9092
+
+# Créer un topic manuellement (si absent)
+kafka-topics.sh --create --topic cleaned-commits --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+
+# Supprimer un topic (reset des messages)
+kafka-topics.sh --delete --topic cleaned-commits --bootstrap-server localhost:9092
+
+# Lire les messages d'un topic depuis le début
+kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic cleaned-commits --from-beginning
+
+# Voir le lag du consumer group sentinel
+kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group gitdock-sentinel-group-v4
+
+# Reset du consumer group (forcer la relecture depuis le début)
+kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group gitdock-sentinel-group-v4 --reset-offsets --to-earliest --execute --topic cleaned-commits
+
+
+================================================================================
+14. RABBITMQ — COMMANDES UTILES
+================================================================================
+
+# Vérifier l'état
+docker exec -it gitdock-rabbitmq rabbitmqctl status
+
+# Lister les queues
+docker exec -it gitdock-rabbitmq rabbitmqctl list_queues
+
+# Lister les exchanges
+docker exec -it gitdock-rabbitmq rabbitmqctl list_exchanges
+
+# Purger une queue (vider sans supprimer)
+docker exec -it gitdock-rabbitmq rabbitmqctl purge_queue gitdock.sync.request.queue
+docker exec -it gitdock-rabbitmq rabbitmqctl purge_queue gitdock.sentinel.sync.request.queue
+
+# Supprimer une queue
+docker exec -it gitdock-rabbitmq rabbitmqctl delete_queue nom_de_la_queue
+
+# Lister les connections actives
+docker exec -it gitdock-rabbitmq rabbitmqctl list_connections
+
+
+================================================================================
+15. SENTINEL — COMMANDES DE RESET AVANT DÉMO
+================================================================================
+
+# Étape 1 — Tuer les processus Python fantômes (Ubuntu)
+sudo pkill -9 python
+
+# Vérifier qu'aucun processus n'écoute sur 8010
+sudo lsof -i :8010
+
+# Étape 2 — Purger les messages Kafka (via Kafka UI)
+# http://ubuntu-host:8090 → Topic "cleaned-commits" → Clear Messages
+# Ou via CLI (dans le container Kafka) :
+docker exec -it gitdock-kafka kafka-topics.sh --delete --topic cleaned-commits --bootstrap-server localhost:9092
+docker exec -it gitdock-kafka kafka-topics.sh --create --topic cleaned-commits --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+
+# Étape 3 — Purger ChromaDB (vider la mémoire vectorielle IA)
+# Via Swagger UI :
+# http://ubuntu-host:8010/docs → DELETE /api/sentinel/flush-chroma
+# Ou via curl :
+curl -X DELETE http://ubuntu-host:8010/api/sentinel/flush-chroma
+
+# Étape 4 — Vérifier qu'aucun chaos_producer ne tourne
+ps aux | grep chaos_producer
+# Si un tourne :
+kill -9 <PID>
+
+
+================================================================================
+16. SÉQUENCE DE DÉMARRAGE COMPLÈTE (ORDRE RECOMMANDÉ)
+================================================================================
+
+==== TERMINAL 1 — Infrastructure Docker Windows ====
+cd infrastructure
+docker-compose up -d
+
+# Attendre ~30 secondes que Postgres, Rabbit, Redis, Eureka soient UP
+# Vérifier : docker-compose ps
+
+==== TERMINAL 2 (SSH Ubuntu) — Infrastructure Sentinel ====
+ssh user@ubuntu-host
+cd /home/ubuntu/workspace/gitdock-sentinel
+docker-compose up -d
+
+==== TERMINAL 3 (SSH Ubuntu) — Sentinel app ====
+ssh user@ubuntu-host
+cd /home/ubuntu/workspace/gitdock-sentinel
+source venv/bin/activate
+python -m uvicorn src.main:app --host 0.0.0.0 --port 8010 --reload
+
+==== TERMINAL 4 — gitdock-auth ====
+cd gitdock-auth
+mvn spring-boot:run
+
+==== TERMINAL 5 — gitdock-project ====
+cd gitdock-project
+mvn spring-boot:run
+
+==== TERMINAL 6 — gitdock-sync ====
+cd gitdock-sync
+mvn spring-boot:run
+
+==== TERMINAL 7 — gitdock-notification ====
+cd gitdock-notification
+mvn spring-boot:run
+
+==== TERMINAL 8 — gitdock-gateway ====
+cd gitdock-gateway
+mvn spring-boot:run
+
+==== TERMINAL 9 — gitdock-gamification ====
+cd gitdock-gamification/backend/backend
+dotnet run --launch-profile http
+
+==== TERMINAL 10 — gitdock-task ====
+cd gitdock-task
+symfony server:start --port=8089
+
+==== TERMINAL 11 — gitdock-yam ====
+cd gitdock-yam
+.\venv\Scripts\Activate.ps1
+uvicorn src.main:app --host 0.0.0.0 --port 8012 --reload
+
+==== TERMINAL 12 — gitdock-ai ====
+cd gitdock-ai
+.\venv\Scripts\Activate.ps1
+
+# CMD :
+set DB_HOST=127.0.0.1 && set DB_PORT=5432 && set DB_USER=postgres && set DB_PASSWORD=postgres && set DB_NAME=gitdock_project && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# PowerShell :
+$env:DB_HOST="127.0.0.1"; $env:DB_PORT="5432"; $env:DB_USER="postgres"; $env:DB_PASSWORD="postgres"; $env:DB_NAME="gitdock_project"; python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+==== TERMINAL 13 — gitdock-frontend ====
+cd gitdock-frontend
+npm run dev
+
+
+================================================================================
+17. SÉQUENCE D'ARRÊT PROPRE
+================================================================================
+
+# 1. Arrêter le frontend
+# Ctrl+C dans le terminal frontend
+
+# 2. Arrêter les services Java
+# Ctrl+C dans chaque terminal Java (gateway en dernier)
+
+# 3. Arrêter .NET et PHP
+# Ctrl+C dans le terminal gamification
+symfony server:stop  (dans le terminal task)
+
+# 4. Arrêter Python
+# Ctrl+C dans les terminaux yam et ai
+deactivate
+
+# 5. Arrêter Sentinel (Ubuntu)
+# Ctrl+C ou :
+sudo pkill -9 python
+
+# 6. Arrêter l'infrastructure Docker Windows
+cd infrastructure
+docker-compose stop
+
+# 7. Arrêter l'infrastructure Docker Ubuntu
+cd /home/ubuntu/workspace/gitdock-sentinel
+docker-compose stop
+
+
+================================================================================
+18. INTERFACES WEB — RÉCAPITULATIF DES URLS
+================================================================================
+
+Application frontend     : http://localhost:5173
+API Gateway              : http://localhost:8080
+
+--- Swagger / Docs ---
+gitdock-ai Swagger       : http://localhost:8000/docs
+gitdock-yam Swagger      : http://localhost:8012/docs
+gitdock-sentinel Swagger : http://ubuntu-host:8010/docs
+gitdock-gamification     : http://localhost:5292/swagger
+
+--- Administration ---
+Eureka Dashboard         : http://localhost:8761
+RabbitMQ UI              : http://localhost:15672  (guest/guest)
+PgAdmin                  : http://localhost:5050   (admin@gitdock.com / admin)
+PhpMyAdmin               : http://localhost:8088   (root/root)
+Mongo Express            : http://localhost:8086
+Dozzle (logs Docker)     : http://localhost:8887
+Kafka UI                 : http://ubuntu-host:8090
+
+================================================================================
+FIN DU DOCUMENT
+================================================================================

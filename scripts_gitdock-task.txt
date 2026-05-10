@@ -1,0 +1,36 @@
+-- 1. NETTOYAGE TOTAL
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE task;
+TRUNCATE TABLE epic;
+TRUNCATE TABLE user;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- 2. RÉINJECTION DES UTILISATEURS
+INSERT INTO user (id, external_id, username, email, first_name, last_name, is_enabled, account_locked, is_deleted, roles, created_at, updated_at)
+VALUES 
+(1, 999, 'admin', 'admin@gitdock.com', 'Super', 'Admin', 1, 0, 0, '["ROLE_ADMIN"]', '2026-05-04 18:42:48', '2026-05-04 18:42:48'),
+(2, 1, 'jp', 'jp@corp.com', 'Jean-Pierre', 'Directeur', 1, 0, 0, '["ROLE_USER"]', '2026-05-04 18:42:48', '2026-05-04 18:42:48'),
+(5, 2, 'neo', 'neo@pixel.gg', 'Neo', 'Anderson', 1, 0, 0, '["ROLE_USER"]', '2026-05-04 18:42:48', '2026-05-04 18:42:48'),
+(9, 1003, 'ayman.nabih1993', 'ayman.nabih1993@gmail.com', 'Ayman', 'NABIH', 1, 0, 0, '["ROLE_USER"]', '2026-05-05 19:16:30', '2026-05-05 19:24:19');
+
+-- 3. RÉINJECTION DES EPICS
+INSERT INTO epic (id, title, description, project_id, created_at, updated_at)
+VALUES 
+(1, 'Accounting Module', 'Financial accounting module', 1, '2026-05-04 18:32:59', '2026-05-04 18:32:59'),
+(2, 'Reporting Module', 'Financial reporting module', 1, '2026-05-04 18:32:59', '2026-05-04 18:32:59'),
+(3, 'Game Engine', 'Core game engine', 3, '2026-05-04 18:32:59', '2026-05-04 18:32:59');
+
+-- 4. INJECTION DES TASKS (CORRIGÉE avec 'in_progress' et 'todo')
+INSERT INTO task (title, description, status, priority, due_date, created_at, updated_at, project_id, epic_id, level_id, assigned_to) 
+VALUES 
+('Config Reverse Proxy', 'Finaliser le routage Gateway', 'in_progress', 'high', '2026-05-01 12:00:00', '2026-04-15 08:00:00', '2026-04-20 10:00:00', 1, 1, 1, 1),
+('Rapport Q2 Finance', 'Clôture trimestrielle', 'todo', 'high', DATE_ADD(NOW(), INTERVAL 1 DAY), NOW(), NOW(), 1, 2, 1, 2),
+('Moteur Physique v2', 'Optimisation collisions', 'in_progress', 'medium', DATE_ADD(NOW(), INTERVAL 10 DAY), NOW(), NOW(), 3, 3, 1, 5),
+('Test Unitaire Auth', 'Couverture 80%', 'todo', 'high', DATE_ADD(NOW(), INTERVAL 4 DAY), '2026-05-01 10:00:00', '2026-05-01 10:00:00', 25, NULL, 1, 9),
+('Fix Memory Leak', 'Leak détecté dans le moteur', 'todo', 'high', DATE_ADD(NOW(), INTERVAL 1 DAY), NOW(), NOW(), 3, 3, 1, 9);
+
+
+
+SELECT * FROM user;
+SELECT * FROM epic;
+SELECT * FROM task;
