@@ -26,8 +26,9 @@ export const useProjectStore = defineStore('project', () => {
     const projectCollaborators = ref<Collaborator[]>([])
 
     const availableRoles = ref([
-        { role: 'ROLE_MANAGER', label: 'Manager' },
-        { role: 'ROLE_DEVELOPER', label: 'Développeur' },
+        { role: 'MANAGER', label: 'Manager' },
+        { role: 'DEVELOPER', label: 'Développeur' },
+        { role: 'TESTER', label: 'Testeur' }
     ])
 
     const fetchProjects = async () => {

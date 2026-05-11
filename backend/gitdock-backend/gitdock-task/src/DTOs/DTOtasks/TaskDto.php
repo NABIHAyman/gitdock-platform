@@ -13,8 +13,8 @@ class TaskDto
 
     public ?string $dueDate = null;
 
-    public ?int $assignedTo = null;
-    public ?int $assignedBy = null;
+    public ?string $assignedTo = null;
+    public ?string $assignedBy = null;
 
     public ?int $epicId = null;
     public ?int $levelId = null;

@@ -1,19 +1,4 @@
-import axios from 'axios'
-
-const gamificationApi = axios.create({
-    baseURL: 'http://localhost:5292/api',
-    headers: { 'Content-Type': 'application/json' }
-})
-
-// ✅ Même logique que api.ts
-gamificationApi.interceptors.request.use(config => {
-    const token = localStorage.getItem('token')
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-})
-
+import api from './api'
 
 // --- INTERFACES ---
 export interface ContributorBadge {
@@ -53,21 +38,21 @@ export interface Badge {
 // --- SERVICE ---
 export const contributorService = {
     async getAll(): Promise<Contributor[]> {
-        const response = await gamificationApi.get<Contributor[]>('/Contributors')
+        const response = await api.get<Contributor[]>('/Contributors')
         return response.data
     },
 
     async getByProject(): Promise<ContributorsByProject[]> {
-        const response = await gamificationApi.get<ContributorsByProject[]>('/Contributors/by-project')
+        const response = await api.get<ContributorsByProject[]>('/Contributors/by-project')
         return response.data
     },
 
     async getAllBadges(): Promise<Badge[]> {
-        const response = await gamificationApi.get<Badge[]>('/Badges')
+        const response = await api.get<Badge[]>('/Badges')
         return response.data
     },
 
     async awardBadge(userId: number, badgeId: string): Promise<void> {
-        await gamificationApi.post('/UserBadge/award', { userId, badgeId })
+        await api.post('/UserBadge/award', { userId, badgeId })
     }
 }

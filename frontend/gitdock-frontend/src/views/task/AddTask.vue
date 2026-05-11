@@ -1,155 +1,131 @@
 <template>
-  <div class="space-y-4 max-w-4xl mx-auto">
-    <!-- HEADER COMPACT -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-[#5b13ec] via-indigo-600 to-violet-700 rounded-2xl p-5 shadow-lg">
-      <div class="absolute inset-0 opacity-10">
-        <div class="absolute top-0 right-0 w-48 h-48 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+  <div class="max-w-4xl mx-auto space-y-4">
+    <!-- HEADER -->
+    <div class="bg-gradient-to-r from-[#5b13ec] to-violet-700 rounded-2xl p-5 text-white shadow-lg flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-black">Ajouter une mission</h1>
+        <p class="text-white/70 text-[10px]">Créez une nouvelle tâche pour votre projet GitDock.</p>
       </div>
-      <div class="relative flex items-center justify-between">
-        <div>
-          <div class="flex items-center gap-2 mb-1">
-            <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-              <v-icon icon="mdi-plus-circle-outline" color="white" size="16"></v-icon>
-            </div>
-            <span class="text-white/70 text-[10px] font-bold uppercase tracking-widest">Task Management</span>
-          </div>
-          <h1 class="text-xl font-black text-white">Add New Task</h1>
-        </div>
-        <button
-            @click="router.push('/dashboardtask')"
-            class="flex items-center gap-2 px-4 py-2 bg-white text-[#5b13ec] rounded-xl text-[11px] font-black shadow hover:bg-purple-50 transition-all"
-        >
-          <v-icon icon="mdi-arrow-left" size="14"></v-icon>
-          RETOUR
-        </button>
-      </div>
+      <button
+          @click="router.push('/dashboardtask')"
+          class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-5 py-2 rounded-xl text-[11px] font-black transition-all"
+      >
+        RETOUR
+      </button>
     </div>
 
-    <!-- FORM CARD -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div class="h-1.5 bg-gradient-to-r from-[#5b13ec] to-violet-500"></div>
+    <!-- FORMULAIRE -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
 
-      <div class="p-6">
-        <!-- Title & Status -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-          <div class="md:col-span-2">
-            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Task Title</label>
-            <input
-                v-model="task.title"
-                type="text"
-                placeholder="Nom de la tâche..."
-                class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm font-medium focus:outline-none focus:border-[#5b13ec] transition-colors bg-transparent"
-            />
-          </div>
-          <div>
-            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Status</label>
-            <select
-                v-model="task.status"
-                class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent cursor-pointer"
-            >
-              <option value="To Do">To Do</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Done">Done</option>
-            </select>
-          </div>
-        </div>
+      <!-- LIGNE 1 : Titre -->
+      <div class="mb-8">
+        <label class="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-1">Titre de la tâche *</label>
+        <input
+            v-model="task.title"
+            type="text"
+            placeholder="Ex: Intégration API Spring Boot..."
+            class="w-full border-b-2 border-slate-100 py-3 focus:border-[#5b13ec] outline-none text-base font-bold transition-colors bg-transparent"
+        />
+      </div>
 
-        <!-- Description -->
-        <div class="mb-5">
-          <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Description</label>
-          <textarea
-              v-model="task.description"
-              rows="2"
-              placeholder="Détails de la mission..."
-              class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent resize-none"
-          ></textarea>
-        </div>
+      <!-- LIGNE 2 : Description -->
+      <div class="mb-8">
+        <label class="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-1">Description</label>
+        <textarea
+            v-model="task.description"
+            rows="3"
+            placeholder="Décrivez la tâche en détail..."
+            class="w-full border border-slate-100 rounded-xl px-4 py-3 mt-1 focus:border-[#5b13ec] outline-none text-sm bg-slate-50/50 resize-none transition-colors"
+        ></textarea>
+      </div>
 
-        <!-- Date & Assignee -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-          <div>
-            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Due Date</label>
-            <input
-                v-model="task.dueDate"
-                type="date"
-                class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent"
-            />
-          </div>
-          <div>
-            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Assigned To</label>
-            <select
-                v-model="task.assignedTo"
-                class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent"
-            >
-              <option :value="null">Unassigned</option>
-              <option v-for="u in formData.users" :key="u.id" :value="u.id">{{ u.fullName }}</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Classification Grid (Epic, Part, Level) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-          <div>
-            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Epic</label>
-            <select v-model="task.epic" class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent">
-              <option :value="null">None</option>
-              <option v-for="e in formData.epics" :key="e.id" :value="e.id">{{ e.title }}</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Part</label>
-            <select v-model="task.part" class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent">
-              <option :value="null">None</option>
-              <option v-for="p in formData.parts" :key="p.id" :value="p.id">{{ p.name }}</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-[11px] text-slate-400 font-bold uppercase mb-1 block">Level</label>
-            <select v-model="task.level" class="w-full px-0 py-2 border-0 border-b border-slate-200 text-sm focus:outline-none focus:border-[#5b13ec] bg-transparent">
-              <option :value="null">None</option>
-              <option v-for="l in formData.levels" :key="l.id" :value="l.id">{{ l.name }}</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Priority -->
-        <div class="mb-8">
-          <label class="text-[11px] text-slate-400 font-bold uppercase mb-3 block">Priority</label>
-          <div class="flex items-center gap-3">
-            <button
-                v-for="p in priorities"
-                :key="p.value"
-                type="button"
-                @click="task.priority = p.value"
-                :class="[
-                'px-4 py-1.5 rounded-full text-[10px] font-black transition-all border-2',
-                task.priority === p.value ? `${p.bg} text-white border-transparent shadow-md scale-105` : `bg-white border-slate-100 text-slate-400 hover:border-slate-200`
-              ]"
-            >
-              {{ p.label }}
-            </button>
-          </div>
-        </div>
-
-        <!-- FOOTER ACTIONS -->
-        <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-50">
-          <button
-              type="button"
-              @click="router.push('/dashboardtask')"
-              class="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-50 transition-all"
+      <!-- LIGNE 3 : Projet + Date -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div>
+          <label class="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-1">Projet *</label>
+          <select
+              v-model="selectedProjectId"
+              @change="onProjectChange"
+              class="w-full border-b-2 border-slate-100 py-3 outline-none text-sm bg-transparent cursor-pointer focus:border-[#5b13ec]"
           >
-            Cancel
-          </button>
-          <button
-              @click="handleCreate"
-              :disabled="submitting || !task.title"
-              class="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-[#5b13ec] text-white text-xs font-black shadow-lg hover:bg-violet-700 disabled:opacity-40 transition-all"
-          >
-            <v-icon v-if="submitting" icon="mdi-loading" size="14" class="animate-spin"></v-icon>
-            {{ submitting ? 'En cours...' : 'CONFIRM' }}
-          </button>
+            <option :value="null">-- Sélectionnez un projet --</option>
+            <option v-for="p in projects" :key="p.id" :value="p.id">
+              {{ p.name }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-1">Date limite</label>
+          <input
+              v-model="task.dueDate"
+              type="date"
+              class="w-full border-b-2 border-slate-100 py-3 outline-none text-sm bg-transparent focus:border-[#5b13ec]"
+          />
         </div>
       </div>
+
+      <!-- LIGNE 4 : Assigné à -->
+      <div class="mb-8">
+        <label class="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+          Assigner à
+          <span v-if="!selectedProjectId" class="text-amber-500 ml-1 text-[9px]">
+            (Sélectionnez un projet d'abord)
+          </span>
+        </label>
+        <select
+            v-model="task.assignedTo"
+            :disabled="!selectedProjectId || loadingFormData"
+            class="w-full border-b-2 border-slate-100 py-3 outline-none text-sm bg-transparent cursor-pointer focus:border-[#5b13ec] disabled:opacity-40"
+        >
+          <option :value="null">Non assigné</option>
+          <option v-for="u in collaborators" :key="u.id" :value="String(u.id)">
+            {{ u.fullName }}
+          </option>
+        </select>
+      </div>
+
+      <!-- OPTIONS SECONDAIRES -->
+      <div class="grid grid-cols-2 md:grid-cols-2 gap-4 mb-10 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+        <div>
+          <label class="text-[10px] font-black text-slate-400 uppercase block mb-2">Statut</label>
+          <select
+              v-model="task.status"
+              class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-[#5b13ec]/20"
+          >
+            <option value="todo">À faire</option>
+            <option value="in_progress">En cours</option>
+            <option value="in_review">En révision</option>
+            <option value="done">Terminé</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-black text-slate-400 uppercase block mb-2">Priorité</label>
+          <select
+              v-model="task.priority"
+              class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-[#5b13ec]/20"
+          >
+            <option value="low">🟢 Low</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="high">🔴 High</option>
+            <option value="urgent">🔥 Urgent</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="flex flex-col items-end gap-3 pt-6 border-t border-slate-100">
+        <button
+            @click="handleCreate"
+            :disabled="submitting || !task.title || !selectedProjectId"
+            class="w-full md:w-auto bg-[#5b13ec] text-white px-12 py-4 rounded-xl text-xs font-black shadow-xl shadow-purple-200 transition-all hover:bg-indigo-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span v-if="submitting">CRÉATION EN COURS...</span>
+          <span v-else>CONFIRMER LA MISSION</span>
+        </button>
+      </div>
+
     </div>
   </div>
 </template>
@@ -157,71 +133,73 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { TaskService, type TaskCreateUpdatePayload, type TaskFormDataDTO } from '@/services/TaskService'
+import { TaskService, type TaskCreateUpdatePayload } from '@/services/TaskService'
 
 const router = useRouter()
 const submitting = ref(false)
+const loadingFormData = ref(true)
+
+// Liste des projets chargés depuis /form-data
+const projects = ref<any[]>([])
+
+// Collaborateurs du projet sélectionné
+const collaborators = ref<any[]>([])
+
+// ID du projet sélectionné (séparé de task pour gérer le changement)
+const selectedProjectId = ref<number | null>(null)
 
 const task = ref<TaskCreateUpdatePayload>({
   title: '',
   description: '',
-  status: 'To Do',
-  priority: 'Medium',
+  status: 'todo',
+  priority: 'medium',
   dueDate: null,
   assignedTo: null,
-  assignedBy: null,
-  projectId: null,
-  epic: null,
-  part: null,
-  level: null
+  projectId: 0,
+  epicId: null,
+  levelId: null,
 })
 
-const formData = ref<TaskFormDataDTO>({
-  epics: [],
-  parts: [],
-  levels: [],
-  users: []
-})
-
-const priorities = [
-  { value: 'Low', label: 'LOW', bg: 'bg-green-500' },
-  { value: 'Medium', label: 'MEDIUM', bg: 'bg-amber-500' },
-  { value: 'High', label: 'HIGH', bg: 'bg-red-500' }
-]
-
-const loadData = async () => {
+onMounted(async () => {
   try {
-    formData.value = await TaskService.getFormData()
+    const data = await TaskService.getFormData()
+    // Notre API retourne { success, projects: [{ id, name, collaborators }] }
+    projects.value = data.projects ?? []
   } catch (err) {
-    console.error('Failed to load form data', err)
+    console.error('Erreur chargement form-data:', err)
+  } finally {
+    loadingFormData.value = false
+  }
+})
+
+const onProjectChange = () => {
+  // Reset l'assigné quand on change de projet
+  task.value.assignedTo = null
+
+  if (selectedProjectId.value) {
+    // Met à jour projectId dans le payload
+    task.value.projectId = selectedProjectId.value
+
+    // Trouve les collaborateurs du projet sélectionné (déjà chargés)
+    const project = projects.value.find(p => p.id === selectedProjectId.value)
+    collaborators.value = project?.collaborators ?? []
+  } else {
+    task.value.projectId = 0
+    collaborators.value = []
   }
 }
 
 const handleCreate = async () => {
-  if (!task.value.title) return
+  if (!task.value.title || !selectedProjectId.value || submitting.value) return
   submitting.value = true
   try {
     await TaskService.create(task.value)
     router.push('/dashboardtask')
-  } catch (err) {
-    console.error('Creation failed', err)
-    alert('Erreur lors de la création de la tâche.')
+  } catch (err: any) {
+    console.error('Erreur création tâche:', err)
+    alert('Impossible de créer la tâche. Vérifiez la console.')
   } finally {
     submitting.value = false
   }
 }
-
-onMounted(loadData)
 </script>
-
-<style scoped>
-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0px center;
-  background-size: 14px;
-}
-</style>

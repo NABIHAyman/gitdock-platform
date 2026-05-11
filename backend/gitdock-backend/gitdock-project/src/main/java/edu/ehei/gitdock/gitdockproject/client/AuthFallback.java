@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 public class AuthFallback implements AuthServiceClient {
 
     @Override
-    public List<UserSummaryDTO> getUsersSummaries(String token, List<Long> ids) {
-        log.warn("⚠️ [FEIGN FALLBACK] gitdock-auth injoignable. Retour de faux utilisateurs.");
+    public List<UserSummaryDTO> getUsersSummaries(List<Long> ids) {
+        log.warn("⚠️ [FEIGN FALLBACK] gitdock-auth injoignable ou erreur de jeton. Retour de faux utilisateurs.");
         return ids.stream().map(id -> UserSummaryDTO.builder()
                 .id(id)
                 .firstName("Service")
@@ -25,25 +25,26 @@ public class AuthFallback implements AuthServiceClient {
     }
 
     @Override
-    public UserSummaryDTO getUserByEmail(String token, String email) {
+    public UserSummaryDTO getUserByEmail(String email) {
         log.warn("⚠️ [FEIGN FALLBACK] Impossible de joindre gitdock-auth pour {}", email);
         throw new RuntimeException("Service Auth indisponible");
     }
 
     @Override
-    public UserSummaryDTO inviteUser(String token, InviteCollaboratorRequestDTO request) {
+    public UserSummaryDTO inviteUser(InviteCollaboratorRequestDTO request) {
+        log.warn("⚠️ [FEIGN FALLBACK] Impossible d'inviter l'utilisateur : service injoignable");
         throw new RuntimeException("Service Auth indisponible");
     }
 
     @Override
     public List<UserSummaryDTO> getUsersByEmailsInternal(List<String> emails) {
+        log.warn("⚠️ [FEIGN FALLBACK] Récupération d'emails impossible.");
         return List.of();
     }
 
     @Override
-    public String getGithubToken(String token, Long userId) {
-        log.warn("⚠️ [FEIGN FALLBACK] Impossible de récupérer le token pour l'user {}", userId);
+    public String getGithubToken(Long userId) {
+        log.warn("⚠️ [FEIGN FALLBACK] Impossible de récupérer le token GitHub pour l'user {}", userId);
         return null;
     }
-
 }

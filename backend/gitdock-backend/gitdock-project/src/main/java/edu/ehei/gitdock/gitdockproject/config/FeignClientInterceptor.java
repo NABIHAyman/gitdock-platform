@@ -1,29 +1,27 @@
+// gitdock-project/src/main/java/edu/ehei/gitdock/gitdockproject/config/FeignClientInterceptor.java
+
 package edu.ehei.gitdock.gitdockproject.config;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-@Configuration
+@Component
 public class FeignClientInterceptor implements RequestInterceptor {
 
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-
     @Override
-    public void apply(RequestTemplate requestTemplate) {
-        // On récupère le contexte de la requête HTTP entrante (celle du Frontend)
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+    public void apply(RequestTemplate template) {
+        ServletRequestAttributes attrs =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
-        if (attributes != null) {
-            HttpServletRequest request = attributes.getRequest();
-            String authHeader = request.getHeader(AUTHORIZATION_HEADER);
-
-            // Si la requête entrante avait un token, on le propage à la requête sortante Feign
-            if (authHeader != null) {
-                requestTemplate.header(AUTHORIZATION_HEADER, authHeader);
+        if (attrs != null) {
+            HttpServletRequest request = attrs.getRequest();
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && !authHeader.isBlank()) {
+                template.header("Authorization", authHeader);
             }
         }
     }

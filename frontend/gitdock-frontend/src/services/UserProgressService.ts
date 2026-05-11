@@ -1,25 +1,15 @@
-import axios from 'axios';
-import { useAuthStore } from '@/stores/authStore';
-
-const gamificationApi = axios.create({
-  baseURL: 'http://localhost:5292/api',
-  headers: { 'Content-Type': 'application/json' }
-});
-
-gamificationApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+import api from './api'
 
 export const userProgressService = {
-  async getProgress() {
-    const authStore = useAuthStore();
-    const response = await gamificationApi.get(`/UserProgress/${authStore.userId}`);
-    return response.data;
+
+  // GET /api/UserProgress/{userId}
+  async getProgress(userId: number) {
+    const response = await api.get(`/UserProgress/${userId}`)
+    return response.data
   },
+
   async getAllContributors() {
-    const response = await gamificationApi.get('/Leaderboard');
-    return response.data;
+    const response = await api.get('/UserProgress/leaderboard')
+    return response.data
   }
-};
+}

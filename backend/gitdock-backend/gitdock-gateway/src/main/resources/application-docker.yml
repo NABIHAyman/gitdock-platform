@@ -1,7 +1,3 @@
-# Surcharge du profil Docker pour gitdock-gateway
-# Ce fichier est activé par SPRING_PROFILES_ACTIVE=docker
-# Il remplace les URLs localhost par les noms de conteneurs Docker internes.
-
 spring:
   cloud:
     gateway:
@@ -9,11 +5,10 @@ spring:
         cors-configurations:
           '[/**]':
             allowedOrigins:
-              - "http://localhost:5173"   # frontend dev local
-              - "http://localhost:4173"   # preview Vite build
+              - "http://localhost:5173"
+              - "http://localhost:4173"
 
       routes:
-        # Les services Java sont joignables via Eureka (lb://)
         - id: auth-service
           uri: lb://GITDOCK-AUTH
           predicates:
@@ -29,7 +24,6 @@ spring:
           predicates:
             - Path=/api/sync/**
 
-        # Les services non-Java sont joints par nom de conteneur Docker
         - id: notification-service
           uri: http://gitdock-notification:8085
           predicates:
@@ -43,12 +37,17 @@ spring:
         - id: gamification-service
           uri: http://gitdock-gamification:5292
           predicates:
-            - Path=/api/badges/**, /api/levels/**, /api/tags/**, /api/xpconfig/**
+            - Path=/api/badges/**, /api/Badges/**, /api/levels/**, /api/Levels/**, /api/tags/**, /api/Tags/**, /api/xpconfig/**, /api/XpConfig/**, /api/UserBadge/**, /api/UserProgress/**, /api/contributors/**, /api/Contributors/**
 
         - id: yam-service
-          uri: http://gitdock-yam:8010
+          uri: http://gitdock-chromadb:8000
           predicates:
             - Path=/api/yam/**
+
+        - id: ai-service
+          uri: http://gitdock-ai-api:8000
+          predicates:
+            - Path=/api/v1/**
 
 eureka:
   client:

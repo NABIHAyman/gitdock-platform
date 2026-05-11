@@ -2,165 +2,215 @@
 
 namespace App\Controller;
 
+use App\Client\AuthClient;
+use App\Client\ProjectClient;
+use App\DTOs\DTOtasks\TaskDto;
 use App\Service\TaskService;
-use App\Service\TaskMapper;
-use App\Repository\EpicRepository;
-use App\Repository\LevelRepository;
-use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/tasks')]
 class TaskController extends AbstractController
 {
     public function __construct(
-        private TaskService $taskService,
-        private TaskMapper $taskMapper
+        private readonly TaskService $taskService,
+        private readonly AuthClient $authClient,
+        private readonly ProjectClient $projectClient,
     ) {}
 
-    // ================= GET ALL =================
-    #[Route('', methods: ['GET'])]
-    public function list(): JsonResponse
+    // ── GET /api/tasks ──────────────────────────────────────────────
+    #[Route('', name: 'task_list', methods: ['GET'])]
+    public function list(Request $request): JsonResponse
     {
+        $authHeader = $request->headers->get('Authorization', '');
+        $token = str_replace('Bearer ', '', $authHeader);
+        $user = $this->authClient->validateToken($token);
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
         $tasks = $this->taskService->getAll();
 
-        return $this->json([
-            'success' => true,
-            'data' => $tasks
-        ]);
-    }
-
-    // ================= GET FORM DATA =================
-    // 🛡️ Cette route doit absolument être définie AVANT la route /{id} !
-    #[Route('/form-data', methods: ['GET'])]
-    public function getFormData(
-        EpicRepository $epicRepo,
-        LevelRepository $levelRepo,
-        UserRepository $userRepo
-    ): JsonResponse {
-        // On récupère et formate les données pour les Selects du frontend Vue.js
-        $epics = array_map(fn($e) => ['id' => $e->getId(), 'title' => $e->getTitle()], $epicRepo->findAll());
-        $levels = array_map(fn($l) => ['id' => $l->getId(), 'name' => $l->getName()], $levelRepo->findAll());
-        $users = array_map(fn($u) => ['id' => $u->getExternalId(), 'fullName' => $u->getFullName()], $userRepo->findAll());
-
-        return $this->json([
-            'epics' => $epics,
-            'parts' => [], // 'Part' n'est pas encore géré dans ce microservice
-            'levels' => $levels,
-            'users' => $users
-        ]);
-    }
-
-    // ================= GET ONE =================
-    // 🛡️ FIX : On force l'id à être un nombre avec requirements: ['id' => '\d+']
-    #[Route('/{id}', methods: ['GET'], requirements: ['id' => '\d+'])]
-    public function show(int $id): JsonResponse
-    {
-        try {
-            $task = $this->taskService->getById($id);
-
-            return $this->json([
-                'success' => true,
-                'data' => $task
-            ]);
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 404);
+        // Filtre optionnel ?assigned_to=ID
+        $assignedTo = $request->query->get('assigned_to');
+        if ($assignedTo) {
+            $tasks = array_values(array_filter($tasks, function ($task) use ($assignedTo) {
+                $assigned = $task->getAssignedTo();
+                return $assigned && $assigned->getId() == (int) $assignedTo;
+            }));
         }
+
+        return $this->json(
+            ['success' => true, 'data' => $tasks],
+            200, [],
+            ['groups' => ['task:read']]
+        );
     }
 
-    // ================= CREATE =================
-    #[Route('', methods: ['POST'])]
+    // ── GET /api/tasks/form-data ────────────────────────────────────
+    #[Route('/form-data', name: 'task_form_data', methods: ['GET'])]
+    public function formData(Request $request): JsonResponse
+    {
+        $authHeader = $request->headers->get('Authorization', '');
+        $token = str_replace('Bearer ', '', $authHeader);
+
+        $user = $this->authClient->validateToken($token);
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // ✅ Passe le token à getManagerProjects
+        $projects = $this->projectClient->getManagerProjects($token);
+
+        $projectsWithCollaborators = array_map(function ($project) use ($token) {
+            $projectId = $project['id'] ?? null;
+            $collaborators = $projectId
+                ? $this->authClient->getProjectCollaborators($projectId, $token)
+                : [];
+
+            return [
+                'id'            => $projectId,
+                'name'          => $project['name'] ?? $project['title'] ?? '',
+                'collaborators' => $collaborators,
+            ];
+        }, $projects);
+
+        return $this->json([
+            'success'  => true,
+            'projects' => $projectsWithCollaborators,
+        ]);
+    }
+
+    // ── POST /api/tasks/create ──────────────────────────────────────
+    #[Route('/create', name: 'task_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
+        $authHeader = $request->headers->get('Authorization', '');
+        $token = str_replace('Bearer ', '', $authHeader);
+        $user = $this->authClient->validateToken($token);
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $body = json_decode($request->getContent(), true) ?? [];
+        $dto  = $this->buildDto($body);
+
         try {
-            $dto = $this->taskMapper->mapTaskRequestToDto($request);
             $task = $this->taskService->create($dto);
-
-            return $this->json([
-                'success' => true,
-                'data' => $task
-            ], 201);
-
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 400);
+            return $this->json(
+                ['success' => true, 'data' => $task],
+                201, [],
+                ['groups' => ['task:read']]
+            );
+        } catch (\Throwable $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    // ================= UPDATE =================
-    #[Route('/{id}', methods: ['PUT'], requirements: ['id' => '\d+'])]
+    // ── GET /api/tasks/{id} ─────────────────────────────────────────
+    #[Route('/{id}', name: 'task_get', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function getOne(int $id, Request $request): JsonResponse
+    {
+        $authHeader = $request->headers->get('Authorization', '');
+        $token = str_replace('Bearer ', '', $authHeader);
+        $user = $this->authClient->validateToken($token);
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $task = $this->taskService->getById($id);
+            return $this->json(
+                ['success' => true, 'data' => $task],
+                200, [],
+                ['groups' => ['task:read']]
+            );
+        } catch (\Throwable $e) {
+            return $this->json(['error' => $e->getMessage()], 404);
+        }
+    }
+
+    // ── PUT /api/tasks/{id} ─────────────────────────────────────────
+    #[Route('/{id}', name: 'task_update', methods: ['PUT'], requirements: ['id' => '\d+'])]
     public function update(int $id, Request $request): JsonResponse
     {
+        $authHeader = $request->headers->get('Authorization', '');
+        $token = str_replace('Bearer ', '', $authHeader);
+        $user = $this->authClient->validateToken($token);
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $body = json_decode($request->getContent(), true) ?? [];
+        $dto  = $this->buildDto($body);
+
         try {
-            $dto = $this->taskMapper->mapTaskRequestToDto($request);
             $task = $this->taskService->update($id, $dto);
-
-            return $this->json([
-                'success' => true,
-                'data' => $task
-            ]);
-
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 400);
+            return $this->json(
+                ['success' => true, 'data' => $task],
+                200, [],
+                ['groups' => ['task:read']]
+            );
+        } catch (\Throwable $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    // ================= DELETE =================
-    #[Route('/{id}', methods: ['DELETE'], requirements: ['id' => '\d+'])]
-    public function delete(int $id): JsonResponse
+    // ── DELETE /api/tasks/{id} ──────────────────────────────────────
+    #[Route('/{id}', name: 'task_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
+    public function softDelete(int $id, Request $request): JsonResponse
     {
+        $authHeader = $request->headers->get('Authorization', '');
+        $token = str_replace('Bearer ', '', $authHeader);
+        $user = $this->authClient->validateToken($token);
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
         try {
             $this->taskService->softDelete($id);
-
-            return $this->json([
-                'success' => true,
-                'message' => 'Task deleted successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 400);
+            return $this->json(['success' => true, 'message' => 'Tâche supprimée.']);
+        } catch (\Throwable $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    // ================= MARK AS DONE =================
-    #[Route('/{id}/done', methods: ['PATCH'], requirements: ['id' => '\d+'])]
-    public function done(int $id): JsonResponse
+    // ── PATCH /api/tasks/{id}/done ──────────────────────────────────
+    #[Route('/{id}/done', name: 'task_done', methods: ['PATCH'], requirements: ['id' => '\d+'])]
+    public function markAsDone(int $id, Request $request): JsonResponse
     {
+        $authHeader = $request->headers->get('Authorization', '');
+        $token = str_replace('Bearer ', '', $authHeader);
+        $user = $this->authClient->validateToken($token);
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
         try {
             $task = $this->taskService->markAsDone($id);
-
-            return $this->json([
-                'success' => true,
-                'data' => $task
-            ]);
-
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 400);
+            return $this->json(
+                ['success' => true, 'data' => $task],
+                200, [],
+                ['groups' => ['task:read']]
+            );
+        } catch (\Throwable $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    #[Route('/test/auth/{id}', methods: ['GET'], requirements: ['id' => '\d+'])]
-    public function testAuth(int $id): JsonResponse
+    // ── Helper privé ────────────────────────────────────────────────
+    private function buildDto(array $body): TaskDto
     {
-        return $this->json([
-            'success' => true,
-            'data' => $this->taskService->getById($id)
-        ]);
+        $dto              = new TaskDto();
+        $dto->title       = $body['title']       ?? null;
+        $dto->description = $body['description'] ?? null;
+        $dto->status      = $body['status']      ?? 'todo';
+        $dto->priority    = $body['priority']    ?? 'medium';
+        $dto->dueDate     = $body['dueDate']     ?? null;
+        $dto->assignedTo  = $body['assignedTo']  ?? null;
+        $dto->projectId   = isset($body['projectId']) ? (int) $body['projectId'] : null;
+        return $dto;
     }
 }

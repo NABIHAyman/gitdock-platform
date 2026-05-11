@@ -2,57 +2,76 @@
 
 namespace App\Client;
 
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
-class AuthClient implements AuthClientInterface
+class AuthClient
 {
     public function __construct(
         private HttpClientInterface $client,
-        private string $authBaseUrl
+        private RequestStack        $requestStack,
+        private string              $authBaseUrl,
+        private string              $projectBaseUrl,
+        private string              $jwtSecret
     ) {}
 
-    public function getUserById(int $id): ?array
+    private function getBearerToken(): string
+    {
+        $request = $this->requestStack->getCurrentRequest();
+        if (!$request) return '';
+        return $request->headers->get('Authorization') ?? '';
+    }
+
+    // ✅ Validation JWT locale — pas d'appel HTTP !
+    public function validateToken(string $token): ?array
     {
         try {
-            $response = $this->client->request(
-                'GET',
-                $this->authBaseUrl . "/users/$id"
+            $decoded = JWT::decode(
+                $token,
+                new Key($this->jwtSecret, 'HS512')
             );
 
-            if ($response->getStatusCode() !== 200) {
-                return null;
-            }
-
-            return $response->toArray();
-
+            return [
+                'id'        => $decoded->userId ?? null,
+                'email'     => $decoded->sub ?? '',
+                'companyId' => $decoded->companyId ?? null,
+                'roles'     => $decoded->authorities ?? [],
+            ];
         } catch (\Throwable $e) {
             return null;
         }
     }
 
-    public function getUsersByIds(array $ids): array
+    // ✅ Collaborateurs d'un projet
+    public function getProjectCollaborators(int $projectId, string $token): array
     {
-        if (empty($ids)) {
-            return [];
-        }
-
         try {
             $response = $this->client->request(
                 'GET',
-                $this->authBaseUrl . '/users',
+                $this->projectBaseUrl . "/api/projects/{$projectId}/collaborators",
                 [
-                    'query' => ['ids' => implode(',', $ids)]
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $token,
+                        'Accept'        => 'application/json',
+                    ],
+                    'timeout' => 5,
                 ]
             );
 
-            if ($response->getStatusCode() !== 200) {
-                return [];
-            }
+            if ($response->getStatusCode() !== 200) return [];
 
-            return $response->toArray();
+            $data = $response->toArray();
+            $list = $data['collaborators'] ?? $data['data'] ?? $data;
+            if (!is_array($list)) return [];
+
+            return array_map(fn($u) => [
+                'id'       => $u['id'] ?? null,
+                'fullName' => $u['fullName'] ?? trim(
+                    ($u['firstName'] ?? '') . ' ' . ($u['lastName'] ?? '')
+                ),
+            ], $list);
 
         } catch (\Throwable $e) {
             return [];

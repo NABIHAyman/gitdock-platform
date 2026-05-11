@@ -8,4 +8,6 @@ public interface IBadgeRepository
     Task<Badge?> GetByIdAsync(Guid id);
     Task AddAsync(Badge badge);
     Task SaveChangesAsync();
+    // IBadgeRepository.cs — ajoute cette ligne
+    Task<List<Badge>> GetAllAutoBadgesAsync();
 }

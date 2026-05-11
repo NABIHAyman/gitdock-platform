@@ -5,7 +5,7 @@
   <TresDirectionalLight :position="[10, 20, 10]" :intensity="2" />
   <TresPointLight :position="[-10, -10, -10]" :intensity="0.5" color="#4f46e5" />
 
-  <TresInstancedMesh ref="meshRef" :args="[null, null, MAX_PARTICLES]">
+  <TresInstancedMesh ref="meshRef" :args="[undefined, undefined, MAX_PARTICLES]">
     <TresIcosahedronGeometry :args="[0.15, 1]" />
     <TresMeshPhysicalMaterial 
       :roughness="0.2" 

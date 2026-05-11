@@ -2,7 +2,7 @@
   <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
     <div class="px-6 py-3">
       <div class="flex items-center justify-between">
-        
+
         <!-- Logo -->
         <div class="flex items-center">
           <router-link to="/projects" class="flex items-center space-x-3">
@@ -30,13 +30,13 @@
               <span class="font-semibold text-gray-700">Notifications</span>
               <button @click="notifStore.markAllAsRead" class="text-xs text-blue-600 hover:text-blue-800">Tout marquer lu</button>
             </div>
-            
+
             <div class="max-h-96 overflow-y-auto">
               <div v-if="notifStore.inAppNotifications.length === 0" class="p-4 text-center text-gray-500 text-sm">
                 Aucune notification
               </div>
-              
-              <div v-for="notif in notifStore.inAppNotifications" :key="notif.id" 
+
+              <div v-for="notif in notifStore.inAppNotifications" :key="notif.id"
                    @click="notifStore.markAsRead(notif.id)"
                    :class="{'bg-blue-50/50': notif.read === false}"
                    class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors">
@@ -104,7 +104,7 @@
             </button>
           </div>
         </div>
-        
+
       </div>
     </div>
   </header>
@@ -142,7 +142,7 @@ const handleLogout = () => {
 const handleClickOutside = (event) => {
   if (!event.target.closest('.relative')) {
     userMenuOpen.value = false
-    notificationsOpen.value = false 
+    notificationsOpen.value = false
   }
 }
 

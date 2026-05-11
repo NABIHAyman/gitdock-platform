@@ -8,37 +8,23 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 // Le "name" doit correspondre EXACTEMENT au nom enregistré dans Eureka par le service d'Auth.
-// Le "path" est le préfixe commun à toutes les routes de l'Auth.
-@FeignClient(name = "gitdock-auth", fallback = AuthFallback.class/*, path = "/api/auth/users"*/)
+@FeignClient(name = "gitdock-auth", fallback = AuthFallback.class)
 public interface AuthServiceClient {
 
-    // ✅ Ajout de @RequestHeader pour forcer l'injection du JWT
+    // ✅ Le token est maintenant géré automatiquement par FeignClientInterceptor
     @GetMapping("/api/auth/users/summaries")
-    List<UserSummaryDTO> getUsersSummaries(
-            @RequestHeader("Authorization") String token,
-            @RequestParam("ids") List<Long> ids
-    );
+    List<UserSummaryDTO> getUsersSummaries(@RequestParam("ids") List<Long> ids);
 
-    // ✅ Idem ici
     @GetMapping("/api/auth/users/by-email")
-    UserSummaryDTO getUserByEmail(
-            @RequestHeader("Authorization") String token,
-            @RequestParam("email") String email
-    );
+    UserSummaryDTO getUserByEmail(@RequestParam("email") String email);
 
     @PostMapping("/api/auth/users/internal/invite")
-    UserSummaryDTO inviteUser(
-            @RequestHeader("Authorization") String token,
-            @RequestBody InviteCollaboratorRequestDTO request
-    );
+    UserSummaryDTO inviteUser(@RequestBody InviteCollaboratorRequestDTO request);
 
     @PostMapping("/api/auth/users/internal/by-emails")
     List<UserSummaryDTO> getUsersByEmailsInternal(@RequestBody List<String> emails);
 
     @GetMapping("/api/auth/oauth/internal/token")
-    String getGithubToken(
-            @RequestHeader("Authorization") String token,
-            @RequestParam("userId") Long userId
-    );
+    String getGithubToken(@RequestParam("userId") Long userId);
 
 }

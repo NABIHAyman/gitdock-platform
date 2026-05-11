@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { setupRouterGuards } from './guards'
+// ✅ Correction du nom ici pour correspondre à ton fichier guards.ts
+import { setupGuards } from './guards'
 
 import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
@@ -24,7 +25,7 @@ import UpdateTask from '@/views/task/UpdateTask.vue'
 import DeleteTask from '@/views/task/DeleteTask.vue'
 import TaskAll from '@/views/task/ViewTask/TaskAll.vue'
 
-import GamificationDashboardView from '@/views/gamification/DashboardView.vue'
+    import GamificationDashboardView from '@/views/gamification/GamificationDashboard.vue'
 import GamificationUserDashboardView from '@/views/gamification/UserDashboardView.vue'
 
 import DashboardHomeView from '@/views/dashboard/DashboardHomeView.vue'
@@ -73,21 +74,13 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, requiresSuperAdmin: true },
     },
 
-    // --- Sentinel Radar ---
-    {
-        path: '/sentinel',
-        name: 'sentinel-radar',
-        component: () => import('@/views/sentinel/CommitRadar.vue'),
-        meta: { requiresAuth: true },
-    },
-
     // --- Dashboard (layout avec enfants) ---
     {
         path: '/dashboard',
         component: RouterAppLayout,
         meta: { requiresAuth: true },
         children: [
-            { path: '', redirect: '/home' },
+            { path: '', redirect: '/dashboard/home' }, // Corrigé pour pointer vers /dashboard/home
 
             // Tasks
             { path: 'tasks', name: 'dashboard-task', component: DashboardTask },
@@ -96,10 +89,15 @@ const routes: RouteRecordRaw[] = [
             { path: 'tasks/edit/:id', name: 'task-edit', component: UpdateTask, props: true },
             { path: 'tasks/delete/:id', name: 'task-delete', component: DeleteTask, props: true },
 
+            // Redirections internes
+            { path: '/task-edit/:id', redirect: to => `/dashboard/tasks/edit/${to.params.id}` },
+            { path: '/task-delete/:id', redirect: to => `/dashboard/tasks/delete/${to.params.id}` },
+
             // Gamification
             { path: 'gamification', name: 'gamification-dashboard', component: GamificationDashboardView },
             { path: 'gamification/user', name: 'gamification-user-dashboard', component: GamificationUserDashboardView },
-            // Dans children :
+
+            // Home
             { path: 'home', name: 'dashboard-home', component: DashboardHomeView },
         ],
     },
@@ -131,6 +129,7 @@ const router = createRouter({
     routes,
 })
 
-setupRouterGuards(router)
+// ✅ Appel de la fonction avec le nom correct défini dans guards.ts
+setupGuards(router)
 
 export default router

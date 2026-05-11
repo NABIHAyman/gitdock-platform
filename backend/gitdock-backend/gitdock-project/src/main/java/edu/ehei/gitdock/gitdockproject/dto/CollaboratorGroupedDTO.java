@@ -20,5 +20,8 @@ public class CollaboratorGroupedDTO {
         private String email;     // Info venant de gitdock-auth
         private String role;      // Info venant de gitdock-auth
         private String status;    // Info venant de gitdock-auth
+        public String getFullName() {
+            return firstName + " " + lastName;
+        }
     }
 }

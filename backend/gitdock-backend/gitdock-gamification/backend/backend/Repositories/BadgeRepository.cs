@@ -1,6 +1,8 @@
 using backend.Data;
 using backend.Domain;
+using backend.Enums;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace backend.Repositories;
 
@@ -32,5 +34,12 @@ public class BadgeRepository : IBadgeRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+    // BadgeRepository.cs — ajoute cette méthode
+    public async Task<List<Badge>> GetAllAutoBadgesAsync()
+    {
+        return await _context.Badges
+            .Where(b => b.DeletedAt == null && b.Type == BadgeType.Auto)
+            .ToListAsync();
     }
 }

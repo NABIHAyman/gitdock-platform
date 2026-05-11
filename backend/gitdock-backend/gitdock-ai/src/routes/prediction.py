@@ -16,11 +16,12 @@ async def analyze_all_projects(projects: str = None):
     df = pd.read_csv("data/anomaly_dataset.csv")
     project_list = [p.strip() for p in projects.split(",")] if projects else None
 
+    report = []
     for project_name in df['project'].unique():
         if project_list:
-                    match = any(p.lower() in project_name.lower() for p in project_list)
-                    if not match:
-                        continue
+            match = any(p.lower() in project_name.lower() for p in project_list)
+            if not match:
+                continue
         proj_df = df[df['project'] == project_name]
         results = engine.predict(proj_df)
         anomalies = results[results['status'] == "Anomaly"]

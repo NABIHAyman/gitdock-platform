@@ -18,7 +18,8 @@ spring:
         cors-configurations:
           '[/**]':
             allowedOrigins:
-              - "${FRONTEND_URL:http://localhost:5173}"
+              - "http://localhost:5173"
+              - "http://localhost:4173"
             allowedMethods:
               - GET
               - POST
@@ -30,58 +31,49 @@ spring:
             allowCredentials: true
             maxAge: 3600
       routes:
-        # --- Auth Service (Java — Eureka lb://) ---
         - id: auth-service
-          uri: lb://GITDOCK-AUTH
+          uri: http://localhost:8081
           predicates:
             - Path=/api/auth/**
 
-        # --- Project Service (Java — Eureka lb://) ---
         - id: project-service
-          uri: lb://GITDOCK-PROJECT
+          uri: http://localhost:8083
           predicates:
             - Path=/api/projects/**
 
-        # --- Sync Service (Java — Eureka lb://) ---
         - id: sync-service
-          uri: lb://GITDOCK-SYNC
+          uri: http://localhost:8084
           predicates:
             - Path=/api/sync/**
 
-        # --- Notification Service (Java) ---
         - id: notification-service
-          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8085}
+          uri: http://localhost:8085
           predicates:
             - Path=/api/notifications/**, /ws-notifications/**
 
-        # --- Task Service (PHP/Symfony via nginx) ---
         - id: task-service
-          uri: ${TASK_SERVICE_URL:http://localhost:8089}
+          uri: http://localhost:8089
           predicates:
             - Path=/api/tasks/**
 
-        # --- Gamification Service (.NET 9) ---
-        # Option A : routes directes (pas de RewritePath)
         - id: gamification-service
-          uri: ${GAMIFICATION_SERVICE_URL:http://localhost:5292}
+          uri: http://localhost:5292
           predicates:
-            - Path=/api/badges/**, /api/levels/**, /api/tags/**, /api/xpconfig/**
+            - Path=/api/badges/**, /api/Badges/**, /api/levels/**, /api/Levels/**, /api/tags/**, /api/Tags/**, /api/xpconfig/**, /api/XpConfig/**, /api/UserBadge/**, /api/UserProgress/**, /api/contributors/**, /api/Contributors/**
 
-        # --- YAM Service (FastAPI / Python) ---
         - id: yam-service
-          uri: ${YAM_SERVICE_URL:http://localhost:8012}
+          uri: http://localhost:8012
           predicates:
             - Path=/api/yam/**
 
-        # --- GITDOCK-AI (FastAPI / Python) ---
         - id: ai-service
-          uri: ${AI_SERVICE_URL:http://localhost:8012}
+          uri: http://localhost:8000
           predicates:
-            - - Path=/api/v1/**
+            - Path=/api/v1/**
 
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
-    register-with-eureka: true
-    fetch-registry: true
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: false
+    fetch-registry: false

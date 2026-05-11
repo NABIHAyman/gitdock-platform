@@ -1,6 +1,7 @@
 <template>
   <AuthLayout>
     <div class="bg-white py-8 px-6 shadow-lg rounded-lg max-w-md mx-auto">
+      <!-- Loading State -->
       <div v-if="state === 'loading'" class="text-center">
         <div class="flex justify-center mb-4">
           <svg
@@ -18,11 +19,12 @@
           </svg>
         </div>
         <h2 class="text-2xl font-semibold text-gray-900 mb-2">
-          Vérification du token...
+          Verifying token...
         </h2>
-        <p class="text-gray-600">Veuillez patienter</p>
+        <p class="text-gray-600">Please wait</p>
       </div>
 
+      <!-- Success State -->
       <div v-else-if="state === 'success'" class="text-center">
         <div class="flex justify-center mb-4">
           <svg class="h-16 w-16 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -30,16 +32,17 @@
           </svg>
         </div>
         <h2 class="text-2xl font-semibold text-gray-900 mb-2">
-          Compte activé avec succès !
+          Account successfully activated!
         </h2>
         <p class="text-gray-600 mb-6">
-          Votre compte a été activé. Vous allez être redirigé vers la page de connexion...
+          Your account has been activated. You will be redirected to the login page shortly...
         </p>
         <router-link to="/login" class="inline-block text-blue-600 hover:text-blue-800 font-medium">
-          Aller à la connexion
+          Go to Login
         </router-link>
       </div>
 
+      <!-- Error State -->
       <div v-else-if="state === 'error'" class="text-center">
         <div class="flex justify-center mb-4">
           <svg class="h-16 w-16 text-red-500" fill="currentColor" viewBox="0 0 20 20">
@@ -47,28 +50,29 @@
           </svg>
         </div>
         <h2 class="text-2xl font-semibold text-gray-900 mb-2">
-          Erreur d'activation
+          Activation Error
         </h2>
         <p class="text-gray-600 mb-6">
           {{ errorMessage }}
         </p>
         <router-link to="/login" class="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
-          Retour à la connexion
+          Back to Login
         </router-link>
       </div>
 
+      <!-- Form State -->
       <div v-else-if="state === 'form'">
         <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">
-          Activation du compte
+          Account Activation
         </h2>
         <p class="text-sm text-gray-600 mb-6 text-center">
-          Créez un mot de passe pour activer votre compte
+          Create a password to activate your account
         </p>
 
         <form @submit.prevent="handleSubmit" class="space-y-5">
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-              Mot de passe
+              Password
             </label>
             <div class="relative">
               <input
@@ -92,7 +96,7 @@
             <p v-if="errors.password" class="mt-1 text-sm text-red-600">{{ errors.password }}</p>
 
             <div v-if="passwordValidation.errors.length > 0" class="mt-2 text-xs text-gray-600 space-y-1">
-              <p class="font-medium">Exigences :</p>
+              <p class="font-medium">Requirements:</p>
               <ul class="list-disc list-inside space-y-0.5">
                 <li v-for="error in passwordValidation.errors" :key="error" class="text-red-600">
                   {{ error }}
@@ -103,7 +107,7 @@
 
           <div>
             <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
-              Confirmation
+              Confirm Password
             </label>
             <div class="relative">
               <input
@@ -132,7 +136,7 @@
               rounded="lg"
               :loading="isLoading"
           >
-            Activer le compte
+            Activate Account
           </v-btn>
         </form>
       </div>
@@ -182,7 +186,7 @@ onMounted(async () => {
   const token = route.query.token
   if (!token) {
     state.value = 'error'
-    errorMessage.value = "Token d'activation manquant. Veuillez utiliser le lien reçu par email."
+    errorMessage.value = "Activation token missing. Please use the link sent to your email."
     return
   }
 
@@ -193,7 +197,7 @@ onMounted(async () => {
     state.value = 'form'
   } catch (error) {
     state.value = 'error'
-    errorMessage.value = error.response?.data?.detail || error.message || "Token d'activation invalide ou expiré."
+    errorMessage.value = error.response?.data?.detail || error.message || "Invalid or expired activation token."
     notificationStore.error(errorMessage.value)
   }
 })
@@ -204,7 +208,7 @@ const validateForm = () => {
   errors.confirmPassword = ''
 
   if (!formData.password) {
-    errors.password = 'Le mot de passe est obligatoire'
+    errors.password = 'Password is required'
     isValid = false
   } else {
     const validation = validatePassword(formData.password)
@@ -215,10 +219,10 @@ const validateForm = () => {
   }
 
   if (!formData.confirmPassword) {
-    errors.confirmPassword = 'La confirmation est obligatoire'
+    errors.confirmPassword = 'Confirmation is required'
     isValid = false
   } else if (formData.password !== formData.confirmPassword) {
-    errors.confirmPassword = 'Les mots de passe ne correspondent pas'
+    errors.confirmPassword = 'Passwords do not match'
     isValid = false
   }
 
@@ -234,7 +238,7 @@ const validatePasswordField = () => {
 
 const validatePasswordMatch = () => {
   if (formData.confirmPassword && formData.password !== formData.confirmPassword) {
-    errors.confirmPassword = 'Les mots de passe ne correspondent pas'
+    errors.confirmPassword = 'Passwords do not match'
   } else {
     errors.confirmPassword = ''
   }
@@ -245,7 +249,6 @@ const handleSubmit = async () => {
   isLoading.value = true;
 
   try {
-    // Correction ici : on passe UN SEUL OBJET entre des accolades { }
     await authService.activateAccount({
       token: resetToken.value,
       password: formData.password,
@@ -253,13 +256,13 @@ const handleSubmit = async () => {
     });
 
     state.value = 'success';
-    notificationStore.success('Compte activé avec succès !');
+    notificationStore.success('Account successfully activated!');
 
     setTimeout(() => {
       router.push('/login');
     }, 3000);
   } catch (error) {
-    const message = error.response?.data?.detail || error.message || "Erreur lors de l'activation";
+    const message = error.response?.data?.detail || error.message || "Error during activation";
     errorMessage.value = message;
     state.value = 'error';
     notificationStore.error(message);

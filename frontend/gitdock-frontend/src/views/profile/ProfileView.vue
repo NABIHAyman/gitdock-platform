@@ -2,7 +2,7 @@
   <AppLayout>
     <div class="max-w-4xl mx-auto space-y-6">
 
-      <!-- HERO PROFIL -->
+      <!-- PROFILE HERO -->
       <div class="relative bg-gradient-to-br from-[#5b13ec] via-indigo-600 to-violet-700 rounded-3xl p-8 overflow-hidden shadow-2xl">
         <div class="absolute inset-0 opacity-10">
           <div class="absolute top-0 right-0 w-80 h-80 bg-white rounded-full -translate-y-1/2 translate-x-1/4"></div>
@@ -23,7 +23,7 @@
             </div>
           </div>
 
-          <!-- INFOS -->
+          <!-- INFO -->
           <div class="flex-1">
             <h1 class="text-2xl font-black text-white">
               {{ authStore.firstName }} {{ authStore.lastName }}
@@ -41,22 +41,22 @@
         </div>
       </div>
 
-      <!-- INFORMATIONS PERSONNELLES -->
+      <!-- PERSONAL INFORMATION -->
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
           <div class="w-8 h-8 bg-[#5b13ec]/10 rounded-xl flex items-center justify-center">
             <v-icon icon="mdi-account-outline" color="#5b13ec" size="18"></v-icon>
           </div>
-          <h3 class="font-black text-slate-800">Informations Personnelles</h3>
+          <h3 class="font-black text-slate-800">Personal Information</h3>
         </div>
 
         <div class="p-8 grid grid-cols-2 gap-6">
           <div class="space-y-1">
-            <p class="text-xs font-black text-slate-400 uppercase tracking-wider">Prénom</p>
+            <p class="text-xs font-black text-slate-400 uppercase tracking-wider">First Name</p>
             <p class="text-slate-800 font-bold">{{ authStore.firstName || '—' }}</p>
           </div>
           <div class="space-y-1">
-            <p class="text-xs font-black text-slate-400 uppercase tracking-wider">Nom</p>
+            <p class="text-xs font-black text-slate-400 uppercase tracking-wider">Last Name</p>
             <p class="text-slate-800 font-bold">{{ authStore.lastName || '—' }}</p>
           </div>
           <div class="space-y-1">
@@ -64,7 +64,7 @@
             <p class="text-slate-800 font-bold">{{ authStore.email || '—' }}</p>
           </div>
           <div class="space-y-1">
-            <p class="text-xs font-black text-slate-400 uppercase tracking-wider">Rôle</p>
+            <p class="text-xs font-black text-slate-400 uppercase tracking-wider">Role</p>
             <span class="inline-flex items-center gap-1.5 bg-[#5b13ec]/10 text-[#5b13ec] text-xs font-black px-3 py-1.5 rounded-full">
               <v-icon icon="mdi-shield-account" size="14"></v-icon>
               {{ formattedRole }}
@@ -73,15 +73,15 @@
         </div>
       </div>
 
-      <!-- INTÉGRATIONS -->
+      <!-- INTEGRATIONS -->
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
           <div class="w-8 h-8 bg-[#5b13ec]/10 rounded-xl flex items-center justify-center">
             <v-icon icon="mdi-connection" color="#5b13ec" size="18"></v-icon>
           </div>
           <div>
-            <h3 class="font-black text-slate-800">Intégrations</h3>
-            <p class="text-xs text-slate-400">Connectez des services tiers</p>
+            <h3 class="font-black text-slate-800">Integrations</h3>
+            <p class="text-xs text-slate-400">Connect third-party services</p>
           </div>
         </div>
 
@@ -97,7 +97,7 @@
               <div>
                 <h4 class="font-black text-slate-800">GitHub</h4>
                 <p class="text-xs text-slate-400 mt-0.5">
-                  {{ authStore.avatarUrl ? '✓ Compte lié' : 'Synchronisez vos dépôts privés' }}
+                  {{ authStore.avatarUrl ? '✓ Account linked' : 'Sync your private repositories' }}
                 </p>
               </div>
             </div>
@@ -105,29 +105,29 @@
             <button @click="handleGitHubConnect"
                     class="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-black hover:bg-slate-700 transition-all shadow-md">
               <v-icon icon="mdi-github" size="18" color="white"></v-icon>
-              {{ authStore.avatarUrl ? 'Re-lier' : 'Connecter' }}
+              {{ authStore.avatarUrl ? 'Reconnect' : 'Connect' }}
             </button>
           </div>
         </div>
       </div>
 
-      <!-- ZONE DANGER -->
+      <!-- DANGER ZONE -->
       <div class="bg-white rounded-3xl border border-red-100 shadow-sm overflow-hidden">
         <div class="px-8 py-5 border-b border-red-100 flex items-center gap-3">
           <div class="w-8 h-8 bg-red-50 rounded-xl flex items-center justify-center">
             <v-icon icon="mdi-alert-circle-outline" color="red" size="18"></v-icon>
           </div>
-          <h3 class="font-black text-slate-800">Zone de danger</h3>
+          <h3 class="font-black text-slate-800">Danger Zone</h3>
         </div>
         <div class="p-8 flex items-center justify-between">
           <div>
-            <p class="font-bold text-slate-700">Se déconnecter</p>
-            <p class="text-xs text-slate-400 mt-0.5">Vous serez redirigé vers la page de connexion</p>
+            <p class="font-bold text-slate-700">Sign Out</p>
+            <p class="text-xs text-slate-400 mt-0.5">You will be redirected to the login page</p>
           </div>
           <button @click="authStore.logout()"
                   class="flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-black hover:bg-red-100 transition-all">
             <v-icon icon="mdi-logout" size="18" color="red"></v-icon>
-            Déconnexion
+            Logout
           </button>
         </div>
       </div>
@@ -153,7 +153,7 @@ const userInitials = computed(() => {
 })
 
 const formattedRole = computed(() =>
-    authStore.role?.replace('ROLE_', '').replace(/_/g, ' ') || 'Utilisateur'
+    authStore.role?.replace('ROLE_', '').replace(/_/g, ' ') || 'User'
 )
 
 const handleGitHubConnect = async () => {
@@ -162,7 +162,7 @@ const handleGitHubConnect = async () => {
     const response = await projectService.initOAuthFlow('github')
     window.location.href = response.redirectUrl || (response as any).url
   } catch {
-    notifStore.error("Impossible de contacter le service d'authentification.")
+    notifStore.error("Unable to contact the authentication service.")
   }
 }
 </script>

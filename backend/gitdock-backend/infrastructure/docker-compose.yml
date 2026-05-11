@@ -151,7 +151,7 @@ services:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [gpu]
+              capabilities: [ gpu ]
 
   gitdock-dozzle:
     image: amir20/dozzle:latest
@@ -247,10 +247,15 @@ services:
     restart: always
     ports:
       - "8080:8080"
-    env_file:
-      - ../gitdock-gateway/.env.local
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      FRONTEND_URL: http://localhost:5173
+      NOTIFICATION_SERVICE_URL: http://gitdock-notification:8085
+      TASK_SERVICE_URL: http://nginx_webserver:80
+      GAMIFICATION_SERVICE_URL: http://gitdock-gamification:5292
+      YAM_SERVICE_URL: http://gitdock-chromadb:8000
+      AI_SERVICE_URL: http://gitdock-ai-api:8000
+      EUREKA_DEFAULT_ZONE: http://gitdock-discovery:8761/eureka/
     depends_on:
       - gitdock-discovery
       - auth-service
@@ -282,25 +287,10 @@ services:
     restart: always
     ports:
       - "8089:80"
+    volumes:
+      - ../gitdock-task:/var/www/html
     depends_on:
       - php-app
-    networks:
-      - gitdock_net
-
-  gitdock-yam:
-    build:
-      context: ../gitdock-yam
-    container_name: gitdock-yam
-    restart: always
-    ports:
-      - "8012:8010"
-    env_file:
-      - ../gitdock-yam/.env
-    depends_on:
-      - gitdock-postgres
-      - gitdock-chromadb
-      - gitdock-discovery
-      - gitdock-ollama
     networks:
       - gitdock_net
 
@@ -313,28 +303,44 @@ services:
       - "5292:5292"
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - gitdock-postgres
       - gitdock-rabbitmq
-      - gitdock-discovery
       - gitdock-redis
     networks:
       - gitdock_net
 
-  gitdock-sentinel:
+  gitdock-ai:
     build:
-      context: ../gitdock-sentinel
-    container_name: gitdock-sentinel
-    restart: always
+      context: ../gitdock-ai
+      dockerfile: Dockerfile
+    container_name: gitdock-ai-api
+    restart: on-failure
+    environment:
+      - DB_HOST=gitdock-postgres
+      - CHROMA_HOST=gitdock-chromadb
+      - EUREKA_SERVER=http://gitdock-discovery:8761/eureka/
     ports:
-      - "8013:8010" # Exposé sur 8013, tourne sur 8010 en interne
-    env_file:
-      - ../gitdock-sentinel/.env
+      - "8000:8000"
     depends_on:
-      - gitdock-rabbitmq # Sentinel utilise RabbitMQ/Kafka
+      - gitdock-postgres
       - gitdock-chromadb
       - gitdock-discovery
-      - gitdock-ollama
+    networks:
+      - gitdock_net
+
+  gitdock-ai-alerte:
+    build:
+      context: ../AI_Alerte
+      dockerfile: Dockerfile
+    container_name: gitdock-ai-alerte
+    restart: on-failure
+    environment:
+      - DB_HOST=gitdock-postgres
+    depends_on:
+      - gitdock-postgres
     networks:
       - gitdock_net
 

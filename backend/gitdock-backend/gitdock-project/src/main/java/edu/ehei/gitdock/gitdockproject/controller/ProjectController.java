@@ -107,4 +107,5 @@ public class ProjectController {
                 "message", "Un projet avec ce nom existe déjà dans votre espace de travail."
         ));
     }
+
 }

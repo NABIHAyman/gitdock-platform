@@ -31,7 +31,10 @@ public class UserBadgeService : IUserBadgeService
 
             if (badge != null)
             {
-                // 1. Sauvegarde du badge en premier
+                // ✅ 1. Créer UserProgress d'abord (ajoute 0 XP = crée la ligne si absente)
+                await _userProgressService.UpdateUserExperienceAsync(userId, 0);
+
+                // ✅ 2. Maintenant la FK existe, on peut insérer le badge
                 await _userBadgeRepository.AddAsync(new UserBadge
                 {
                     Id = Guid.NewGuid(),
@@ -41,7 +44,7 @@ public class UserBadgeService : IUserBadgeService
                 });
                 await _userBadgeRepository.SaveChangesAsync();
 
-                // 2. Mise à jour de l'XP et invalidation du cache Redis
+                // ✅ 3. Ajouter les XP du badge
                 await _userProgressService.UpdateUserExperienceAsync(userId, badge.Xp);
             }
         }

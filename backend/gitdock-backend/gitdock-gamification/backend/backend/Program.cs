@@ -111,8 +111,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddHttpClient<IAuthServiceClient, AuthServiceClient>(client =>
 {
-    var url = builder.Configuration["Services:AuthServiceUrl"] ?? "http://localhost:8081/";
-    client.BaseAddress = new Uri(url);
+    client.BaseAddress = new Uri("http://host.docker.internal:8081/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
@@ -144,8 +143,7 @@ builder.Services.AddScoped<IContributorService, ContributorService>();
 // Clients HTTP
 builder.Services.AddHttpClient<IProjectServiceClient, ProjectServiceClient>(client =>
 {
-    var url = builder.Configuration["Services:ProjectServiceUrl"] ?? "http://localhost:8083/";
-    client.BaseAddress = new Uri(url);
+    client.BaseAddress = new Uri("http://host.docker.internal:8083/"); // port direct gitdock-project
 });
 
 builder.Services.AddSingleton<BadgeStrategyFactory>();
@@ -212,9 +210,6 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-    // context.Database.EnsureDeleted();
-
     context.Database.Migrate();
 }
 

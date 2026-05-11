@@ -66,4 +66,16 @@ public class RabbitMQProducer {
                 event
         );
     }
+    public void sendCollaboratorAddedEvent(Long userId, Long projectId) {
+        log.info("Envoi collaborator.added pour userId={}, projectId={}", userId, projectId);
+        Map<String, Object> event = Map.of(
+                "userId", userId,
+                "projectId", projectId
+        );
+        rabbitTemplate.convertAndSend(
+                EXCHANGE,
+                "collaborator.added.event",
+                event
+        );
+    }
 }

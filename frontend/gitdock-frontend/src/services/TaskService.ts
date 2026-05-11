@@ -1,97 +1,110 @@
-import api from '@/services/api'
+import axios from 'axios';
 
-export interface TaskListItemDTO {
-  id: number
-  title?: string
-  description?: string
-  status?: string
-  priority?: string
-  dueDate?: string | null
-  assignedTo?: number | string | null
-  assignedBy?: number | string | null
-  epic?: number | null
-  part?: number | null
-  level?: number | null
-  projectId?: number | null
-}
-
-export interface TaskFormDataDTO {
-  epics: Array<{ id: number; title: string }>
-  parts: Array<{ id: number; name: string }>
-  levels: Array<{ id: number; name: string }>
-  users: Array<{ id: number; fullName: string }>
-}
+const API_URL = 'http://localhost:8080/api/tasks';
 
 export interface TaskCreateUpdatePayload {
-  title: string
-  description?: string
-  status: string
-  priority?: string
-  dueDate?: string | null
-  assignedTo?: number | null
-  assignedBy?: number | null
-  projectId?: number | null
-  epic?: number | null
-  part?: number | null
-  level?: number | null
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  dueDate: string | null;
+  assignedTo: string | null;
+  projectId: number;
+  epicId: number | null;
+  levelId: number | null;
 }
 
-export interface TaskDashboardDTO {
-  [key: string]: unknown
+export interface ProjectWithCollaborators {
+  id: number;
+  name: string;
+  collaborators: Array<{ id: number; fullName: string }>;
 }
 
-/**
- * Chemins relatifs à VITE_API_BASE_URL (ex. http://host:port/api) — pas de préfixe /api en double.
- */
-export const TaskService = {
-  
-  async list(): Promise<TaskListItemDTO[]> {
-    const res = await api.get('/tasks');
-    const rawData = res.data;
-    
-    console.log("📦 Payload reçu de /tasks :", rawData);
+export interface TaskFormData {
+  projects: ProjectWithCollaborators[];
+}
 
-    if (Array.isArray(rawData)) {
-      return rawData;
+function authHeaders() {
+  const token = localStorage.getItem('token')
+      ?? localStorage.getItem('jwt')
+      ?? localStorage.getItem('authToken');
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
     }
-    
-    // Si c'est un objet, on cherche le tableau à l'intérieur (selon les standards Symfony / Spring)
-    const extractedArray = rawData?.data || rawData?.['hydra:member'] || rawData?.tasks || rawData?.content;
+  };
+}
 
-    if (Array.isArray(extractedArray)) {
-       return extractedArray;
+/** Extrait toujours un tableau depuis n'importe quelle réponse API */
+function extractArray(data: any): any[] {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.data)) return data.data;
+  if (data && Array.isArray(data.tasks)) return data.tasks;
+  console.warn('TaskService: réponse inattendue, tableau vide retourné', data);
+  return [];
+}
+
+export class TaskService {
+
+  static async list(): Promise<any[]> {
+    const response = await axios.get(API_URL, authHeaders());
+    return extractArray(response.data);
+  }
+
+  static async getFormData(projectId?: number): Promise<TaskFormData> {
+    const url = projectId
+        ? `${API_URL}/form-data?projectId=${projectId}`
+        : `${API_URL}/form-data`;
+    const response = await axios.get(url, authHeaders());
+    return { projects: response.data.projects ?? [] };
+  }
+
+  static async create(payload: TaskCreateUpdatePayload) {
+    const response = await axios.post(`${API_URL}/create`, payload, authHeaders());
+    return response.data;
+  }
+
+  static async getById(id: number) {
+    const response = await axios.get(`${API_URL}/${id}`, authHeaders());
+    return response.data.data ?? response.data;
+  }
+
+  /**
+   * Update — essaie PUT /api/tasks/{id}
+   * Si ton backend utilise une autre route, change ici :
+   * ex: `${API_URL}/update/${id}` ou PATCH
+   */
+  static async update(id: number, payload: TaskCreateUpdatePayload) {
+    try {
+      const response = await axios.put(`${API_URL}/${id}`, payload, authHeaders());
+      return response.data;
+    } catch (e: any) {
+      if (e?.response?.status === 404 || e?.response?.status === 405) {
+        // Fallback PATCH si PUT non supporté
+        const response = await axios.patch(`${API_URL}/${id}`, payload, authHeaders());
+        return response.data;
+      }
+      throw e;
     }
+  }
 
-    console.error("⚠️ Impossible d'extraire un tableau depuis :", rawData);
-    return [];
-  },
+  static async softDelete(id: number) {
+    const response = await axios.delete(`${API_URL}/${id}`, authHeaders());
+    return response.data;
+  }
 
-  async getById(id: number | string): Promise<TaskListItemDTO> {
-    const res = await api.get(`/tasks/${id}`)
-    return res.data
-  },
+  static async markAsDone(id: number) {
+    const response = await axios.patch(`${API_URL}/${id}/done`, {}, authHeaders());
+    return response.data;
+  }
 
-  async getFormData(): Promise<TaskFormDataDTO> {
-    const res = await api.get('/tasks/form-data')
-    return res.data
-  },
+  static async getByAssignee(userId: number): Promise<any[]> {
+    const response = await axios.get(API_URL, {
+      ...authHeaders(),
+      params: { assigned_to: userId }
+    });
+    return extractArray(response.data);
+  }
 
-  async getDashboard(): Promise<TaskDashboardDTO> {
-    const res = await api.get('/tasks/dashboard')
-    return res.data
-  },
-
-  async create(payload: TaskCreateUpdatePayload): Promise<TaskListItemDTO> {
-    const res = await api.post('/tasks', payload)
-    return res.data
-  },
-
-  async update(id: number | string, payload: TaskCreateUpdatePayload): Promise<TaskListItemDTO> {
-    const res = await api.put(`/tasks/${id}`, payload)
-    return res.data
-  },
-
-  async softDelete(id: number | string): Promise<void> {
-    await api.put(`/tasks/${id}/soft-delete`)
-  },
 }

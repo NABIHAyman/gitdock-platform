@@ -1,115 +1,233 @@
 <template>
   <AppLayout>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Header -->
-      <div class="mb-8">
-        <div class="flex items-center space-x-4 mb-4">
-          <router-link
-            :to="`/projects/${$route.params.id}`"
-            class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-          >
-            ← Retour au projet
+    <div class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-semibold tracking-tight text-text">
+            {{ projectStore.currentProject?.name || 'Chargement...' }}
+          </h1>
+          <p class="mt-1 text-sm text-muted">
+            Vue d'ensemble du projet
+          </p>
+        </div>
+        <div>
+          <router-link to="/projects" class="gd-btn-secondary">
+            Retour à la liste
           </router-link>
         </div>
-        
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900">
-              Parties du projet
-            </h1>
-            <p class="mt-1 text-sm text-gray-500">
-              Organisez votre projet en parties avec des niveaux et des exigences de tags
-            </p>
-          </div>
-          
-          <button
-            @click="showCreateModal = true"
-            class="gd-btn-primary"
-          >
-            Ajouter une partie
-          </button>
+      </div>
+
+      <div v-if="syncFailed" class="bg-red-50 border border-red-200 rounded-lg p-5 flex items-start mb-6">
+        <div class="flex-shrink-0 mt-0.5">
+          <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="ml-4">
+          <h3 class="text-base font-medium text-red-900">Échec de la synchronisation</h3>
+          <p class="text-sm text-red-700 mt-1">
+            L'aspirateur GitDock n'a pas pu accéder à ce dépôt (Erreur 404). S'il s'agit d'un dépôt privé, veuillez lier votre compte GitHub depuis votre profil, puis supprimer et recréer ce projet.
+          </p>
         </div>
       </div>
 
-      <!-- Parts List -->
-      <div class="space-y-6">
-        <div v-if="isLoading" class="text-center py-8">
-          <span class="animate-spin text-2xl">⟳</span>
-          <p class="text-gray-500 mt-2">Chargement des parties...</p>
-        </div>
+      <div v-else-if="projectStore.branches.length === 0 && stats.totalCommits === 0"
+           class="bg-blue-50 border border-blue-200 rounded-lg p-5 flex items-start animate-pulse mb-6">
+      </div>
 
-        <div v-else-if="parts.length === 0" class="gd-card p-12 text-center">
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune partie</h3>
-          <p class="text-gray-500 mb-4">Créez votre première partie pour organiser votre projet.</p>
-          <button @click="showCreateModal = true" class="gd-btn-primary">
-            Ajouter une partie
-          </button>
-        </div>
-
-        <div v-else>
-          <div v-for="part in parts" :key="part.id" class="bg-white shadow rounded-lg mb-4">
-            <div class="px-4 py-5 sm:p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div>
-                  <h3 class="text-lg font-medium text-gray-900">{{ part.name }}</h3>
-                  <p v-if="part.description" class="text-sm text-gray-500">{{ part.description }}</p>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <button @click="editPart(part)" class="text-blue-600 hover:text-blue-800 p-2">Modifier</button>
-                  <button @click="togglePartExpansion(part.id)" class="text-gray-600 hover:text-gray-800 p-2">
-                    {{ expandedParts.has(part.id) ? 'Réduire' : 'Voir Niveaux' }}
-                  </button>
-                  <button @click="deletePart(part)" class="text-red-600 hover:text-red-800 p-2">Supprimer</button>
-                </div>
+      <!-- Stats -->
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="gd-card">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
               </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-muted truncate">Branches</dt>
+                  <dd class="text-lg font-medium text-text">{{ projectStore.branches.length }}</dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
 
-              <!-- Levels -->
-              <div v-if="expandedParts.has(part.id)" class="mt-4 border-t pt-4">
-                <div v-if="part.levels && part.levels.length > 0" class="space-y-3">
-                  <div v-for="level in part.levels" :key="level.id" class="border border-gray-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between mb-2">
-                      <h4 class="text-md font-medium text-gray-800">{{ level.name }}</h4>
-                      <span class="text-xs text-gray-500">Niveau {{ level.order || 1 }}</span>
-                    </div>
+        <div class="gd-card">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-muted truncate">Tags</dt>
+                  <dd class="text-lg font-medium text-text">{{ stats.totalTags }}</dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gd-card">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-muted truncate">Collaborateurs</dt>
+                  <dd class="text-lg font-medium text-text">{{ stats.totalCollaborators }}</dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gd-card">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-muted truncate">Commits</dt>
+                  <dd class="text-lg font-medium text-text">{{ stats.totalCommits }}</dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation du projet -->
+      <div class="gd-card mb-6">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg font-medium text-text mb-4">Navigation du projet</h3>
+
+          <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <!-- Gérer utilisateurs — manager seulement -->
+            <router-link v-if="isManager"
+                         :to="`/projects/${$route.params.id}/users`"
+                         class="gd-btn-secondary flex flex-col items-center p-4 text-center hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
+            >
+              <svg class="h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <span class="text-sm font-medium">Gérer les Utilisateurs</span>
+            </router-link>
+
+            <!-- Gérer parties — manager seulement -->
+            <router-link v-if="isManager"
+                         :to="`/projects/${$route.params.id}/parts`"
+                         class="gd-btn-secondary flex flex-col items-center p-4 text-center hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
+            >
+              <svg class="h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <span class="text-sm font-medium">Gérer les Parties</span>
+            </router-link>
+
+            <!-- Branches — tout le monde -->
+            <router-link
+                :to="`/projects/${$route.params.id}/branches`"
+                class="gd-btn-secondary flex flex-col items-center p-4 text-center hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
+            >
+              <svg class="h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span class="text-sm font-medium">Branches</span>
+            </router-link>
+
+            <!-- Tags — tout le monde (désactivé visuellement) -->
+            <router-link
+                :to="`/projects/${$route.params.id}/tags`"
+                class="gd-btn-secondary flex flex-col items-center p-4 text-center opacity-50 cursor-not-allowed"
+            >
+              <svg class="h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              <span class="text-sm font-medium">Tags</span>
+            </router-link>
+          </div>
+        </div>
+      </div>
+
+      <!-- Infos + Activité récente -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="gd-card">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg font-medium text-text mb-4">Informations du projet</h3>
+            <dl class="space-y-4">
+              <div>
+                <dt class="text-sm font-medium text-muted">URL du dépôt</dt>
+                <dd class="mt-1">
+                  <a :href="projectStore.currentProject?.url" target="_blank" rel="noopener noreferrer"
+                     class="inline-flex items-center text-sm text-accent hover:text-accentHover hover:underline">
+                    {{ projectStore.currentProject?.url }}
+                    <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                  </a>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-muted">Plateforme</dt>
+                <dd class="mt-1">
+                  <span v-if="projectStore.currentProject?.platform === 'github'" class="gd-badge">GitHub</span>
+                  <span v-else-if="projectStore.currentProject?.platform === 'gitlab'" class="gd-badge-warning">GitLab</span>
+                  <span v-else class="gd-badge">{{ projectStore.currentProject?.platform }}</span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-muted">Date de création</dt>
+                <dd class="mt-1 text-sm text-text">{{ formatDate(projectStore.currentProject?.createdAt) }}</dd>
+              </div>
+              <div v-if="projectStore.currentProject?.manager">
+                <dt class="text-sm font-medium text-muted">Gestionnaire</dt>
+                <dd class="mt-1 text-sm text-text">
+                  {{ projectStore.currentProject.manager.firstName }} {{ projectStore.currentProject.manager.lastName }}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="gd-card">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg font-medium text-text mb-4">Activité récente</h3>
+            <div v-if="projectStore.isLoading" class="flex justify-center py-8">
+              <span class="animate-spin text-2xl">⟳</span>
+            </div>
+            <div v-else-if="recentActivity.length === 0" class="text-center py-8">
+              <p class="mt-2 text-sm text-muted">Aucune activité récente</p>
+            </div>
+            <div v-else class="space-y-3">
+              <div v-for="activity in recentActivity" :key="activity.id" class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                  <div class="h-8 w-8 rounded-full bg-accent/10 flex items-center justify-center">
+                    <svg class="h-4 w-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                   </div>
                 </div>
-                <div v-else class="text-sm text-gray-500 italic">
-                  Aucun niveau défini pour cette partie
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm text-text">
+                    <span class="font-medium">{{ activity.author }}</span> {{ activity.action }}
+                  </p>
+                  <p class="text-xs text-muted">{{ activity.time }}</p>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Create/Edit Modal -->
-      <div v-if="showCreateModal || editingPart" class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="closeModal"></div>
-          <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                {{ editingPart ? 'Modifier la partie' : 'Créer une nouvelle partie' }}
-              </h3>
-              
-              <form @submit.prevent="savePart" class="space-y-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Nom de la partie</label>
-                  <input v-model="partForm.name" type="text" required class="gd-input mt-1" />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea v-model="partForm.description" rows="3" class="gd-input mt-1"></textarea>
-                </div>
-              </form>
-            </div>
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-              <button @click="savePart" :disabled="!partForm.name || isLoading" class="gd-btn-primary sm:ml-3 sm:w-auto">
-                {{ isLoading ? 'Enregistrement...' : 'Enregistrer' }}
-              </button>
-              <button @click="closeModal" class="gd-btn-secondary mt-3 sm:mt-0 sm:w-auto">
-                Annuler
-              </button>
             </div>
           </div>
         </div>
@@ -119,103 +237,58 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useProjectStore } from '@/stores/projectStore'
 import { useNotificationStore } from '@/stores/notificationStore'
+import { useRole } from '@/composables/useRole'
 import AppLayout from '@/layouts/AppLayout.vue'
 
 const route = useRoute()
-const notificationStore = useNotificationStore()
+const projectStore = useProjectStore()
+const notifStore = useNotificationStore()
+const { isManager, isDevUser } = useRole()
 
-const isLoading = ref(false)
-const parts = ref([])
-const expandedParts = ref(new Set())
-const showCreateModal = ref(false)
-const editingPart = ref(null)
+const syncFailed = ref(false)
 
-const partForm = reactive({
-  name: '',
-  description: ''
+const stats = ref({
+  totalTags: 0,
+  totalCollaborators: 0,
+  totalCommits: 0
 })
 
-const togglePartExpansion = (partId) => {
-  if (expandedParts.value.has(partId)) {
-    expandedParts.value.delete(partId)
-  } else {
-    expandedParts.value.add(partId)
+const recentActivity = ref([
+  { id: 1, author: 'Système', action: 'Projet initialisé', time: 'Récemment' }
+])
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    year: 'numeric', month: 'long', day: 'numeric'
+  })
+}
+
+const loadProjectData = async () => {
+  const projectId = parseInt(route.params.id)
+  if (projectId) {
+    await projectStore.fetchProjectBranches(projectId)
   }
 }
 
-const editPart = (part) => {
-  editingPart.value = part
-  partForm.name = part.name
-  partForm.description = part.description || ''
-}
-
-const closeModal = () => {
-  showCreateModal.value = false
-  editingPart.value = null
-  partForm.name = ''
-  partForm.description = ''
-}
-
-const savePart = async () => {
-  if (!partForm.name.trim()) return
-
-  isLoading.value = true
-  try {
-    if (editingPart.value) {
-      // Simulation: Update logic
-      const index = parts.value.findIndex(p => p.id === editingPart.value.id)
-      if (index !== -1) {
-        parts.value[index] = { ...parts.value[index], name: partForm.name, description: partForm.description }
-      }
-      notificationStore.success('Partie modifiée avec succès')
-    } else {
-      // Simulation: Create logic
-      parts.value.push({
-        id: Date.now(),
-        name: partForm.name,
-        description: partForm.description,
-        levels: []
-      })
-      notificationStore.success('Partie créée avec succès')
+watch(() => notifStore.inAppNotifications, (notifs) => {
+  if (!projectStore.currentProject) return
+  const failedNotif = notifs.find(n => {
+    if (n.type !== 'TYPE_SYNC_FAILED') return false
+    let payloadObj = n.payload
+    if (typeof n.payload === 'string') {
+      try { payloadObj = JSON.parse(n.payload) } catch (e) { return false }
     }
-    closeModal()
-  } catch (error) {
-    notificationStore.error('Erreur lors de l\'enregistrement')
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const deletePart = async (part) => {
-  if (!confirm(`Êtes-vous sûr de vouloir supprimer la partie "${part.name}" ?`)) return
-  try {
-    parts.value = parts.value.filter(p => p.id !== part.id)
-    expandedParts.value.delete(part.id)
-    notificationStore.success('Partie supprimée avec succès')
-  } catch (error) {
-    notificationStore.error('Erreur lors de la suppression')
-  }
-}
-
-const loadParts = async () => {
-  isLoading.value = true
-  try {
-    // Mock data based on your data.sql
-    parts.value = [
-      { id: 1, name: 'Accounting Module', description: 'Financial accounting module', levels: [{id: 1, name: 'Débutant', order: 1}] },
-      { id: 2, name: 'Reporting Module', description: 'Financial reporting module', levels: [] }
-    ]
-  } catch (error) {
-    notificationStore.error('Erreur lors du chargement des parties')
-  } finally {
-    isLoading.value = false
-  }
-}
+    return payloadObj?.projectName === projectStore.currentProject.name
+  })
+  if (failedNotif) syncFailed.value = true
+}, { deep: true })
 
 onMounted(() => {
-  loadParts()
+  loadProjectData()
 })
 </script>

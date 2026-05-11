@@ -1,35 +1,28 @@
-import axios from 'axios';
-import { useAuthStore } from '@/stores/authStore';
-
-const gamificationApi = axios.create({
-  baseURL: 'http://localhost:5292/api',
-  headers: { 'Content-Type': 'application/json' }
-});
-
-gamificationApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+import api from './api'
+import { useAuthStore } from '@/stores/authStore'
 
 export const userBadgeService = {
+
+  // GET /api/UserBadge/my-badges?userId={id}
+  // Ton backend attend userId en query param (pas JWT)
   async getMyBadges() {
-    const authStore = useAuthStore();
-    const response = await gamificationApi.get(`/UserBadge/my-badges?userId=${authStore.userId}`);
-    return response.data;
+    const authStore = useAuthStore()
+    const userId = authStore.userId
+    if (!userId) throw new Error('userId introuvable')
+    const response = await api.get('/UserBadge/my-badges', {
+      params: { userId }
+    })
+    return response.data
   },
-  async getByUserId(userId: string | number) {
-    const response = await gamificationApi.get(`/UserBadge/user/${userId}`);
-    return response.data;
-  },
+
+  // GET /api/Badges  (BadgesController → [controller] = "Badges")
   async getAllAvailableBadges() {
-    const response = await gamificationApi.get('/Badges');
-    return response.data;
+    const response = await api.get('/Badges')
+    return response.data
   },
+
+  // POST /api/UserBadge/award
   async awardBadgeManual(userId: number, badgeId: string) {
-    return await gamificationApi.post('/UserBadge/award', {
-      userId: userId,
-      badgeId: badgeId
-    });
+    return await api.post('/UserBadge/award', { userId, badgeId })
   }
-};
+}

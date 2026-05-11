@@ -12,7 +12,12 @@ class TaskEventProducer implements TaskEventProducerInterface
 
     public function __construct()
     {
-        $this->connection = new AMQPStreamConnection('127.0.0.1', 5672, 'guest', 'guest');
+        $this->connection = new AMQPStreamConnection(
+            $_ENV['RABBITMQ_HOST'] ?? 'gitdock-rabbitmq',
+            $_ENV['RABBITMQ_PORT'] ?? 5672,
+            $_ENV['RABBITMQ_USER'] ?? 'guest',
+            $_ENV['RABBITMQ_PASSWORD'] ?? 'guest'
+        );
     }
 
     public function publishTaskCompleted(TaskCompletedEvent $event): void

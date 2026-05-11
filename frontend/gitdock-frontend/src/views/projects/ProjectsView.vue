@@ -16,23 +16,23 @@
               <span class="text-white/70 text-xs font-bold uppercase tracking-widest">GitDock</span>
             </div>
             <h1 class="text-2xl font-black text-white">
-              {{ currentView === 'projects' ? 'Liste des Projets' : 'Collaborateurs' }}
+              {{ currentView === 'projects' ? 'Project List' : 'Collaborators' }}
             </h1>
             <p class="text-white/60 text-xs mt-0.5">
-              {{ currentView === 'projects' ? 'Gerez tous vos depots Git' : 'Gerez les collaborateurs de vos projets' }}
+              {{ currentView === 'projects' ? 'Manage all your Git repositories' : 'Manage your project collaborators' }}
             </p>
           </div>
 
           <div class="flex items-center gap-3">
-            <!-- TOGGLE PROJETS / COLLAB -->
-            <div class="flex bg-white/10 p-1 rounded-xl border border-white/20">
+            <!-- TOGGLE PROJECTS / COLLAB — manager only -->
+            <div v-if="isManager" class="flex bg-white/10 p-1 rounded-xl border border-white/20">
               <button @click="currentView = 'projects'"
                       :class="['px-3 py-1.5 rounded-lg text-xs font-black transition-all', currentView === 'projects' ? 'bg-white text-[#5b13ec]' : 'text-white/70 hover:text-white']">
-                Projets
+                Projects
               </button>
               <button @click="currentView = 'collaborators'"
                       :class="['px-3 py-1.5 rounded-lg text-xs font-black transition-all', currentView === 'collaborators' ? 'bg-white text-[#5b13ec]' : 'text-white/70 hover:text-white']">
-                Collaborateurs
+                Collaborators
               </button>
             </div>
 
@@ -55,30 +55,33 @@
         </div>
       </div>
 
-      <!-- PROJETS -->
+      <!-- PROJECTS -->
       <div v-if="currentView === 'projects'">
         <div class="mb-4 flex justify-between items-center">
-          <button @click="showCreateModal = true"
+          <!-- Add button — manager only -->
+          <button v-if="isManager" @click="showCreateModal = true"
                   class="flex items-center gap-2 px-5 py-2.5 bg-[#5b13ec] text-white rounded-xl font-black text-sm hover:bg-[#4a0fd4] transition-all shadow-lg shadow-[#5b13ec]/20">
             <v-icon icon="mdi-plus" size="18"></v-icon>
-            Ajouter un projet
+            Add Project
           </button>
+          <div v-else></div>
+
           <button @click="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'"
                   class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
             <v-icon :icon="sortOrder === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending'" size="16"></v-icon>
-            {{ sortOrder === 'asc' ? 'Croissant' : 'Decroissant' }}
+            {{ sortOrder === 'asc' ? 'Ascending' : 'Descending' }}
           </button>
         </div>
 
-        <!-- TABLE -->
+        <!-- TABLE VIEW -->
         <div v-if="viewMode === 'list' && sortedProjects.length > 0" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <table class="w-full">
             <thead>
             <tr class="bg-slate-50 border-b border-slate-200">
-              <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Projet</th>
+              <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Project</th>
               <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase tracking-wider">URL</th>
-              <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Plateforme</th>
-              <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Gere par</th>
+              <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Platform</th>
+              <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Managed By</th>
               <th class="px-6 py-3 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Actions</th>
             </tr>
             </thead>
@@ -93,7 +96,7 @@
                   </div>
                   <div>
                     <p class="text-sm font-black text-slate-800">{{ project.name }}</p>
-                    <p class="text-xs text-slate-400">{{ new Date(project.createdAt).toLocaleDateString('fr-FR') }}</p>
+                    <p class="text-xs text-slate-400">{{ new Date(project.createdAt).toLocaleDateString('en-US') }}</p>
                   </div>
                 </div>
               </td>
@@ -117,11 +120,11 @@
               <td class="px-6 py-4">
                 <div class="flex justify-end gap-2">
                   <button @click.stop="navigateToProject(project.id)"
-                          class="p-2 text-[#5b13ec] hover:bg-[#5b13ec]/10 rounded-xl transition-all" title="Voir">
+                          class="p-2 text-[#5b13ec] hover:bg-[#5b13ec]/10 rounded-xl transition-all" title="View">
                     <v-icon icon="mdi-eye-outline" size="18"></v-icon>
                   </button>
-                  <button @click.stop="handleDeleteProject(project.id)"
-                          class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all" title="Supprimer">
+                  <button v-if="isManager" @click.stop="handleDeleteProject(project.id)"
+                          class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all" title="Delete">
                     <v-icon icon="mdi-trash-can-outline" size="18"></v-icon>
                   </button>
                 </div>
@@ -131,7 +134,7 @@
           </table>
         </div>
 
-        <!-- CARDS -->
+        <!-- CARDS VIEW -->
         <div v-if="viewMode === 'cards' && sortedProjects.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div v-for="project in sortedProjects" :key="project.id"
                @click="navigateToProject(project.id)"
@@ -143,14 +146,14 @@
                 </div>
                 <div>
                   <p class="font-black text-slate-800">{{ project.name }}</p>
-                  <p class="text-xs text-slate-400">{{ new Date(project.createdAt).toLocaleDateString('fr-FR') }}</p>
+                  <p class="text-xs text-slate-400">{{ new Date(project.createdAt).toLocaleDateString('en-US') }}</p>
                 </div>
               </div>
               <div class="flex gap-1">
                 <button @click.stop="navigateToProject(project.id)" class="p-1.5 text-[#5b13ec] hover:bg-[#5b13ec]/10 rounded-lg transition-all">
                   <v-icon icon="mdi-eye-outline" size="16"></v-icon>
                 </button>
-                <button @click.stop="handleDeleteProject(project.id)" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                <button v-if="isManager" @click.stop="handleDeleteProject(project.id)" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all">
                   <v-icon icon="mdi-trash-can-outline" size="16"></v-icon>
                 </button>
               </div>
@@ -171,27 +174,29 @@
           </div>
         </div>
 
-        <!-- EMPTY -->
+        <!-- EMPTY STATE -->
         <div v-if="sortedProjects.length === 0" class="bg-white rounded-2xl border border-slate-200 p-16 text-center">
           <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <v-icon icon="mdi-folder-open-outline" color="#94a3b8" size="32"></v-icon>
           </div>
-          <h3 class="font-black text-slate-700 mb-1">Aucun projet</h3>
-          <p class="text-sm text-slate-400 mb-6">Commencez par creer votre premier projet Git.</p>
-          <button @click="showCreateModal = true"
+          <h3 class="font-black text-slate-700 mb-1">No Projects</h3>
+          <p class="text-sm text-slate-400 mb-6">
+            {{ isManager ? 'Start by creating your first Git project.' : 'No projects are assigned to you at the moment.' }}
+          </p>
+          <button v-if="isManager" @click="showCreateModal = true"
                   class="px-5 py-2.5 bg-[#5b13ec] text-white rounded-xl font-black text-sm hover:bg-[#4a0fd4] transition-all">
-            Creer un projet
+            Create Project
           </button>
         </div>
       </div>
 
-      <!-- COLLABORATEURS -->
-      <div v-if="currentView === 'collaborators'">
+      <!-- COLLABORATORS — manager only -->
+      <div v-if="currentView === 'collaborators' && isManager">
         <div class="mb-4">
           <button @click="showAddForm = !showAddForm"
                   class="flex items-center gap-2 px-5 py-2.5 bg-[#5b13ec] text-white rounded-xl font-black text-sm hover:bg-[#4a0fd4] transition-all shadow-lg shadow-[#5b13ec]/20">
             <v-icon :icon="showAddForm ? 'mdi-close' : 'mdi-plus'" size="18"></v-icon>
-            {{ showAddForm ? 'Annuler' : 'Ajouter un collaborateur' }}
+            {{ showAddForm ? 'Cancel' : 'Add Collaborator' }}
           </button>
         </div>
 
@@ -205,15 +210,15 @@
           <div v-for="group in projectStore.collaboratorsGrouped" :key="group.projectId || 'no-project'"
                class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-6 py-3 bg-slate-50 border-b border-slate-200">
-              <h3 class="font-black text-slate-700 text-sm">{{ group.projectName || 'Sans projet' }}</h3>
+              <h3 class="font-black text-slate-700 text-sm">{{ group.projectName || 'Unassigned' }}</h3>
             </div>
             <table class="w-full">
               <thead>
               <tr class="border-b border-slate-100">
-                <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase">Nom</th>
+                <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase">Name</th>
                 <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase">Email</th>
                 <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase">Role</th>
-                <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase">Etat</th>
+                <th class="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase">Status</th>
                 <th class="px-6 py-3 text-right text-xs font-black text-slate-400 uppercase">Actions</th>
               </tr>
               </thead>
@@ -227,35 +232,35 @@
                 <td class="px-6 py-3">
                     <span class="text-[10px] font-black px-2 py-1 rounded-full"
                           :class="collaborator.status === 'active' ? 'bg-emerald-50 text-emerald-700' : collaborator.status === 'pending' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'">
-                      {{ collaborator.status === 'active' ? 'Actif' : collaborator.status === 'pending' ? 'En attente' : 'Desactive' }}
+                      {{ collaborator.status === 'active' ? 'Active' : collaborator.status === 'pending' ? 'Pending' : 'Inactive' }}
                     </span>
                 </td>
                 <td class="px-6 py-3">
-                  <span v-if="collaborator.id === authStore.userId" class="text-xs text-slate-400 italic float-right">(Vous)</span>
+                  <span v-if="collaborator.id === authStore.userId" class="text-xs text-slate-400 italic float-right">(You)</span>
                   <div v-else class="flex justify-end gap-1">
                     <button v-if="canPerform('edit')" @click="handleEditCollaborator(collaborator)"
-                            class="p-1.5 text-[#5b13ec] hover:bg-[#5b13ec]/10 rounded-lg transition-all" title="Modifier">
+                            class="p-1.5 text-[#5b13ec] hover:bg-[#5b13ec]/10 rounded-lg transition-all" title="Edit">
                       <v-icon icon="mdi-pencil-outline" size="16"></v-icon>
                     </button>
                     <button v-if="canUnlink(group.projectId)" @click="handleRemoveCollaborator(group.projectId, collaborator.id)"
-                            class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Retirer">
+                            class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Unlink">
                       <v-icon icon="mdi-account-minus-outline" size="16"></v-icon>
                     </button>
                     <button v-if="collaborator.status === 'active' && canPerform('soft-delete')" @click="handleSoftDelete(collaborator.id)"
-                            class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Desactiver">
+                            class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Disable">
                       <v-icon icon="mdi-cancel" size="16"></v-icon>
                     </button>
                     <button v-if="collaborator.status !== 'active' && canPerform('restore')" @click="handleRestore(collaborator.id)"
-                            class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Restaurer">
+                            class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Restore">
                       <v-icon icon="mdi-restore" size="16"></v-icon>
                     </button>
                     <button v-if="canPerform('reset-password')" @click="handleResetPassword(collaborator.email)"
-                            class="p-1.5 text-violet-600 hover:bg-violet-50 rounded-lg transition-all" title="Reset password">
+                            class="p-1.5 text-violet-600 hover:bg-violet-50 rounded-lg transition-all" title="Reset Password">
                       <v-icon icon="mdi-key-outline" size="16"></v-icon>
                     </button>
                     <button v-if="(collaborator.status !== 'active' || authStore.role === 'ROLE_SUPER_ADMIN') && canPerform('hard-delete')"
                             @click="handleHardDelete(collaborator.id)"
-                            class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Supprimer">
+                            class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete Permanent">
                       <v-icon icon="mdi-trash-can-outline" size="16"></v-icon>
                     </button>
                   </div>
@@ -268,7 +273,7 @@
 
         <div v-else class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
           <v-icon icon="mdi-account-group-outline" color="#cbd5e1" size="40" class="mb-3"></v-icon>
-          <p class="font-black text-slate-500">Aucun collaborateur</p>
+          <p class="font-black text-slate-500">No collaborators found</p>
         </div>
       </div>
 
@@ -285,6 +290,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import { useProjectStore } from '@/stores/projectStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useNotificationStore } from '@/stores/notificationStore'
+import { useRole } from '@/composables/useRole'
 import CreateProjectModal from '@/components/project/CreateProjectModal.vue'
 import ProjectForm from '@/components/project/ProjectForm.vue'
 import { authService } from '@/services/authService'
@@ -294,6 +300,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const projectStore = useProjectStore()
 const notificationStore = useNotificationStore()
+const { isManager } = useRole()
 
 const currentView = ref('projects')
 const viewMode = ref('list')
@@ -333,7 +340,9 @@ onMounted(async () => {
       router.replace('/projects')
     }
     await projectStore.fetchProjects()
-    await projectStore.fetchCollaboratorsGrouped()
+    if (isManager.value) {
+      await projectStore.fetchCollaboratorsGrouped()
+    }
   } catch (e) { console.error(e) }
 })
 
@@ -342,10 +351,10 @@ const navigateToProject = (id) => router.push(`/projects/${id}`)
 const handleDeleteProject = async (id) => {
   const project = projectStore.projects.find(p => p.id === id)
   if (!project) return
-  if (confirm(`Supprimer "${project.name}" ?`)) {
+  if (confirm(`Delete "${project.name}"?`)) {
     try {
       if (projectStore.deleteProject) await projectStore.deleteProject(id)
-      else notificationStore.info("Fonctionnalite en developpement")
+      else notificationStore.info("Feature in development")
     } catch (error) { console.error(error) }
   }
 }
@@ -362,18 +371,18 @@ const handleFormSubmit = async (data) => {
       showAddForm.value = false
       editingCollaborator.value = undefined
     } else {
-      notificationStore.error("Veuillez selectionner un projet")
+      notificationStore.error("Please select a project")
     }
   } catch (error) { console.error(error) }
 }
 
 const handleFormCancel = () => { showAddForm.value = false; editingCollaborator.value = undefined }
 const handleEditCollaborator = (c) => { editingCollaborator.value = c; showAddForm.value = false }
-const handleSoftDelete = async (id) => { if (confirm('Desactiver ce collaborateur ?')) { try { if (projectStore.softDeleteUser) await projectStore.softDeleteUser(id) } catch (e) { console.error(e) } } }
+const handleSoftDelete = async (id) => { if (confirm('Disable this collaborator?')) { try { if (projectStore.softDeleteUser) await projectStore.softDeleteUser(id) } catch (e) { console.error(e) } } }
 const handleRestore = async (id) => { try { if (projectStore.restoreUser) await projectStore.restoreUser(id) } catch (e) { console.error(e) } }
-const handleHardDelete = async (id) => { if (confirm('Supprimer definitivement ?')) { try { if (projectStore.hardDeleteUser) await projectStore.hardDeleteUser(id) } catch (e) { console.error(e) } } }
-const handleResetPassword = async (email) => { if (confirm(`Envoyer email a ${email} ?`)) { try { await authService.requestPasswordReset(email); notificationStore.success('Email envoye !') } catch (e) { console.error(e) } } }
-const handleRemoveCollaborator = async (projectId, userId) => { if (confirm('Retirer ce collaborateur ?')) { await projectStore.removeCollaborator(projectId, userId) } }
-const getRoleLabel = (role) => ({ SUPER_ADMIN: 'Super Admin', ADMIN: 'Admin', MANAGER: 'Manager', DEVELOPER: 'Developpeur' }[role] || role)
+const handleHardDelete = async (id) => { if (confirm('Delete permanently?')) { try { if (projectStore.hardDeleteUser) await projectStore.hardDeleteUser(id) } catch (e) { console.error(e) } } }
+const handleResetPassword = async (email) => { if (confirm(`Send password reset email to ${email}?`)) { try { await authService.requestPasswordReset(email); notificationStore.success('Email sent!') } catch (e) { console.error(e) } } }
+const handleRemoveCollaborator = async (projectId, userId) => { if (confirm('Remove this collaborator from project?')) { await projectStore.removeCollaborator(projectId, userId) } }
+const getRoleLabel = (role) => ({ SUPER_ADMIN: 'Super Admin', ADMIN: 'Admin', MANAGER: 'Manager', DEVELOPER: 'Developer' }[role] || role)
 const getProjectHostname = (urlString) => { if (!urlString) return 'N/A'; try { return new URL(urlString).hostname.replace('www.', '') } catch (e) { return urlString } }
 </script>
