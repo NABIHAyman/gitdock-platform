@@ -28,4 +28,8 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
      * @return Un Optional contenant l'entreprise si elle existe, vide sinon.
      */
     Optional<Company> findByName(String name);
+
+
+    long countByIsDeletedFalse();
+
 }

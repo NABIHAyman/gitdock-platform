@@ -1,0 +1,48 @@
+# MISSION D'INTÉGRATION : GITDOCK-FRONTEND (VUE.JS)
+
+**CONTEXTE :** Nous intégrons les vues de deux anciens micro-frontends (`task` et `gamification`) dans notre SPA globale. Le backend est désormais caché derrière une API Gateway. 
+**RÈGLE TYPAGES :** Tout nouveau fichier de service ou logique extrait DOIT être créé en **TypeScript (`.ts`)**. N'utilise pas de `.js`. Définis des interfaces claires pour les payloads.
+
+---
+
+## MISSION 0 : PRÉPARATION DE L'ENVIRONNEMENT
+**Objectif :** Initialiser la structure de documentation.
+1. Créer (ou utiliser) le dossier `docs/` à la racine de `gitdock-frontend`.
+2. Créer un fichier `docs/FRONTEND_INTEGRATION_REPORT.md` pour y loguer toutes les actions des missions suivantes.
+
+---
+
+## MISSION 1 : EXTRACTION ET STANDARDISATION DE TASK (TypeScript)
+**Objectif :** Corriger l'anti-pattern des composants "Fat" et les connecter à la Gateway.
+1. Analyser les fichiers Vue importés dans `src/views/task/`.
+2. Repérer tous les appels API (axios, fetch) codés en dur à l'intérieur de ces composants.
+3. **Créer** un fichier `src/services/TaskService.ts` (Strictement en TypeScript).
+4. Extraire toutes ces requêtes dans le `TaskService`, en s'appuyant strictement sur le fichier `API_CONTRACTS.md` pour les endpoints. Utilise `import.meta.env.VITE_API_BASE_URL`.
+5. Injecter le token JWT (depuis `authStore` ou localStorage) dans les headers de ces requêtes.
+6. Refactorer les composants dans `src/views/task/` pour qu'ils importent et appellent les méthodes de `TaskService.ts`.
+
+---
+
+## MISSION 2 : RECÂBLAGE DE GAMIFICATION
+**Objectif :** Adapter les services existants de Rihab à notre infrastructure.
+1. Analyser les fichiers `BadgeService.ts`, `LevelService.ts` et `TagService.ts` dans `src/services/`.
+2. Remplacer les URL d'origine (`https://localhost:7261`) par des appels via la Gateway en utilisant `import.meta.env.VITE_API_BASE_URL`.
+3. S'assurer que le token d'authentification global est bien attaché aux requêtes sortantes de ces services via un intercepteur Axios ou manuellement.
+4. Vérifier et corriger les chemins d'importation (les `@/` ou `../`) dans les vues `src/views/gamification/` pour qu'ils pointent correctement vers les composants globaux.
+
+---
+
+## MISSION 3 : UNIFICATION DU ROUTER
+**Objectif :** Rendre les nouvelles pages accessibles via la navigation principale.
+1. Ouvrir le fichier `src/router/index.js` (ou `router.ts`).
+2. Importer les vues principales de `task` et `gamification` (ex: `DashboardTask.vue`, `DashboardView.vue`).
+3. Ajouter ces routes en tant qu'enfants (children) de la route principale du Dashboard (`AppLayout.vue` ou `SuperAdminDashboard.vue`), pour qu'elles bénéficient de la sidebar et du header communs.
+4. Protéger ces routes avec le guard d'authentification existant.
+
+---
+
+## MISSION 4 : GESTION DE L'ÉTAT LOCAL VS GLOBAL
+**Objectif :** Connecter les vues isolées à l'état global de l'application.
+1. Analyser comment l'ID de l'utilisateur connecté (`userId`) est récupéré dans les vues `task` et `gamification` (potentiellement codé en dur).
+2. Remplacer cette logique par la récupération dynamique du `userId` et du `Token` depuis le store d'authentification global (ex: Pinia `authStore`).
+3. S'assurer que les composants Vue utilisent `<script setup lang="ts">` autant que possible lors de leurs refactorisations.

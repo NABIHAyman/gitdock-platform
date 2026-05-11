@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Dashboard for /var/www/html/src/Entity</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../_css/bootstrap.min.css?v=12.3.6" rel="stylesheet" type="text/css">
+  <link href="../_css/billboard.min.css?v=12.3.6" rel="stylesheet" type="text/css">
+  <link href="../_css/style.css?v=12.3.6" rel="stylesheet" type="text/css">
+  <link href="../_css/custom.css" rel="stylesheet" type="text/css">
+ </head>
+ <body>
+  <header>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+       <ol class="breadcrumb">
+         <li class="breadcrumb-item"><a href="../index.html">/var/www/html/src</a></li>
+         <li class="breadcrumb-item"><a href="index.html">Entity</a></li>
+         <li class="breadcrumb-item active">(Dashboard)</li>
+
+       </ol>
+      </nav>
+     </div>
+    </div>
+   </div>
+  </header>
+  <div class="container-fluid">
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Classes</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="classesCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="classComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3 style="margin-top: 2rem;">Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Epic.php.html#11">App\Entity\Epic</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#10">App\Entity\Level</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#10">App\Entity\Part</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TaskLevel.php.html#10">App\Entity\TaskLevel</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#8">App\Entity\Task</a></td><td class="text-right">43%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3 style="margin-top: 2rem;">Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right">Coverage</th>
+         <th class="text-right">Complexity</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Level.php.html#10">App\Entity\Level</a></td><td class="text-right">0.0%</td><td class="text-right">24</td><td class="text-right">600</td></tr>
+       <tr><td><a href="Epic.php.html#11">App\Entity\Epic</a></td><td class="text-right">0.0%</td><td class="text-right">20</td><td class="text-right">420</td></tr>
+       <tr><td><a href="Part.php.html#10">App\Entity\Part</a></td><td class="text-right">0.0%</td><td class="text-right">18</td><td class="text-right">342</td></tr>
+       <tr><td><a href="TaskLevel.php.html#10">App\Entity\TaskLevel</a></td><td class="text-right">0.0%</td><td class="text-right">12</td><td class="text-right">156</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-12">
+     <h2 style="margin-top: 3rem;">Methods</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="methodsCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="methodComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3 style="margin-top: 2rem;">Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Epic.php.html#43"><abbr title="App\Entity\Epic::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#48"><abbr title="App\Entity\Epic::getId">getId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#53"><abbr title="App\Entity\Epic::getIdEpic">getIdEpic</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#58"><abbr title="App\Entity\Epic::setIdEpic">setIdEpic</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#65"><abbr title="App\Entity\Epic::getTitle">getTitle</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#70"><abbr title="App\Entity\Epic::setTitle">setTitle</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#77"><abbr title="App\Entity\Epic::getDescription">getDescription</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#82"><abbr title="App\Entity\Epic::setDescription">setDescription</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#89"><abbr title="App\Entity\Epic::getCreatedAt">getCreatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#94"><abbr title="App\Entity\Epic::setCreatedAt">setCreatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#101"><abbr title="App\Entity\Epic::getUpdatedAt">getUpdatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#106"><abbr title="App\Entity\Epic::setUpdatedAt">setUpdatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#113"><abbr title="App\Entity\Epic::getProjectId">getProjectId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#118"><abbr title="App\Entity\Epic::setProjectId">setProjectId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#128"><abbr title="App\Entity\Epic::getTasks">getTasks</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#133"><abbr title="App\Entity\Epic::addTask">addTask</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Epic.php.html#143"><abbr title="App\Entity\Epic::removeTask">removeTask</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#48"><abbr title="App\Entity\Level::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#53"><abbr title="App\Entity\Level::getId">getId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#58"><abbr title="App\Entity\Level::getIdLevel">getIdLevel</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#63"><abbr title="App\Entity\Level::setIdLevel">setIdLevel</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#70"><abbr title="App\Entity\Level::getName">getName</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#75"><abbr title="App\Entity\Level::setName">setName</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#82"><abbr title="App\Entity\Level::getType">getType</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#87"><abbr title="App\Entity\Level::setType">setType</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#94"><abbr title="App\Entity\Level::getLevelRank">getLevelRank</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#99"><abbr title="App\Entity\Level::setLevelRank">setLevelRank</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#106"><abbr title="App\Entity\Level::getScope">getScope</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#111"><abbr title="App\Entity\Level::setScope">setScope</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#118"><abbr title="App\Entity\Level::getCreatedAt">getCreatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#123"><abbr title="App\Entity\Level::setCreatedAt">setCreatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#130"><abbr title="App\Entity\Level::getUpdatedAt">getUpdatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#135"><abbr title="App\Entity\Level::setUpdatedAt">setUpdatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#142"><abbr title="App\Entity\Level::getProjectId">getProjectId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#147"><abbr title="App\Entity\Level::setProjectId">setProjectId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#157"><abbr title="App\Entity\Level::getTasks">getTasks</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#162"><abbr title="App\Entity\Level::addTask">addTask</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Level.php.html#172"><abbr title="App\Entity\Level::removeTask">removeTask</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#39"><abbr title="App\Entity\Part::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#44"><abbr title="App\Entity\Part::getId">getId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#49"><abbr title="App\Entity\Part::getIdPart">getIdPart</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#54"><abbr title="App\Entity\Part::setIdPart">setIdPart</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#61"><abbr title="App\Entity\Part::getName">getName</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#66"><abbr title="App\Entity\Part::setName">setName</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#73"><abbr title="App\Entity\Part::getCreatedAt">getCreatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#78"><abbr title="App\Entity\Part::setCreatedAt">setCreatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#85"><abbr title="App\Entity\Part::getUpdatedAt">getUpdatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#90"><abbr title="App\Entity\Part::setUpdatedAt">setUpdatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#97"><abbr title="App\Entity\Part::getProjectId">getProjectId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#102"><abbr title="App\Entity\Part::setProjectId">setProjectId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#112"><abbr title="App\Entity\Part::getTasks">getTasks</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#117"><abbr title="App\Entity\Part::addTask">addTask</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Part.php.html#127"><abbr title="App\Entity\Part::removeTask">removeTask</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#68"><abbr title="App\Entity\Task::getTitle">getTitle</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#79"><abbr title="App\Entity\Task::getDescription">getDescription</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#101"><abbr title="App\Entity\Task::getDueDate">getDueDate</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#112"><abbr title="App\Entity\Task::getCreatedAt">getCreatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#123"><abbr title="App\Entity\Task::getUpdatedAt">getUpdatedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#134"><abbr title="App\Entity\Task::getEpic">getEpic</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#139"><abbr title="App\Entity\Task::setEpic">setEpic</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#145"><abbr title="App\Entity\Task::getPart">getPart</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#150"><abbr title="App\Entity\Task::setPart">setPart</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#156"><abbr title="App\Entity\Task::getLevel">getLevel</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#161"><abbr title="App\Entity\Task::setLevel">setLevel</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#172"><abbr title="App\Entity\Task::setTaskLevel">setTaskLevel</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#194"><abbr title="App\Entity\Task::setAssignedToUserId">setAssignedToUserId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#200"><abbr title="App\Entity\Task::getAssignedByUserId">getAssignedByUserId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#205"><abbr title="App\Entity\Task::setAssignedByUserId">setAssignedByUserId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#213"><abbr title="App\Entity\Task::getDeletedAt">getDeletedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#218"><abbr title="App\Entity\Task::setDeletedAt">setDeletedAt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Task.php.html#224"><abbr title="App\Entity\Task::isDeleted">isDeleted</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TaskLevel.php.html#30"><abbr title="App\Entity\TaskLevel::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TaskLevel.php.html#35"><abbr title="App\Entity\TaskLevel::getId">getId</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TaskLevel.php.html#40"><abbr title="App\Entity\TaskLevel::getName">getName</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TaskLevel.php.html#45"><abbr title="App\Entity\TaskLevel::setName">setName</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TaskLevel.php.html#52"><abbr title="App\Entity\TaskLevel::getXpReward">getXpReward</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TaskLevel.php.html#57"><abbr title="App\Entity\TaskLevel::setXpReward">setXpReward</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TaskLevel.php.html#67"><abbr title="App\Entity\TaskLevel::getTasks">getTasks</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TaskLevel.php.html#72"><abbr title="App\Entity\TaskLevel::addTask">addTask</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="TaskLevel.php.html#82"><abbr title="App\Entity\TaskLevel::removeTask">removeTask</abbr></a></td><td class="text-right">0%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3 style="margin-top: 2rem;">Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right">Coverage</th>
+         <th class="text-right">Complexity</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Epic.php.html#143"><abbr title="App\Entity\Epic::removeTask">removeTask</abbr></a></td><td class="text-right">0.0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="Level.php.html#172"><abbr title="App\Entity\Level::removeTask">removeTask</abbr></a></td><td class="text-right">0.0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="Part.php.html#127"><abbr title="App\Entity\Part::removeTask">removeTask</abbr></a></td><td class="text-right">0.0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="TaskLevel.php.html#82"><abbr title="App\Entity\TaskLevel::removeTask">removeTask</abbr></a></td><td class="text-right">0.0%</td><td class="text-right">3</td><td class="text-right">12</td></tr>
+       <tr><td><a href="Epic.php.html#133"><abbr title="App\Entity\Epic::addTask">addTask</abbr></a></td><td class="text-right">0.0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="Level.php.html#162"><abbr title="App\Entity\Level::addTask">addTask</abbr></a></td><td class="text-right">0.0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="Part.php.html#117"><abbr title="App\Entity\Part::addTask">addTask</abbr></a></td><td class="text-right">0.0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+       <tr><td><a href="TaskLevel.php.html#72"><abbr title="App\Entity\TaskLevel::addTask">addTask</abbr></a></td><td class="text-right">0.0%</td><td class="text-right">2</td><td class="text-right">6</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <footer>
+    <hr/>
+    <p>
+     <small>Generated by <a href="https://github.com/sebastianbergmann/php-code-coverage" target="_top">php-code-coverage 12.3.6</a> using <a href="https://www.php.net/" target="_top">PHP 8.3.30</a> and <a href="https://phpunit.de/">PHPUnit 12.3.7</a> at Mon May 11 18:10:12 UTC 2026.</small>
+    </p>
+   </footer>
+  </div>
+  <script src="../_js/billboard.pkgd.min.js?v=12.3.6" type="text/javascript"></script>
+  <script type="application/json" id="complexity_class">[[0,20,"Epic.php.html#11","App\\Entity\\Epic","420"],[0,24,"Level.php.html#10","App\\Entity\\Level","600"],[0,18,"Part.php.html#10","App\\Entity\\Part","342"],[0,12,"TaskLevel.php.html#10","App\\Entity\\TaskLevel","156"],[43.18181818181818,30,"Task.php.html#8","App\\Entity\\Task","195.08"]]</script>
+  <script type="application/json" id="complexity_method">[[0,1,"Epic.php.html#43","App\\Entity\\Epic::__construct","2"],[0,1,"Epic.php.html#48","App\\Entity\\Epic::getId","2"],[0,1,"Epic.php.html#53","App\\Entity\\Epic::getIdEpic","2"],[0,1,"Epic.php.html#58","App\\Entity\\Epic::setIdEpic","2"],[0,1,"Epic.php.html#65","App\\Entity\\Epic::getTitle","2"],[0,1,"Epic.php.html#70","App\\Entity\\Epic::setTitle","2"],[0,1,"Epic.php.html#77","App\\Entity\\Epic::getDescription","2"],[0,1,"Epic.php.html#82","App\\Entity\\Epic::setDescription","2"],[0,1,"Epic.php.html#89","App\\Entity\\Epic::getCreatedAt","2"],[0,1,"Epic.php.html#94","App\\Entity\\Epic::setCreatedAt","2"],[0,1,"Epic.php.html#101","App\\Entity\\Epic::getUpdatedAt","2"],[0,1,"Epic.php.html#106","App\\Entity\\Epic::setUpdatedAt","2"],[0,1,"Epic.php.html#113","App\\Entity\\Epic::getProjectId","2"],[0,1,"Epic.php.html#118","App\\Entity\\Epic::setProjectId","2"],[0,1,"Epic.php.html#128","App\\Entity\\Epic::getTasks","2"],[0,2,"Epic.php.html#133","App\\Entity\\Epic::addTask","6"],[0,3,"Epic.php.html#143","App\\Entity\\Epic::removeTask","12"],[0,1,"Level.php.html#48","App\\Entity\\Level::__construct","2"],[0,1,"Level.php.html#53","App\\Entity\\Level::getId","2"],[0,1,"Level.php.html#58","App\\Entity\\Level::getIdLevel","2"],[0,1,"Level.php.html#63","App\\Entity\\Level::setIdLevel","2"],[0,1,"Level.php.html#70","App\\Entity\\Level::getName","2"],[0,1,"Level.php.html#75","App\\Entity\\Level::setName","2"],[0,1,"Level.php.html#82","App\\Entity\\Level::getType","2"],[0,1,"Level.php.html#87","App\\Entity\\Level::setType","2"],[0,1,"Level.php.html#94","App\\Entity\\Level::getLevelRank","2"],[0,1,"Level.php.html#99","App\\Entity\\Level::setLevelRank","2"],[0,1,"Level.php.html#106","App\\Entity\\Level::getScope","2"],[0,1,"Level.php.html#111","App\\Entity\\Level::setScope","2"],[0,1,"Level.php.html#118","App\\Entity\\Level::getCreatedAt","2"],[0,1,"Level.php.html#123","App\\Entity\\Level::setCreatedAt","2"],[0,1,"Level.php.html#130","App\\Entity\\Level::getUpdatedAt","2"],[0,1,"Level.php.html#135","App\\Entity\\Level::setUpdatedAt","2"],[0,1,"Level.php.html#142","App\\Entity\\Level::getProjectId","2"],[0,1,"Level.php.html#147","App\\Entity\\Level::setProjectId","2"],[0,1,"Level.php.html#157","App\\Entity\\Level::getTasks","2"],[0,2,"Level.php.html#162","App\\Entity\\Level::addTask","6"],[0,3,"Level.php.html#172","App\\Entity\\Level::removeTask","12"],[0,1,"Part.php.html#39","App\\Entity\\Part::__construct","2"],[0,1,"Part.php.html#44","App\\Entity\\Part::getId","2"],[0,1,"Part.php.html#49","App\\Entity\\Part::getIdPart","2"],[0,1,"Part.php.html#54","App\\Entity\\Part::setIdPart","2"],[0,1,"Part.php.html#61","App\\Entity\\Part::getName","2"],[0,1,"Part.php.html#66","App\\Entity\\Part::setName","2"],[0,1,"Part.php.html#73","App\\Entity\\Part::getCreatedAt","2"],[0,1,"Part.php.html#78","App\\Entity\\Part::setCreatedAt","2"],[0,1,"Part.php.html#85","App\\Entity\\Part::getUpdatedAt","2"],[0,1,"Part.php.html#90","App\\Entity\\Part::setUpdatedAt","2"],[0,1,"Part.php.html#97","App\\Entity\\Part::getProjectId","2"],[0,1,"Part.php.html#102","App\\Entity\\Part::setProjectId","2"],[0,1,"Part.php.html#112","App\\Entity\\Part::getTasks","2"],[0,2,"Part.php.html#117","App\\Entity\\Part::addTask","6"],[0,3,"Part.php.html#127","App\\Entity\\Part::removeTask","12"],[0,1,"Task.php.html#68","App\\Entity\\Task::getTitle","2"],[0,1,"Task.php.html#79","App\\Entity\\Task::getDescription","2"],[0,1,"Task.php.html#101","App\\Entity\\Task::getDueDate","2"],[0,1,"Task.php.html#112","App\\Entity\\Task::getCreatedAt","2"],[0,1,"Task.php.html#123","App\\Entity\\Task::getUpdatedAt","2"],[0,1,"Task.php.html#134","App\\Entity\\Task::getEpic","2"],[0,1,"Task.php.html#139","App\\Entity\\Task::setEpic","2"],[0,1,"Task.php.html#145","App\\Entity\\Task::getPart","2"],[0,1,"Task.php.html#150","App\\Entity\\Task::setPart","2"],[0,1,"Task.php.html#156","App\\Entity\\Task::getLevel","2"],[0,1,"Task.php.html#161","App\\Entity\\Task::setLevel","2"],[0,1,"Task.php.html#172","App\\Entity\\Task::setTaskLevel","2"],[0,1,"Task.php.html#194","App\\Entity\\Task::setAssignedToUserId","2"],[0,1,"Task.php.html#200","App\\Entity\\Task::getAssignedByUserId","2"],[0,1,"Task.php.html#205","App\\Entity\\Task::setAssignedByUserId","2"],[0,1,"Task.php.html#213","App\\Entity\\Task::getDeletedAt","2"],[0,1,"Task.php.html#218","App\\Entity\\Task::setDeletedAt","2"],[0,1,"Task.php.html#224","App\\Entity\\Task::isDeleted","2"],[0,1,"TaskLevel.php.html#30","App\\Entity\\TaskLevel::__construct","2"],[0,1,"TaskLevel.php.html#35","App\\Entity\\TaskLevel::getId","2"],[0,1,"TaskLevel.php.html#40","App\\Entity\\TaskLevel::getName","2"],[0,1,"TaskLevel.php.html#45","App\\Entity\\TaskLevel::setName","2"],[0,1,"TaskLevel.php.html#52","App\\Entity\\TaskLevel::getXpReward","2"],[0,1,"TaskLevel.php.html#57","App\\Entity\\TaskLevel::setXpReward","2"],[0,1,"TaskLevel.php.html#67","App\\Entity\\TaskLevel::getTasks","2"],[0,2,"TaskLevel.php.html#72","App\\Entity\\TaskLevel::addTask","6"],[0,3,"TaskLevel.php.html#82","App\\Entity\\TaskLevel::removeTask","12"],[100,1,"Task.php.html#63","App\\Entity\\Task::getId","1"],[100,1,"Task.php.html#73","App\\Entity\\Task::setTitle","1"],[100,1,"Task.php.html#84","App\\Entity\\Task::setDescription","1"],[100,1,"Task.php.html#90","App\\Entity\\Task::getStatus","1"],[100,1,"Task.php.html#95","App\\Entity\\Task::setStatus","1"],[100,1,"Task.php.html#106","App\\Entity\\Task::setDueDate","1"],[100,1,"Task.php.html#117","App\\Entity\\Task::setCreatedAt","1"],[100,1,"Task.php.html#128","App\\Entity\\Task::setUpdatedAt","1"],[100,1,"Task.php.html#167","App\\Entity\\Task::getTaskLevel","1"],[100,1,"Task.php.html#178","App\\Entity\\Task::getProjectId","1"],[100,1,"Task.php.html#183","App\\Entity\\Task::setProjectId","1"],[100,1,"Task.php.html#189","App\\Entity\\Task::getAssignedToUserId","1"]]</script>
+  <script type="text/javascript" defer>
+  const barLabels = [
+    '0%',
+    '0-10%',
+    '10-20%',
+    '20-30%',
+    '30-40%',
+    '40-50%',
+    '50-60%',
+    '60-70%',
+    '70-80%',
+    '80-90%',
+    '90-100%',
+    '100%'
+  ];
+  const barConfig = (name, fullName, values) => ({
+    axis: {
+      x: {
+        type: "category",
+        categories: barLabels,
+      },
+      y: {
+        label: {
+          text: `#${name}`,
+          position: 'outer-top',
+        },
+      },
+    },
+    bindto: `#${name}CoverageDistribution`,
+    data: {
+      columns: [
+        [fullName].concat(values),
+      ],
+      colors: {
+        [fullName]: "rgba(69, 114, 167, 0.75)",
+      },
+      type: "bar",
+    },
+    bar: {
+      width: {
+        ratio: 0.9,
+      },
+    },
+    grid: {
+      focus: {
+        show: false,
+      },
+      x: {
+        show: true,
+      },
+      y: {
+        show: true,
+      },
+    },
+    legend: {
+      show: false,
+    },
+    tooltip: {
+      contents: function (data) {
+        return `<table class="bb-tooltip"><tbody>
+            <tr><th colspan="2">Coverage ${barLabels[data[0].x]}</th></tr>
+            <tr><td class="value">${data[0].value} ${name}</td></tr>
+          </tbody></table>`;
+      },
+      grouped: false,
+    },
+  });
+  bb.generate(
+    barConfig('classes', "Class Coverage", [4,0,0,0,0,1,0,0,0,0,0,0])
+  );
+  bb.generate(
+    barConfig('methods', "Method Coverage", [80,0,0,0,0,0,0,0,0,0,0,12])
+  );
+
+  const scatterConfig = (name, complexityData) => ({
+    axis: {
+      x: {
+        label: {
+          text: 'Code Coverage (in percent)',
+          position: 'outer-right',
+        },
+        tick: {
+          values: [0, 20, 40, 60, 80, 100],
+        },
+      },
+      y: {
+        label: {
+          text: 'Cyclomatic Complexity',
+          position: 'outer-top',
+        },
+        min: 0,
+        padding: {
+          bottom: 0,
+          top: 5,
+        },
+      },
+    },
+    bindto: `#${name}Complexity`,
+    data: {
+      columns: [
+        ["complexity_x"].concat(complexityData.map(d => d[0])),
+        ["complexity"].concat(complexityData.map(d => d[1])),
+      ],
+      onclick: function(data, element) {
+        window.location = complexityData[data.index][2];
+      },
+      type: "scatter",
+      xs: {
+        "complexity": "complexity_x",
+      },
+    },
+    grid: {
+      focus: {
+        show: true,
+        y: true,
+      },
+      x: {
+        show: true,
+      },
+      y: {
+        show: true,
+      },
+    },
+    legend: {
+      show: false,
+    },
+    tooltip: {
+      contents: function (data) {
+        const coverage = Math.round(data[0].x);
+        const complexity = data[0].value;
+        const targetName = complexityData[data[0].index][3];
+        const crap = complexityData[data[0].index][4];
+        return `<table class="bb-tooltip"><tbody>
+            <tr><th colspan="2">${targetName}</th></tr>
+            <tr class="bb-tooltip-name-complexity"><td>Coverage</td><td class="name">${coverage}%</td></tr>
+            <tr class="bb-tooltip-name-complexity"><td>Complexity</td><td class="value">${complexity}</td></tr>
+            <tr class="bb-tooltip-name-complexity"><td>Crap</td><td class="value">${crap}</td></tr>
+          </tbody></table>`;
+      },
+      grouped: false,
+    },
+  });
+  const classComplexityData = JSON.parse(document.getElementById('complexity_class').textContent);
+  bb.generate(
+    scatterConfig("class", classComplexityData)
+  );
+  const methodComplexityData = JSON.parse(document.getElementById('complexity_method').textContent);
+  bb.generate(
+    scatterConfig("method", methodComplexityData),
+  );
+  </script>
+ </body>
+</html>

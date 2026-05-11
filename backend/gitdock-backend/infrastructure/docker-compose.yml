@@ -7,60 +7,13 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gitdock_sync
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-
-  # --- PgAdmin (Port 5050) ---
-  gitdock-pgadmin:
-    image: dpage/pgadmin4:8.14
-    container_name: gitdock-pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@gitdock.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
-    depends_on:
-      - gitdock-postgres
-
-
-
-  # --- MongoDB ---
-  gitdock-mongo:
-    image: mongo:6.0
-    container_name: gitdock-mongo
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: mongodb
-      MONGO_INITDB_ROOT_PASSWORD: mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-  # --- Mongo Express (Port 8085) ---
-  gitdock-mongo-express:
-    image: mongo-express:1.0.2
-    container_name: gitdock-mongo-express
-    restart: always
-    ports:
-      - "8085:8081"
-    environment:
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: pass
-      ME_CONFIG_MONGODB_SERVER: gitdock-mongo
-      ME_CONFIG_MONGODB_PORT: 27017
-      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
-      ME_CONFIG_MONGODB_AUTH_DATABASE: admin
-      ME_CONFIG_MONGODB_ADMINUSERNAME: mongodb
-      ME_CONFIG_MONGODB_ADMINPASSWORD: mongodb
-    depends_on:
-      - gitdock-mongo
-
-
+    networks:
+      - gitdock_global_network
 
   # --- RabbitMQ ---
   gitdock-rabbitmq:
@@ -73,10 +26,10 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - gitdock_global_network
 
-
-
-  # --- MySQL 8 ---
+  # --- MySQL (Optionnel pour ton test actuel) ---
   gitdock-mysql:
     image: mysql:8.0
     container_name: gitdock-mysql
@@ -84,28 +37,16 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: gitdock_tasks
-      MYSQL_USER: task_user
-      MYSQL_PASSWORD: ***REMOVED***
     ports:
       - "3306:3306"
-    volumes:
-      - mysql_tasks_data:/var/lib/mysql
-
-  # --- PhpMyAdmin (Port 8088) ---
-  gitdock-phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: gitdock-phpmyadmin
-    restart: always
-    environment:
-      PMA_HOST: gitdock-mysql
-      PMA_PORT: 3306
-    ports:
-      - "8088:80"
-    depends_on:
-      - gitdock-mysql
+    networks:
+      - gitdock_global_network
 
 volumes:
   postgres_data:
-  mongo_data:
   mysql_tasks_data:
 
+networks:
+  gitdock_global_network:
+    name: gitdock_shared_net
+    driver: bridge

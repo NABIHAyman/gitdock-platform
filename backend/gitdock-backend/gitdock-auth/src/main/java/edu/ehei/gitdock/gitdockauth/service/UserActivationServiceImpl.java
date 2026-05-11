@@ -1,20 +1,27 @@
 package edu.ehei.gitdock.gitdockauth.service;
 
+
+import edu.ehei.gitdock.gitdockauth.service.interfaces.EmailSenderService;
+import edu.ehei.gitdock.gitdockauth.dto.ActivateAccountRequestDTO;
+import edu.ehei.gitdock.gitdockauth.dto.NotificationEventDTO;
 import edu.ehei.gitdock.gitdockauth.dto.SetPasswordRequestDTO;
 import edu.ehei.gitdock.gitdockauth.model.ActivationToken;
+import edu.ehei.gitdock.gitdockauth.model.InvitationToken;
 import edu.ehei.gitdock.gitdockauth.model.UserAccount;
 import edu.ehei.gitdock.gitdockauth.repository.ActivationTokenRepository;
+import edu.ehei.gitdock.gitdockauth.repository.InvitationTokenRepository;
 import edu.ehei.gitdock.gitdockauth.repository.UserAccountRepository;
-import edu.ehei.gitdock.gitdockauth.service.interfaces.EmailSenderService;
 import edu.ehei.gitdock.gitdockauth.service.interfaces.UserActivationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -34,6 +41,9 @@ public class UserActivationServiceImpl implements UserActivationService {
     private final UserAccountRepository userAccountRepository;
     private final EmailSenderService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final InvitationTokenRepository invitationTokenRepository;
+    private final RabbitTemplate rabbitTemplate;
+
 
     // URL du frontend vers laquelle l'utilisateur sera redirigé depuis l'email
     @Value("${application.mail.activation-url:http://localhost:5173/activate}")
@@ -80,7 +90,27 @@ public class UserActivationServiceImpl implements UserActivationService {
         String activationLink = activationUrl + "?token=" + token;
 
         // 5. Appel asynchrone au service d'envoi d'email
+
         emailService.sendActivationEmail(user.getEmail(), user.getFirstName(), user.getLastName(), activationLink);
+
+        // emailService.sendActivationEmail(user.getEmail(), user.getFirstName(), user.getLastName(), activationLink);
+
+        Map<String, String> payload = Map.of(
+                "firstName", user.getFirstName() != null ? user.getFirstName() : "",
+                "lastName", user.getLastName() != null ? user.getLastName() : "",
+                "activationLink", activationLink
+        );
+
+        NotificationEventDTO event = NotificationEventDTO.builder()
+                .targetUserId(user.getId())
+                .targetEmail(user.getEmail())
+                .type("TYPE_USER_REGISTERED")
+                .payload(payload)
+                .build();
+
+        // Assure-toi d'avoir une routing key définie pour les notifications (ex: "notification.routing.key")
+        rabbitTemplate.convertAndSend("gitdock.exchange", "notification.routing.key", event);
+
 
         log.info("Activation email sent to {} with token: {}", user.getEmail(), token);
     }
@@ -154,6 +184,36 @@ public class UserActivationServiceImpl implements UserActivationService {
         // Si tout est OK, on relance la procédure standard
         sendActivationEmail(user);
     }
+
+
+    @Override
+    @Transactional
+    public void activateInvitedAccount(ActivateAccountRequestDTO request) {
+        InvitationToken token = invitationTokenRepository.findByToken(request.getToken())
+                .orElseThrow(() -> new RuntimeException("Token d'invitation invalide"));
+
+        if (token.getConfirmedAt() != null) {
+            throw new RuntimeException("Compte déjà activé");
+        }
+
+        LocalDateTime expiredAt = token.getExpiresAt();
+        if (expiredAt.isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token d'invitation expiré");
+        }
+
+        token.setConfirmedAt(LocalDateTime.now());
+        invitationTokenRepository.save(token);
+
+        UserAccount user = token.getUser();
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        user.setEnabled(true);
+        log.info("Activation du compte {} -> isEnabled=true", user.getEmail());
+        userAccountRepository.save(user);
+
+        log.info("Compte invité activé avec succès pour : {}", user.getEmail());
+    }
+
 
     /**
      * Vérifie la validité d'un token sans le consommer.

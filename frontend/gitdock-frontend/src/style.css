@@ -1,3 +1,248 @@
 @tailwind base;
 @tailwind components;
+<<<<<<< HEAD
 @tailwind utilities;
+=======
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply h-full bg-surfaceSubtle text-text antialiased;
+  }
+
+  body {
+    @apply min-h-full font-sans text-base leading-6;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  }
+
+  ::selection {
+    @apply bg-accentSubtle;
+  }
+
+  a {
+    @apply text-accent hover:text-accentHover transition-colors duration-200;
+  }
+
+  /* Custom scrollbar - NotebookLM style */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #dadce0;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #bdc1c6;
+  }
+}
+
+@layer components {
+  .gd-container {
+    @apply mx-auto w-full px-6 max-w-7xl;
+  }
+
+  /* Cards with NotebookLM styling */
+  .gd-card {
+    @apply rounded-gd border border-borderSubtle bg-surface shadow-gd;
+  }
+
+  .gd-card-hover {
+    @apply transition-all duration-200 hover:shadow-gd-hover hover:border-border;
+  }
+
+  .gd-card-interactive {
+    @apply cursor-pointer transition-all duration-200;
+    @apply hover:shadow-gd-hover hover:border-border hover:-translate-y-0.5;
+  }
+
+  /* Buttons with Google Material Design 3 styling */
+  .gd-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-gd px-6 py-2.5 text-sm font-medium transition-all duration-200;
+    @apply focus:outline-none focus:ring-0 focus:shadow-gd-focus;
+    min-height: 40px;
+  }
+
+  .gd-btn-primary {
+    @apply gd-btn bg-accent text-white hover:bg-accentHover hover:shadow-gd-hover;
+  }
+
+  .gd-btn-secondary {
+    @apply gd-btn border border-border bg-surface text-text hover:bg-surfaceHover hover:shadow-gd;
+  }
+
+  .gd-btn-ghost {
+    @apply gd-btn bg-transparent text-textSubtle hover:bg-surfaceHover hover:text-text;
+  }
+
+  .gd-btn-sm {
+    @apply px-4 py-2 text-xs min-h-8;
+  }
+
+  .gd-btn-lg {
+    @apply px-8 py-3 text-base min-h-12;
+  }
+
+  /* Form elements */
+  .gd-label {
+    @apply block text-sm font-medium text-text mb-2;
+  }
+
+  .gd-input {
+    @apply w-full rounded-gd border border-border bg-surface px-4 py-3 text-sm text-text;
+    @apply placeholder:text-muted focus:outline-none focus:border-accent focus:shadow-gd-focus;
+    @apply transition-all duration-200;
+    min-height: 48px;
+  }
+
+  .gd-textarea {
+    @apply gd-input resize-none min-h-24;
+  }
+
+  .gd-select {
+    @apply gd-input appearance-none bg-no-repeat bg-right pr-10;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-size: 16px;
+  }
+
+  /* Badges with softer styling */
+  .gd-badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+    @apply border border-borderSubtle bg-surfaceSubtle text-textSubtle;
+  }
+
+  .gd-badge-accent {
+    @apply border-accent/20 bg-accentSubtle text-accent;
+  }
+
+  .gd-badge-success {
+    @apply border-success/20 bg-successBg text-success;
+  }
+
+  .gd-badge-warning {
+    @apply border-warning/20 bg-warningBg text-warning;
+  }
+
+  .gd-badge-danger {
+    @apply border-error/20 bg-errorBg text-error;
+  }
+
+  /* Segmented controls */
+  .gd-segment {
+    @apply inline-flex rounded-gd border border-border bg-surfaceSubtle p-1;
+  }
+
+  .gd-segment-btn {
+    @apply rounded-md px-4 py-2 text-sm font-medium text-textSubtle transition-all duration-200;
+    @apply hover:text-text focus:outline-none;
+  }
+
+  .gd-segment-btn-active {
+    @apply bg-surface text-text shadow-gd;
+  }
+
+  /* Tables */
+  .gd-table {
+    @apply min-w-full divide-y divide-borderSubtle;
+  }
+
+  .gd-thead {
+    @apply bg-surfaceSubtle;
+  }
+
+  .gd-th {
+    @apply px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-textSubtle;
+  }
+
+  .gd-tr {
+    @apply transition-colors duration-150 hover:bg-surfaceSubtle;
+  }
+
+  .gd-td {
+    @apply px-6 py-4 text-sm text-text;
+  }
+
+  /* Navigation */
+  .gd-nav-link {
+    @apply flex items-center rounded-gd px-4 py-3 text-sm font-medium text-textSubtle transition-all duration-200;
+    @apply hover:bg-surfaceHover hover:text-text;
+  }
+
+  .gd-nav-link-active {
+    @apply bg-accentSubtle text-accent font-semibold;
+  }
+
+  /* Alerts */
+  .gd-alert {
+    @apply rounded-gd-lg p-4 border-l-4;
+  }
+
+  .gd-alert-info {
+    @apply bg-infoBg border-l-info text-text;
+  }
+
+  .gd-alert-error {
+    @apply bg-errorBg border-l-error text-text;
+  }
+
+  .gd-alert-success {
+    @apply bg-successBg border-l-success text-text;
+  }
+
+  .gd-alert-warning {
+    @apply bg-warningBg border-l-warning text-text;
+  }
+
+  /* Loading states */
+  .gd-skeleton {
+    @apply animate-pulse bg-surfaceHover rounded;
+  }
+
+  /* Dividers */
+  .gd-divider {
+    @apply border-t border-borderSubtle;
+  }
+
+  /* Focus states for accessibility */
+  .gd-focus-ring {
+    @apply focus:outline-none focus:ring-0 focus:shadow-gd-focus;
+  }
+
+  /* Typography utilities */
+  .gd-heading-1 {
+    @apply text-3xl font-semibold text-text tracking-tight;
+  }
+
+  .gd-heading-2 {
+    @apply text-2xl font-semibold text-text tracking-tight;
+  }
+
+  .gd-heading-3 {
+    @apply text-xl font-semibold text-text;
+  }
+
+  .gd-heading-4 {
+    @apply text-lg font-semibold text-text;
+  }
+
+  .gd-body {
+    @apply text-base text-text leading-6;
+  }
+
+  .gd-body-sm {
+    @apply text-sm text-textSubtle leading-5;
+  }
+
+  .gd-caption {
+    @apply text-xs text-muted leading-4;
+  }
+}
+
+>>>>>>> f15b548226eb791a8b13956d26c47455fe8cc944

@@ -1,0 +1,34 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+
+  datasource:
+    # On utilise le driver PostgreSQL standard car le conteneur est déjà lancé
+    driver-class-name: org.postgresql.Driver
+    # On pointe sur ton localhost (le port 5432 de ton Docker-Compose)
+    url: jdbc:postgresql://localhost:5432/gitdock_auth_db
+    username: sa
+    password: sa
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        # On utilise le vrai dialecte PostgreSQL au lieu de H2
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  sql:
+    init:
+      mode: never
+
+  rabbitmq:
+    # On désactive la connexion réelle à RabbitMQ pour ne pas faire échouer le test
+    # si ton Docker RabbitMQ n'est pas lancé séparément
+    listener:
+      simple:
+        auto-startup: false
+
+  eureka:
+    client:
+      enabled: false

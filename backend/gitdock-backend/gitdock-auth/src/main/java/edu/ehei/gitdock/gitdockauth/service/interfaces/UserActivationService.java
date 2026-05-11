@@ -1,5 +1,8 @@
 package edu.ehei.gitdock.gitdockauth.service.interfaces;
 
+
+import edu.ehei.gitdock.gitdockauth.dto.ActivateAccountRequestDTO;
+
 import edu.ehei.gitdock.gitdockauth.dto.SetPasswordRequestDTO;
 import edu.ehei.gitdock.gitdockauth.model.UserAccount;
 
@@ -59,4 +62,9 @@ public interface UserActivationService {
      * @return true si le token est valide, false sinon.
      */
     boolean isValidActivationToken(String token);
+
+
+    void activateInvitedAccount(ActivateAccountRequestDTO request);
+
+
 }

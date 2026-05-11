@@ -1,0 +1,15 @@
+framework:
+    messenger:
+        failure_transport: failed
+
+        transports:
+            # On utilise la variable d'env qui sera 'sync://' pendant le test
+            async: '%env(MESSENGER_TRANSPORT_DSN)%'
+            failed: 'doctrine://default?queue_name=failed'
+            # On ajoute un transport "null" pour ignorer les messages dont on ne veut pas s'occuper en test
+            in_memory: 'in-memory://'
+
+        routing:
+            'App\DTOs\CommitSavedEventDTO': async
+            # On envoie le message de fin vers 'in_memory' pour éviter l'erreur "No handler"
+            'App\DTOs\TaskCompletedEventDTO': in_memory

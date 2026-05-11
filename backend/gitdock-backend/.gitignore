@@ -36,4 +36,14 @@ build/
 .vscode/
 
 ### Mac OS ###
+<<<<<<< HEAD
 .DS_Store
+=======
+.DS_Store
+
+
+# Python
+venv/
+__pycache__/
+*.pyc
+>>>>>>> f15b548226eb791a8b13956d26c47455fe8cc944

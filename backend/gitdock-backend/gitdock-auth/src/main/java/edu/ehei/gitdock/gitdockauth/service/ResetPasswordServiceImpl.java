@@ -1,5 +1,8 @@
 package edu.ehei.gitdock.gitdockauth.service;
 
+
+import edu.ehei.gitdock.gitdockauth.dto.NotificationEventDTO;
+
 import edu.ehei.gitdock.gitdockauth.model.PasswordResetToken;
 import edu.ehei.gitdock.gitdockauth.model.UserAccount;
 import edu.ehei.gitdock.gitdockauth.repository.PasswordResetTokenRepository;
@@ -7,12 +10,17 @@ import edu.ehei.gitdock.gitdockauth.repository.UserAccountRepository;
 import edu.ehei.gitdock.gitdockauth.service.interfaces.EmailSenderService;
 import edu.ehei.gitdock.gitdockauth.service.interfaces.ResetPasswordService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+
+import java.util.Map;
+
 import java.util.UUID;
 
 /**
@@ -22,12 +30,20 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
+
+
+@Slf4j
+
 public class ResetPasswordServiceImpl implements ResetPasswordService {
 
     private final UserAccountRepository userAccountRepository;
     private final PasswordResetTokenRepository tokenRepository;
+
     private final EmailSenderService emailService;
+
     private final PasswordEncoder passwordEncoder;
+    private final RabbitTemplate rabbitTemplate;
+
 
     // URL du frontend pour la page de réinitialisation (ex: http://localhost:5173/reset-password)
     @Value("${application.mail.reset-password-url:http://localhost:5173/reset-password}")
@@ -45,6 +61,10 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
         // C'est une bonne pratique de sécurité pour éviter l'énumération des comptes (user enumeration attack).
         userAccountRepository.findByEmailAndIsDeletedFalse(email).ifPresent(user -> {
 
+
+
+            // tokenRepository.deleteByUserId(user.getId());
+
             // 1. Génération d'un token aléatoire unique (UUID)
             String token = UUID.randomUUID().toString();
 
@@ -61,7 +81,30 @@ public class ResetPasswordServiceImpl implements ResetPasswordService {
 
             // 4. Construction du lien et envoi de l'email
             String resetLink = resetPasswordUrl + "?token=" + token;
+
+
             emailService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), user.getLastName(), resetLink);
+
+            // emailService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), user.getLastName(), resetLink);
+
+            // 👇 NOUVEAU : Création de l'événement
+            Map<String, String> payload = Map.of(
+                    "firstName", user.getFirstName() != null ? user.getFirstName() : "",
+                    "lastName", user.getLastName() != null ? user.getLastName() : "",
+                    "resetLink", resetLink
+            );
+
+            NotificationEventDTO event = NotificationEventDTO.builder()
+                    .targetUserId(user.getId())
+                    .targetEmail(user.getEmail())
+                    .type("TYPE_PASSWORD_RESET_REQUESTED")
+                    .payload(payload)
+                    .build();
+
+            rabbitTemplate.convertAndSend("gitdock.exchange", "notification.routing.key", event);
+            log.info("📢 Événement PASSWORD_RESET_REQUESTED envoyé pour {}", user.getEmail());
+
+
         });
     }
 

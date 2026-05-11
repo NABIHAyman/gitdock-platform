@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:15
+    container_name: postgres-test-auth
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=gitdock_auth_db
+      - POSTGRES_USER=sa
+      - POSTGRES_PASSWORD=sa
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: gitdock-rabbitmq
+    ports:
+      - "5672:5672"   # Port de communication AMQP
+      - "15672:15672" # Interface web (User: guest / Pass: guest)
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

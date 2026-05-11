@@ -1,0 +1,29 @@
+spring:
+  # 1. Utilisation de H2 en mode ultra-simple
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # 2. On empêche Hibernate de chercher des scripts SQL (data.sql, import.sql)
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    defer-datasource-initialization: false
+
+  # 3. ON DÉSACTIVE TOUT CE QUI PEUT BLOQUER (SQL init et Rabbit)
+  sql:
+    init:
+      mode: never
+  rabbitmq:
+    host: localhost
+    listener:
+      simple:
+        auto-startup: false
+
+# On désactive Resilience4j pour le test pour éviter les conflits de beans
+resilience4j:
+  circuitbreaker:
+    enabled: false
