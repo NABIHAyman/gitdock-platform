@@ -1,0 +1,83 @@
+﻿project,sha,message,author,total_changes,additions,deletions,files_count,hour
+maryamloukili78/produit-management,cfedf6cef6dcc0637330b69970f3d275b1f3f05d,Merge branch 'feature/suppression-produit' into 'main',RihabAddou,622,469,111,1,16
+maryamloukili78/produit-management,e0d30da9e9d39a1c1d8f366f48cff5c9e7264e65,Feature: suppression produit avec test unitaire,RihabAddou,787,396,296,6,17
+maryamloukili78/produit-management,0abbcfe10ead9bba58f85130a5eaaab25b78f6d5,Feature: suppression produit avec test unitaire,RihabAddou,44,25,6,14,17
+maryamloukili78/produit-management,6e5c61ad0483c56738d1dd17938a7d63350725e2,Merge branch 'feature/ajout-produit' into 'main',RihabAddou,208,131,78,2,15
+maryamloukili78/produit-management,69f5ce783c1d4fcea7e870d48725a040d8575b26,Sauvegarde avant revert,RihabAddou,670,462,173,7,16
+maryamloukili78/produit-management,1c7e3dbde3bfa5d4ec128bab21a33b3625ed1349,Merge branch 'main' of https://gitlab.com/maryamloukili78/produit-management,RihabAddou,440,191,161,11,15
+maryamloukili78/produit-management,1d972954bc8d8e99f69171fa2af7b7217c52e4f5,Modification X : ajout validation prix et quantité,RihabAddou,301,195,92,13,14
+maryamloukili78/produit-management,3568c4211f7770df6499e39df654aa159682dffa,Modification X : ajout validation prix et quantité,RihabAddou,1350,992,489,3,14
+maryamloukili78/produit-management,8c85658eb789644ee0e00e92b0c323f6dc628cea,Modification X : ajout validation prix et quantité,RihabAddou,789,540,291,15,13
+maryamloukili78/produit-management,9c8b51c071f543a65c93a82dc6f44d86b241865e,Feature: ajout produit avec test unitaire,RihabAddou,515,277,106,8,13
+maryamloukili78/produit-management,69c150abc86c57a697461f233e460b1736d2ea51,Feature: ajout produit avec test unitaire,RihabAddou,1260,901,473,10,13
+maryamloukili78/produit-management,840318208b721b117da0ffa3b8cc9a9513de4fdb,feat: ajout du projet Maven initial et CI/CD,RihabAddou,41,22,5,15,12
+maryamloukili78/produit-management,41c30e623cb8c3daf1a734fc58d5056d43aaa151,Initial commit,Maryam Loukili,1010,804,319,3,9
+RihabAddou/produit-management,e488580150ec74894d9ac044a4191f1cb861ca89,Merge branch 'feature/supprimer-produit' into 'main',RihabAddou,194,91,68,14,23
+RihabAddou/produit-management,91fa3a4271e5ff7e40d017599fa8643e54d23afe,Initial commit,RihabAddou,1147,617,435,4,0
+RihabAddou/produit-management,bf585476ead64f08c336f57f4dd053b704037da9,Merge branch 'feature/lecture' into 'main',Maryam Loukili,39,27,6,11,22
+RihabAddou/produit-management,94f4b1f60303f116e7204a591e2ca998f3e8d30c,Ajout d'un test pour lecture,maryam louki,312,175,46,7,23
+RihabAddou/produit-management,2036ff4e52201bf5b1c5c85a91d7d6c9aed30fd5,Merge branch 'feature/modifier-produit' into 'main',Maryam Loukili,1309,638,168,1,22
+RihabAddou/produit-management,3b3206b7b826a76343f574e0a567aa8b694f04fb,Résolution des conflits et compilation réussie,maryam louki,1038,539,228,5,23
+RihabAddou/produit-management,2db123f1528b10c410f58afd3894c1d50f9b132b,Résolution des conflits avec main,maryam louki,623,375,194,14,22
+RihabAddou/produit-management,b69b90ccdbc02752b252f61b5fc6783a29cfd6a0,Résolution des conflits avec main,maryam louki,261,156,50,12,22
+RihabAddou/produit-management,62fdf4255cb47f2b17ed049fd8ba627a1980c223,Sauvegarde avant merge avec main,maryam louki,184,98,40,15,22
+RihabAddou/produit-management,b806a8bd4af04d8830d63f99897be4165712b346,Merge branch 'feature/ajout-produit' into 'main',RihabAddou,560,432,203,15,21
+RihabAddou/produit-management,0cf8b3912332bbaa9da136069e5d8fc9edfd048c,Initial commit,RihabAddou,94,72,35,6,22
+RihabAddou/produit-management,e3c81d06f330bf3b8d7321209c91936063c69178,Implémentation des fonctionnalités modifier et lecture avec tests unitaires,maryam louki,1437,657,314,8,22
+RihabAddou/produit-management,2c02a0351e08e83a14047bdaa652ca603a712262,Initial commit,RihabAddou,1386,874,500,13,21
+RihabAddou/produit-management,78fc58add9ccaa4ff52be0bbb5b13ba8efa2e3a8,Ajouter produit + test,RihabAddou,481,239,190,10,21
+RihabAddou/produit-management,850996d556f5aecdc33309843d4d5e5cf55092bc,Add CI pipeline configuration,maryam louki,1315,1004,350,1,21
+RihabAddou/produit-management,d60142bba558e3d50fa9f8f6b80d4713cca90ecf,Initial commit,RihabAddou,1070,457,113,11,21
+RihabAddou/produit-management,8ba6f776db22622de513852bf78a62cff708e1c3,Initial commit,maryam louki,603,338,191,7,21
+RihabAddou/tp3-symfony,b8146d022956b0c3fddfecea80b7a2295e632edc,README,RihabAddou,397,305,109,11,18
+RihabAddou/tp3-symfony,6aa570c58b93b7600711bf1dcb8ee6e968848eb7,TP3 Symfony - formulaire produit et cart,RihabAddou,1072,686,244,3,17
+RihabAddou/tp3-symfony,6096f4d017a4abcd5db552734832fb7dff77617c,Initial commit,RihabAddou,1161,905,379,1,17
+RihabAddou/tp3-symfony,72bfcfac57164cc6ce2b69c69f3bc81bd06f17f2,Initial commit,RihabAddou,475,274,178,14,17
+RihabAddou/tp3-symfony,d5fc6862378d065bbee8a6d634af45585f0db2b7,Initial commit,RihabAddou,617,381,104,3,17
+RihabAddou/tp3-symfony,1fdede31cb6f275dbf7de7f059ce65af5881a363,Initial commit,RihabAddou,329,237,54,13,17
+RihabAddou/Todo,a7f8c2c7b3a7d9243bbd32810e28f7db0461f25b,Initial commit - Todo project,RihabAddou,1038,639,140,15,16
+NABIHAyman/TP_Todo_App,8704395ca73c064c9c7229e2bf7d6bba4f39603e,Merge pull request #10 from UnleachedMe/feature/refactor-todoitem-vm  Feature/refactor todoitem vm,Ayman NABIH,430,179,56,12,19
+NABIHAyman/TP_Todo_App,d1331677a961872adc1782160d1078c92698e532,feat(ui): enhance dark theme,UnleachedMe,1432,1068,476,13,19
+NABIHAyman/TP_Todo_App,661ec7612d0325ade393d644d96942611ec73d97,feat(refactor): correctly map Id from TodoItemVM to TodoItem,UnleachedMe,384,234,73,8,19
+NABIHAyman/TP_Todo_App,b24ba7a4ade1e652ce3ebaf275ccf24184017666,Merge pull request #9 from UnleachedMe/feature/fix-theme-button  fix(ui): add css file + javascript ,Ayman NABIH,1380,680,144,12,17
+NABIHAyman/TP_Todo_App,741748ce7d040a9541a3e3d4d5cd73771c4ce555,fix(ui): add css file + javascript switch method,UnleachedMe,831,426,225,8,17
+NABIHAyman/TP_Todo_App,9adf33bbdd50503e16ce41e2af4335631a28c03e,Merge pull request #8 from UnleachedMe/feature/fix-authentication  fix(authentication): add User rep,Ayman NABIH,551,278,104,3,17
+NABIHAyman/TP_Todo_App,8116fb7fb91631db918f681b6ec5f278005cbda6,fix(authentication): add User repository and fix authentication flow,UnleachedMe,458,213,138,6,17
+NABIHAyman/TP_Todo_App,1280cfb0aa7711c7bd0afaab6c9628c95fe3a4b7,Merge pull request #7 from UnleachedMe/feature/todo-service  Feature/todo service,Ayman NABIH,1323,924,521,8,16
+NABIHAyman/TP_Todo_App,73eb62ae91bb50af9a51cb2880be9605f908b0d6,feat(user-service): implement full CRUD for todos,UnleachedMe,11,7,1,14,16
+NABIHAyman/TP_Todo_App,882a189e9b4d86d15c85565f120e95e5e0c7f2e7,feat(user-service): add Home controller + User and Home views folders,UnleachedMe,1187,761,275,11,16
+NABIHAyman/TP_Todo_App,cd4b25df60a23038379e0433c28c29c2d3720558,feat(user-service): add missing Login view to finalize athentication flow,UnleachedMe,1326,671,477,11,15
+NABIHAyman/TP_Todo_App,43f10ebbd72d9cd6cb9ee8be682cfedf719c3fe5,Merge pull request #6 from UnleachedMe/feature/todo-service  feat(todo-service): add todo service,Ayman NABIH,986,723,140,12,15
+NABIHAyman/TP_Todo_App,1f0a4f42a1adb8c622866aa344390960aaff9122,feat(todo-service): add todo service,UnleachedMe,136,58,27,5,14
+NABIHAyman/TP_Todo_App,5223a114dc8152241b9b7c6be78968cb73281fd5,Merge pull request #5 from UnleachedMe/feature/login-service  feat(login-service): add user service,Ayman NABIH,668,384,228,12,15
+NABIHAyman/TP_Todo_App,f1149844c1977d82e37eb47724c66745b26eae44,feat(login-service): add user service,UnleachedMe,488,243,191,11,15
+NABIHAyman/TP_Todo_App,a3be735b11f1635c52d4815e1574b1b78d45fbc0,Merge pull request #4 from UnleachedMe/feature/app-db-context  feat(app-db-context): add application,Ayman NABIH,840,425,295,11,14
+NABIHAyman/TP_Todo_App,97000470fb2391f35a21ac4f008bb9c98e3bea50,feat(app-db-context): add application database context,UnleachedMe,771,501,111,11,14
+NABIHAyman/TP_Todo_App,1598f4fd92450a897333881d510ba700841ed616,Merge pull request #3 from UnleachedMe/feature/skeleton  feat(skeleton): create basic folder structu,Ayman NABIH,501,302,74,15,14
+NABIHAyman/TP_Todo_App,87c9912a5e105889db1b47998c4a681f2b015908,feat(skeleton): create basic folder structure,UnleachedMe,23,10,2,2,13
+NABIHAyman/TP_Todo_App,6c4ee049c82b53cad61ab958cf2a42372a48b1ff,Merge pull request #2 from UnleachedMe/chore/dependencies  chore(dependencies): add EF Core and InMe,Ayman NABIH,29,16,11,10,13
+NABIHAyman/TP_Todo_App,5b2c837099f80c1e51a714752e9c57d252dfbb50,chore(dependencies): add EF Core and InMemory provider packages,UnleachedMe,630,343,126,7,13
+NABIHAyman/TP_Todo_App,15b47c8ae7af7ad9d570f4fb4a0c605f79396edc,Merge pull request #1 from UnleachedMe/chore/ci-pipeline  ci: add GitHub Actions workflow for .NET 9,Ayman NABIH,612,422,143,13,13
+NABIHAyman/TP_Todo_App,2f330c8ecad9bfa6f8533a5ba9c8ef42760b58d9,ci: add GitHub Actions workflow for .NET 9,UnleachedMe,337,164,103,13,13
+NABIHAyman/TP_Todo_App,99c535450a3d5cf4517690bf30437d89b5743cb7,init: add initial README and .gitignore,UnleachedMe,870,359,201,2,13
+NABIHAyman/online-shopping,3d1901357f97e5737862048b7b3de87fa89f0c5d,Logic errors listProducts done,UnleachedMe,515,214,163,15,2
+NABIHAyman/online-shopping,40001f039c87d46b3db577580648e976bd332ea9,Show all products and show single product pages done,UnleachedMe,1118,735,118,9,23
+NABIHAyman/online-shopping,dbd2390e367e7faccb7a826e308079645852d32c,Successfuly updated the UI and linked with backend project,UnleachedMe,428,199,64,10,23
+NABIHAyman/online-shopping,c1a9fb8968a0f5280bf82274bae57a03d47dbb94,Completed the interface theme and other issues,UnleachedMe,578,304,182,1,19
+NABIHAyman/online-shopping,976069942218a4f2cc03c45f7954a97a3fd6609c,Successfuly loaded static resources,UnleachedMe,503,355,82,6,18
+NABIHAyman/online-shopping,3a23ca61e8c83461bc397f6eacfef00885065f38,Project Setup - servlet-dispatcher OK,UnleachedMe,1183,655,167,6,22
+NABIHAyman/online-shopping,1b806a97bf19125179844971f15aadd7c37a15e2,Project Setup,UnleachedMe,669,344,187,6,21
+NABIHAyman/online-shopping,f51f363311a2662b65ff99906f715bd18e98b93f,Initial commit,Ayman NABIH,309,151,103,3,21
+NABIHAyman/DemoEcommerce,150673e2a2613e5d9f60bccc12e76faac61d490c,Add initial Readme for Minimalist Store project,Ayman NABIH,175,127,22,12,16
+NABIHAyman/DemoEcommerce,75a0f2bc1dd5ee1b3591e51c3bf5607ac8da4705,add view all button in user's profile under Recent Orders,Ayman,318,171,72,1,6
+NABIHAyman/DemoEcommerce,36f9b8d982b417da7b48418c5633a834826f37a0,add server side pagination in user's profile,Ayman,1363,832,542,6,6
+NABIHAyman/DemoEcommerce,0fc3c18ab50baccacaf1f4461ac0a2dafb8ab374,add admin dashboard and crud operations with according views,Ayman,1057,721,117,15,6
+NABIHAyman/DemoEcommerce,205a3b533f91a827291fc1545b6ceec478a7c6e1,add checkout logic and views,Ayman,79,33,20,3,5
+NABIHAyman/DemoEcommerce,3dfb50115da4efa3830ac95c6ab38a092b82d118,refactor twig templates and apply lean design,Ayman,936,611,195,10,3
+NABIHAyman/DemoEcommerce,0aed414e97749296d3ce33c96fc1ff6cb893944e,add registration logic and views,Ayman,1286,1011,409,3,1
+NABIHAyman/DemoEcommerce,4ee01c788c3e411fa7b82e4ddbeafffd259b35f8,add profile and order details logic and views,Ayman,38,27,14,15,1
+NABIHAyman/DemoEcommerce,644feffcbe9c3bc2d7149f76d0016984afea858d,add cart and order logic and views,Ayman,1144,639,214,10,0
+NABIHAyman/DemoEcommerce,78fe9d626307933bdac8ecf63b6d1c9eaf29c50e,add products catalog and categories logic and views,Ayman,400,316,118,1,0
+NABIHAyman/DemoEcommerce,daa7657893ce0db949bcd3552f1db1a561e06b19,add migrations,Ayman,622,456,103,6,0
+NABIHAyman/DemoEcommerce,5898bc9b804055f44de305af7bea6cfdbde1eb96,add authentication and resetpassword logic and views,Ayman,503,375,200,4,0
+NABIHAyman/DemoEcommerce,e7d9a6798140224bee24ea38215a27e17d5105a5,Initial commit: Infrastructure Docker et Symfony,Ayman,621,383,79,12,4

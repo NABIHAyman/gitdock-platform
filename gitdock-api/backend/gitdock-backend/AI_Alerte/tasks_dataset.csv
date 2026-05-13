@@ -1,0 +1,13 @@
+id,user_id,task_name,commits,last_update_days,deadline_days,status,created_at,risk
+1,1,AI Reminder Project,5,2,3,in_progress,2026-04-14 22:39:54,0
+2,2,Build Streamlit Dashboard,10,1,10,in_progress,2026-04-14 23:15:36,0
+3,1,Task 1,5,2,3,in_progress,2026-04-15 11:38:43,0
+4,2,Task 2,1,5,1,todo,2026-04-15 11:38:43,3
+5,3,Task 3,10,1,10,in_progress,2026-04-15 11:38:43,0
+6,4,Task 4,0,7,2,todo,2026-04-15 11:38:43,2
+7,5,Task 5,3,4,6,in_progress,2026-04-15 11:38:43,1
+8,6,Task 6,8,1,7,done,2026-04-15 11:38:43,0
+9,7,Task 7,2,6,1,todo,2026-04-15 11:38:43,3
+10,8,Task 8,6,2,5,in_progress,2026-04-15 11:38:43,0
+11,9,Task 9,4,3,8,done,2026-04-15 11:38:43,0
+12,10,Task 10,1,8,2,todo,2026-04-15 11:38:43,2

@@ -1,0 +1,11 @@
+# Surcharge du profil Docker pour gitdock-sync
+# Ce fichier est activé par SPRING_PROFILES_ACTIVE=docker
+
+spring:
+  rabbitmq:
+    host: gitdock-rabbitmq
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://gitdock-discovery:8761/eureka/

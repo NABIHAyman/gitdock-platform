@@ -1,0 +1,22 @@
+# Surcharge du profil Docker pour gitdock-notification
+# Ce fichier est activé par SPRING_PROFILES_ACTIVE=docker
+
+spring:
+  datasource:
+    url: jdbc:postgresql://gitdock-postgres:5432/${DB_NAME:gitdock_notification}
+
+  rabbitmq:
+    host: gitdock-rabbitmq
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+  thymeleaf:
+    cache: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://gitdock-discovery:8761/eureka/

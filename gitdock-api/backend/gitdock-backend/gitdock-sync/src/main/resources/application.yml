@@ -1,0 +1,37 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: gitdock-sync
+
+  # 👇 AJOUT VITAL : La connexion RabbitMQ
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:ubuntu-host}:${KAFKA_PORT:9092} # 👈 L'IP d'Ubuntu
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    root: INFO
+    edu.ehei.gitdock.gitdocksync: DEBUG

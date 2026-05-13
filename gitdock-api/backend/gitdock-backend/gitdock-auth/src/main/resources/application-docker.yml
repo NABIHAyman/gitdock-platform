@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://gitdock-postgres:5432/${DB_NAME:gitdock_auth}
+
+  rabbitmq:
+    host: gitdock-rabbitmq
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://gitdock-discovery:8761/eureka/

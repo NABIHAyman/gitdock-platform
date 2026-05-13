@@ -1,0 +1,83 @@
+server:
+  port: 8081
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: gitdock-auth
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID:Ov23li2o16E8oJxp6jUY}
+            client-secret: ${GITHUB_CLIENT_SECRET:***REMOVED***}
+            redirect-uri: ${GITHUB_REDIRECT_URI:http://localhost:5173/oauth/callback/github}
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:gitdock_auth}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    defer-datasource-initialization: true
+    show-sql: ${JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  sql:
+    init:
+      mode: ${SQL_INIT_MODE:always}
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+
+application:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:***REMOVED***}
+      expiration: ${JWT_EXPIRATION:86400000}
+      refresh-token:
+        expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+    activation:
+      token:
+        expiration: ${ACTIVATION_TOKEN_EXPIRATION:24}
+  mail:
+    activation-url: ${FRONTEND_URL:http://localhost:5173}/activate
+    reset-password-url: ${FRONTEND_URL:http://localhost:5173}/reset-password
+
+logging:
+  level:
+    root: INFO
+    edu.ehei.gitdock.gitdockauth: DEBUG
+    org.springframework.security: ${LOG_SECURITY:WARN}

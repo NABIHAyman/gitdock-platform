@@ -1,0 +1,75 @@
+server:
+  port: 8083
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: gitdock-project
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:gitdock_project}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:create-drop}
+    show-sql: ${JPA_SHOW_SQL:true}
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  sql:
+    init:
+      mode: ${SQL_INIT_MODE:always}
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+    cache:
+      type: redis
+      redis:
+        time-to-live: 300000 # 5 minutes par défaut
+        cache-null-values: false
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+application:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:***REMOVED***}
+
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      auth-service:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+
+logging:
+  level:
+    root: INFO
+    edu.ehei.gitdock.gitdockproject: DEBUG
