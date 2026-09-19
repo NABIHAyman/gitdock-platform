@@ -4,14 +4,8 @@ A multi-tenant SaaS platform that centralises and analyses Git contributions,
 built as polyglot microservices with an applied-AI layer: a multi-agent RAG
 assistant and a real-time security audit of commit diffs.
 
-[![Java services](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/java.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/java.yml)
-[![Python services](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/python.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/python.yml)
-[![.NET service](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/dotnet.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/dotnet.yml)
-[![PHP service](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml)
-[![Frontend](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/frontend.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/frontend.yml)
-[![Container images](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/containers.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/containers.yml)
-[![Security](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml)
-[![CodeQL](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml)
+[![Security](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml)
+[![CodeQL](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml)
 
 > **Academic project.** GitDock was built as a fourth-year engineering project
 > at EHEIM Oujda (2025–2026). It has never been deployed to production.
@@ -547,10 +541,11 @@ What to expect:
 
 | Contributor | Scope |
 |---|---|
-| **Ayman NABIH** | Architecture, backend & AI (platform design, authentication, projects, synchronization, notifications, and the AI services) |
+| **Ayman NABIH** | Architecture, backend & AI (platform design, projects, synchronization, notifications, and the AI services) |
 | **Maryam LOUKILI** | `gitdock-task`, `gitdock-ai-alert` (`AI_Alerte`) |
 | **Rihab ADDOU** | `gitdock-gamification`, `gitdock-ai` |
 | **Amal SADKI** | Integration tests (Testcontainers) |
+| **Whole team** | Authentication (`gitdock-auth`), built together at the start of the project |
 
 ---
 
