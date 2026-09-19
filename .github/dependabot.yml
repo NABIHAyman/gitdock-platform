@@ -1,0 +1,94 @@
+# Dependabot keeps actions, dependencies and base images up to date.
+# - cooldown: a release must be 7 days old before it is proposed, which gives
+#   time for a compromised or broken release to be caught upstream.
+# - minor and patch updates are grouped into one pull request per ecosystem.
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: maven
+    directory: "/backend/gitdock-backend"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      maven-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: pip
+    directories:
+      - "/backend/gitdock-backend/gitdock-ai"
+      - "/backend/gitdock-backend/AI_Alerte"
+      - "/backend/gitdock-backend/gitdock-sentinel"
+      - "/backend/gitdock-backend/gitdock-yam"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      pip-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: nuget
+    directory: "/backend/gitdock-backend/gitdock-gamification/backend"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      nuget-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: composer
+    directory: "/backend/gitdock-backend/gitdock-task"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      composer-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: "/frontend/gitdock-frontend"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directories:
+      - "/backend/gitdock-backend/gitdock-auth"
+      - "/backend/gitdock-backend/gitdock-discovery"
+      - "/backend/gitdock-backend/gitdock-gateway"
+      - "/backend/gitdock-backend/gitdock-notification"
+      - "/backend/gitdock-backend/gitdock-project"
+      - "/backend/gitdock-backend/gitdock-sync"
+      - "/backend/gitdock-backend/gitdock-ai"
+      - "/backend/gitdock-backend/gitdock-sentinel"
+      - "/backend/gitdock-backend/gitdock-gamification/backend/backend"
+      - "/backend/gitdock-backend/gitdock-task/infra/php"
+      - "/backend/gitdock-backend/gitdock-task/infra/nginx"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5

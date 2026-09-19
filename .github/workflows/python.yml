@@ -1,0 +1,138 @@
+# Lint, format-check and test the Python services.
+# Dependencies are only installed for services that ship a test suite:
+# linting needs none, and some services pull very large ML libraries.
+name: Python services
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/gitdock-backend/gitdock-ai/**"
+      - "backend/gitdock-backend/AI_Alerte/**"
+      - "backend/gitdock-backend/gitdock-sentinel/**"
+      - "backend/gitdock-backend/gitdock-yam/**"
+      - ".github/workflows/python.yml"
+  pull_request:
+    paths:
+      - "backend/gitdock-backend/gitdock-ai/**"
+      - "backend/gitdock-backend/AI_Alerte/**"
+      - "backend/gitdock-backend/gitdock-sentinel/**"
+      - "backend/gitdock-backend/gitdock-yam/**"
+      - ".github/workflows/python.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PYTHON_VERSION: "3.11"
+  RUFF_VERSION: "0.16.7"
+  PYTEST_VERSION: "9.1.1"
+
+jobs:
+  changes:
+    name: Detect changed services
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      services: ${{ steps.all.outputs.services || steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Select every service (manual run)
+        id: all
+        if: github.event_name == 'workflow_dispatch'
+        run: >-
+          echo 'services=["gitdock-ai","AI_Alerte","gitdock-sentinel","gitdock-yam"]'
+          >> "$GITHUB_OUTPUT"
+
+      - name: Select changed services
+        id: filter
+        if: github.event_name != 'workflow_dispatch'
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            gitdock-ai:
+              - "backend/gitdock-backend/gitdock-ai/**"
+              - ".github/workflows/python.yml"
+            AI_Alerte:
+              - "backend/gitdock-backend/AI_Alerte/**"
+              - ".github/workflows/python.yml"
+            gitdock-sentinel:
+              - "backend/gitdock-backend/gitdock-sentinel/**"
+              - ".github/workflows/python.yml"
+            gitdock-yam:
+              - "backend/gitdock-backend/gitdock-yam/**"
+              - ".github/workflows/python.yml"
+
+  check:
+    name: ${{ matrix.service }}
+    needs: changes
+    if: needs.changes.outputs.services != '' && needs.changes.outputs.services != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.services) }}
+    defaults:
+      run:
+        working-directory: backend/gitdock-backend/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/gitdock-backend/${{ matrix.service }}/requirements.txt
+
+      - name: Install Ruff
+        run: python -m pip install "ruff==${RUFF_VERSION}"
+
+      - name: Lint
+        run: ruff check --output-format=github .
+
+      - name: Check formatting
+        run: ruff format --check --diff .
+
+      - name: Detect test suite
+        id: tests
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: |
+          if [ -d tests ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=${SERVICE}::No test suite in this service."
+          fi
+
+      - name: Install dependencies
+        if: steps.tests.outputs.present == 'true'
+        run: python -m pip install -r requirements.txt "pytest==${PYTEST_VERSION}"
+
+      - name: Run tests
+        if: steps.tests.outputs.present == 'true'
+        run: python -m pytest --junitxml=pytest-report.xml
+
+      - name: Upload test report
+        if: always() && steps.tests.outputs.present == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pytest-${{ matrix.service }}
+          path: backend/gitdock-backend/${{ matrix.service }}/pytest-report.xml
+          if-no-files-found: ignore
+          retention-days: 14

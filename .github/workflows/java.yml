@@ -1,0 +1,142 @@
+# Build, test and measure coverage of the Spring Boot services.
+# Only the services touched by a change are rebuilt; a change to the parent
+# POM, the Maven wrapper or this workflow rebuilds all of them.
+name: Java services
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/gitdock-backend/pom.xml"
+      - "backend/gitdock-backend/mvnw"
+      - "backend/gitdock-backend/.mvn/**"
+      - "backend/gitdock-backend/gitdock-auth/**"
+      - "backend/gitdock-backend/gitdock-discovery/**"
+      - "backend/gitdock-backend/gitdock-gateway/**"
+      - "backend/gitdock-backend/gitdock-notification/**"
+      - "backend/gitdock-backend/gitdock-project/**"
+      - "backend/gitdock-backend/gitdock-sync/**"
+      - ".github/workflows/java.yml"
+  pull_request:
+    paths:
+      - "backend/gitdock-backend/pom.xml"
+      - "backend/gitdock-backend/mvnw"
+      - "backend/gitdock-backend/.mvn/**"
+      - "backend/gitdock-backend/gitdock-auth/**"
+      - "backend/gitdock-backend/gitdock-discovery/**"
+      - "backend/gitdock-backend/gitdock-gateway/**"
+      - "backend/gitdock-backend/gitdock-notification/**"
+      - "backend/gitdock-backend/gitdock-project/**"
+      - "backend/gitdock-backend/gitdock-sync/**"
+      - ".github/workflows/java.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  JACOCO_VERSION: "0.8.15"
+
+jobs:
+  changes:
+    name: Detect changed services
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      services: ${{ steps.all.outputs.services || steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Select every service (manual run)
+        id: all
+        if: github.event_name == 'workflow_dispatch'
+        run: >-
+          echo 'services=["gitdock-auth","gitdock-discovery","gitdock-gateway",
+          "gitdock-notification","gitdock-project","gitdock-sync"]' >> "$GITHUB_OUTPUT"
+
+      - name: Select changed services
+        id: filter
+        if: github.event_name != 'workflow_dispatch'
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            gitdock-auth:
+              - "backend/gitdock-backend/gitdock-auth/**"
+              - "backend/gitdock-backend/{pom.xml,mvnw,.mvn/**}"
+              - ".github/workflows/java.yml"
+            gitdock-discovery:
+              - "backend/gitdock-backend/gitdock-discovery/**"
+              - "backend/gitdock-backend/{pom.xml,mvnw,.mvn/**}"
+              - ".github/workflows/java.yml"
+            gitdock-gateway:
+              - "backend/gitdock-backend/gitdock-gateway/**"
+              - "backend/gitdock-backend/{pom.xml,mvnw,.mvn/**}"
+              - ".github/workflows/java.yml"
+            gitdock-notification:
+              - "backend/gitdock-backend/gitdock-notification/**"
+              - "backend/gitdock-backend/{pom.xml,mvnw,.mvn/**}"
+              - ".github/workflows/java.yml"
+            gitdock-project:
+              - "backend/gitdock-backend/gitdock-project/**"
+              - "backend/gitdock-backend/{pom.xml,mvnw,.mvn/**}"
+              - ".github/workflows/java.yml"
+            gitdock-sync:
+              - "backend/gitdock-backend/gitdock-sync/**"
+              - "backend/gitdock-backend/{pom.xml,mvnw,.mvn/**}"
+              - ".github/workflows/java.yml"
+
+  build:
+    name: ${{ matrix.service }}
+    needs: changes
+    if: needs.changes.outputs.services != '' && needs.changes.outputs.services != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.services) }}
+    defaults:
+      run:
+        working-directory: backend/gitdock-backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 21 (Temurin)
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: backend/gitdock-backend/**/pom.xml
+
+      - name: Build, test and report coverage
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: >-
+          ./mvnw --batch-mode --no-transfer-progress
+          --projects "$SERVICE" --also-make
+          "org.jacoco:jacoco-maven-plugin:${JACOCO_VERSION}:prepare-agent"
+          verify
+          "org.jacoco:jacoco-maven-plugin:${JACOCO_VERSION}:report"
+
+      - name: Upload test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: reports-${{ matrix.service }}
+          path: |
+            backend/gitdock-backend/${{ matrix.service }}/target/surefire-reports/
+            backend/gitdock-backend/${{ matrix.service }}/target/site/jacoco/
+          if-no-files-found: ignore
+          retention-days: 14

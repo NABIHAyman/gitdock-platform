@@ -1,0 +1,287 @@
+# Build and scan the container images of changed services; publish them to
+# GHCR only when a version tag (v*) is pushed.
+#
+# - build:   amd64 image, loaded locally and scanned by Trivy. Read-only token.
+# - publish: amd64 + arm64 image with SBOM and provenance, pushed to GHCR.
+#            Tag pushes only; the only job allowed to write packages.
+#
+# The two gitdock-task images (php, nginx) are development runtimes that hold
+# no application code: they are built and scanned, never published.
+name: Container images
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "backend/gitdock-backend/**/Dockerfile"
+      - "backend/gitdock-backend/pom.xml"
+      - "backend/gitdock-backend/gitdock-auth/**"
+      - "backend/gitdock-backend/gitdock-discovery/**"
+      - "backend/gitdock-backend/gitdock-gateway/**"
+      - "backend/gitdock-backend/gitdock-notification/**"
+      - "backend/gitdock-backend/gitdock-project/**"
+      - "backend/gitdock-backend/gitdock-sync/**"
+      - "backend/gitdock-backend/gitdock-ai/**"
+      - "backend/gitdock-backend/gitdock-sentinel/**"
+      - "backend/gitdock-backend/gitdock-gamification/**"
+      - "backend/gitdock-backend/gitdock-task/infra/**"
+      - ".github/workflows/containers.yml"
+  pull_request:
+    paths:
+      - "backend/gitdock-backend/**/Dockerfile"
+      - "backend/gitdock-backend/pom.xml"
+      - "backend/gitdock-backend/gitdock-auth/**"
+      - "backend/gitdock-backend/gitdock-discovery/**"
+      - "backend/gitdock-backend/gitdock-gateway/**"
+      - "backend/gitdock-backend/gitdock-notification/**"
+      - "backend/gitdock-backend/gitdock-project/**"
+      - "backend/gitdock-backend/gitdock-sync/**"
+      - "backend/gitdock-backend/gitdock-ai/**"
+      - "backend/gitdock-backend/gitdock-sentinel/**"
+      - "backend/gitdock-backend/gitdock-gamification/**"
+      - "backend/gitdock-backend/gitdock-task/infra/**"
+      - ".github/workflows/containers.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  ALL_SERVICES: >-
+    ["gitdock-auth","gitdock-discovery","gitdock-gateway","gitdock-notification",
+    "gitdock-project","gitdock-sync","gitdock-ai","gitdock-sentinel",
+    "gitdock-gamification","gitdock-task-php","gitdock-task-nginx"]
+
+jobs:
+  changes:
+    name: Detect changed images
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      services: ${{ steps.all.outputs.services || steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Select every image (tag or manual run)
+        id: all
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+        run: echo "services=$(echo "$ALL_SERVICES" | tr -d ' \n')" >> "$GITHUB_OUTPUT"
+
+      - name: Select changed images
+        id: filter
+        if: github.event_name != 'workflow_dispatch' && !startsWith(github.ref, 'refs/tags/v')
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            gitdock-auth:
+              - "backend/gitdock-backend/gitdock-auth/**"
+              - "backend/gitdock-backend/pom.xml"
+              - ".github/workflows/containers.yml"
+            gitdock-discovery:
+              - "backend/gitdock-backend/gitdock-discovery/**"
+              - "backend/gitdock-backend/pom.xml"
+              - ".github/workflows/containers.yml"
+            gitdock-gateway:
+              - "backend/gitdock-backend/gitdock-gateway/**"
+              - "backend/gitdock-backend/pom.xml"
+              - ".github/workflows/containers.yml"
+            gitdock-notification:
+              - "backend/gitdock-backend/gitdock-notification/**"
+              - "backend/gitdock-backend/pom.xml"
+              - ".github/workflows/containers.yml"
+            gitdock-project:
+              - "backend/gitdock-backend/gitdock-project/**"
+              - "backend/gitdock-backend/pom.xml"
+              - ".github/workflows/containers.yml"
+            gitdock-sync:
+              - "backend/gitdock-backend/gitdock-sync/**"
+              - "backend/gitdock-backend/pom.xml"
+              - ".github/workflows/containers.yml"
+            gitdock-ai:
+              - "backend/gitdock-backend/gitdock-ai/**"
+              - ".github/workflows/containers.yml"
+            gitdock-sentinel:
+              - "backend/gitdock-backend/gitdock-sentinel/**"
+              - ".github/workflows/containers.yml"
+            gitdock-gamification:
+              - "backend/gitdock-backend/gitdock-gamification/**"
+              - ".github/workflows/containers.yml"
+            gitdock-task-php:
+              - "backend/gitdock-backend/gitdock-task/infra/php/**"
+              - ".github/workflows/containers.yml"
+            gitdock-task-nginx:
+              - "backend/gitdock-backend/gitdock-task/infra/nginx/**"
+              - ".github/workflows/containers.yml"
+
+  build:
+    name: build ${{ matrix.service }}
+    needs: changes
+    if: needs.changes.outputs.services != '' && needs.changes.outputs.services != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.services) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Resolve build settings
+        id: cfg
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: bash .github/scripts/image-settings.sh "$SERVICE" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 21 (Temurin)
+        if: steps.cfg.outputs.kind == 'java'
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: backend/gitdock-backend/**/pom.xml
+
+      - name: Package the jar copied by the Dockerfile
+        if: steps.cfg.outputs.kind == 'java'
+        working-directory: backend/gitdock-backend
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: ./mvnw --batch-mode --no-transfer-progress --projects "$SERVICE" --also-make package -DskipTests
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+
+      - name: Build image (amd64)
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: ${{ steps.cfg.outputs.context }}
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: gitdock-ci/${{ matrix.service }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: gitdock-ci/${{ matrix.service }}:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-image.sarif
+          exit-code: "0"
+
+      - name: Upload Trivy results to code scanning
+        if: always() && hashFiles('trivy-image.sarif') != ''
+        uses: github/codeql-action/upload-sarif@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-image-${{ matrix.service }}
+
+      - name: Fail on fixable critical vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: gitdock-ci/${{ matrix.service }}:${{ github.sha }}
+          severity: CRITICAL
+          ignore-unfixed: true
+          format: table
+          exit-code: "1"
+          skip-setup-trivy: true
+
+  publish:
+    name: publish ${{ matrix.service }}
+    needs: [changes, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.services) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Resolve build settings
+        id: cfg
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: bash .github/scripts/image-settings.sh "$SERVICE" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 21 (Temurin)
+        if: steps.cfg.outputs.publish == 'true' && steps.cfg.outputs.kind == 'java'
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: backend/gitdock-backend/**/pom.xml
+
+      - name: Package the jar copied by the Dockerfile
+        if: steps.cfg.outputs.publish == 'true' && steps.cfg.outputs.kind == 'java'
+        working-directory: backend/gitdock-backend
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: ./mvnw --batch-mode --no-transfer-progress --projects "$SERVICE" --also-make package -DskipTests
+
+      - name: Set up QEMU
+        if: steps.cfg.outputs.publish == 'true'
+        uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4.3.0
+
+      - name: Set up Docker Buildx
+        if: steps.cfg.outputs.publish == 'true'
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+
+      - name: Log in to GHCR
+        if: steps.cfg.outputs.publish == 'true'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute tags and labels
+        if: steps.cfg.outputs.publish == 'true'
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ steps.cfg.outputs.image }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and push (amd64, arm64)
+        if: steps.cfg.outputs.publish == 'true'
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: ${{ steps.cfg.outputs.context }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          sbom: true
+          provenance: mode=max
