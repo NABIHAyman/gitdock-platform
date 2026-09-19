@@ -168,7 +168,7 @@ flowchart LR
 
     AUTH & PROJ & TASK -->|events| RMQ
     SENT -->|sentinel.audit.result| RMQ
-    RMQ --> NOTIF & GAME & SYNC
+    RMQ --> NOTIF & GAME & SYNC & TASK
 
     YAM & SENT --> CHROMA
     YAM & SENT --> LLM
@@ -184,7 +184,7 @@ flowchart LR
 | `gitdock-project` | Spring Boot | 8083 | Projects, collaborators, branches, commits, diffs, KPIs; creation orchestrated as a saga | PostgreSQL, Redis |
 | `gitdock-sync` | Spring Boot | 8084 | GitHub webhooks, commit normalisation, fan-out to Kafka and RabbitMQ | — |
 | `gitdock-notification` | Spring Boot | 8085 | Transactional e-mails (Thymeleaf), real-time notifications (STOMP) | PostgreSQL |
-| `gitdock-task` | Symfony 7.3 | 8089 | Tasks and epics; publishes `TaskCompletedEvent` | MySQL |
+| `gitdock-task` | Symfony 7.3 | 8089 | Tasks and epics; Smart Close (`Fixes #ID` in a commit closes the task); publishes `TaskCompletedEvent` | MySQL |
 | `gitdock-gamification` | ASP.NET Core 9 | 5292 | Experience points, levels, badges, tags, contributor rankings | PostgreSQL, Redis |
 | `gitdock-yam` | FastAPI | 8012 | Multi-agent RAG assistant | ChromaDB, MongoDB |
 | `gitdock-sentinel` | FastAPI | 8010 | Real-time audit of commit diffs | ChromaDB |
@@ -222,8 +222,9 @@ interface; **GitHub is the only platform implemented**.
 
 **Tasks** — tasks and epics with priorities and statuses. Completing a task
 emits an event that the gamification service turns into experience points.
-*Smart Close* — closing a task directly from a commit message — has been
-implemented but is not yet merged into this repository.
+*Smart Close* closes a task straight from a commit message: when a saved
+commit contains `Fixes #ID`, the task service marks task `ID` as done if it
+belongs to the same project, and the completion event feeds gamification.
 
 **Gamification** — experience points, levels, badges and tags, configurable
 experience rules, contributor rankings per project.
@@ -327,6 +328,14 @@ docker compose -f infrastructure/docker-compose.yml ps
 The first start pulls every base image and builds twelve services; expect it to
 take a while.
 
+The task service's code is mounted into its containers, so its PHP
+dependencies are installed once, from inside the stack:
+
+```bash
+docker compose -f infrastructure/docker-compose.yml exec php-app composer install
+docker compose -f infrastructure/docker-compose.yml restart task-smart-close
+```
+
 ### 6. Start the Sentinel stack and the Spark job
 
 ```bash
@@ -367,6 +376,7 @@ npm run dev
 | `gitdock-ai` health / API docs | <http://localhost:8000/health> · <http://localhost:8000/docs> |
 | `gitdock-gamification` API reference | <http://localhost:5292/scalar/v1> (Development environment only) |
 | Container logs | <http://localhost:8887> (Dozzle) |
+| Smart Close consumer | `task_smart_close` logs show « Smart Close : en attente de project.commit.saved... » |
 
 ### 9. Logs, stop and reset
 
@@ -524,9 +534,10 @@ What to expect:
   [wiki](https://github.com/NABIHAyman/gitdock-platform/wiki/Architecture#known-integration-issues)
   and [`gitdock-dev-intelligence.txt`](gitdock-dev-intelligence.txt) list the others.
 - **Only GitHub is supported** for synchronisation and OAuth.
-- **Smart Close pending.** The commit-driven task closing is implemented but
-  not yet merged here; its integration test is already in
-  `gitdock-task/backend/tests/`.
+- **Smart Close tests.** The commit-message parsing is unit-tested
+  (`gitdock-task/tests/Service/`). The earlier integration test in
+  `gitdock-task/backend/tests/` targets a previous version of the service and
+  is not run.
 - **Spark job run by hand.** The pre-processing job in front of Sentinel is a
   standalone script, not yet packaged as a service.
 - **Dependency updates pending.** The Spring Boot 3.3 dependency set carries
