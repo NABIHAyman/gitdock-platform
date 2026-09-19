@@ -11,22 +11,22 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "@stomp/stompjs": "^7.3.0",
-    "@tresjs/core": "^5.8.0",
-    "axios": "^1.13.4",
+    "@tresjs/core": "^5.8.3",
+    "axios": "^1.20.0",
     "diff2html": "^3.4.56",
     "pinia": "^3.0.4",
-    "sass": "^1.97.3",
+    "sass": "^1.104.1",
     "sockjs-client": "^1.6.1",
-    "three": "^0.184.0",
-    "vue": "^3.5.24",
-    "vue-router": "^5.0.2",
-    "vuetify": "^4.0.0-beta.1"
+    "three": "^0.186.0",
+    "vue": "^3.5.42",
+    "vue-router": "^5.3.1",
+    "vuetify": "^4.2.1"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.18",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/sockjs-client": "^1.5.4",
-    "@vitejs/plugin-vue": "^6.0.1",
-    "autoprefixer": "^10.4.24",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "autoprefixer": "^10.5.6",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19",
     "vite": "^7.2.4"
