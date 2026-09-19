@@ -25,6 +25,7 @@ on:
       - "backend/gitdock-backend/gitdock-sync/**"
       - "backend/gitdock-backend/gitdock-ai/**"
       - "backend/gitdock-backend/gitdock-sentinel/**"
+      - "backend/gitdock-backend/gitdock-yam/**"
       - "backend/gitdock-backend/gitdock-gamification/**"
       - "backend/gitdock-backend/gitdock-task/infra/**"
       - ".github/workflows/containers.yml"
@@ -40,6 +41,7 @@ on:
       - "backend/gitdock-backend/gitdock-sync/**"
       - "backend/gitdock-backend/gitdock-ai/**"
       - "backend/gitdock-backend/gitdock-sentinel/**"
+      - "backend/gitdock-backend/gitdock-yam/**"
       - "backend/gitdock-backend/gitdock-gamification/**"
       - "backend/gitdock-backend/gitdock-task/infra/**"
       - ".github/workflows/containers.yml"
@@ -55,7 +57,7 @@ concurrency:
 env:
   ALL_SERVICES: >-
     ["gitdock-auth","gitdock-discovery","gitdock-gateway","gitdock-notification",
-    "gitdock-project","gitdock-sync","gitdock-ai","gitdock-sentinel",
+    "gitdock-project","gitdock-sync","gitdock-ai","gitdock-sentinel","gitdock-yam",
     "gitdock-gamification","gitdock-task-php","gitdock-task-nginx"]
 
 jobs:
@@ -113,6 +115,9 @@ jobs:
               - ".github/workflows/containers.yml"
             gitdock-sentinel:
               - "backend/gitdock-backend/gitdock-sentinel/**"
+              - ".github/workflows/containers.yml"
+            gitdock-yam:
+              - "backend/gitdock-backend/gitdock-yam/**"
               - ".github/workflows/containers.yml"
             gitdock-gamification:
               - "backend/gitdock-backend/gitdock-gamification/**"

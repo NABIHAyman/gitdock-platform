@@ -84,6 +84,7 @@ updates:
       - "/backend/gitdock-backend/gitdock-sync"
       - "/backend/gitdock-backend/gitdock-ai"
       - "/backend/gitdock-backend/gitdock-sentinel"
+      - "/backend/gitdock-backend/gitdock-yam"
       - "/backend/gitdock-backend/gitdock-gamification/backend/backend"
       - "/backend/gitdock-backend/gitdock-task/infra/php"
       - "/backend/gitdock-backend/gitdock-task/infra/nginx"

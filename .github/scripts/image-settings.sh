@@ -11,7 +11,7 @@ publish=true
 case "$service" in
   gitdock-auth|gitdock-discovery|gitdock-gateway|gitdock-notification|gitdock-project|gitdock-sync)
     kind=java;   context="$backend/$service" ;;
-  gitdock-ai|gitdock-sentinel)
+  gitdock-ai|gitdock-sentinel|gitdock-yam)
     kind=python; context="$backend/$service" ;;
   gitdock-gamification)
     kind=dotnet; context="$backend/gitdock-gamification/backend/backend" ;;
