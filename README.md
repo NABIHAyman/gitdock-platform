@@ -228,6 +228,8 @@ interface; **GitHub is the only platform implemented**.
 
 **Tasks** — tasks and epics with priorities and statuses. Completing a task
 emits an event that the gamification service turns into experience points.
+*Smart Close* — closing a task directly from a commit message — has been
+implemented but is not yet merged into this repository.
 
 **Gamification** — experience points, levels, badges and tags, configurable
 experience rules, contributor rankings per project.
@@ -275,26 +277,37 @@ cd gitdock-platform/backend/gitdock-backend
 ### 3. Create the environment files
 
 Every value that differs between environments lives in an environment file
-that is **never committed**. Create each file from its committed template, then
-fill in the values; the variables are listed in
-[Environment variables](#environment-variables).
+that is **never committed**. Each one has a committed template next to it
+(`.env.example`): copy it, then fill in the values. Non-sensitive values come
+pre-filled; every password, key and token is left empty. The variables are
+listed in [Environment variables](#environment-variables).
 
 ```bash
+# Main stack
 cp infrastructure/.env.example infrastructure/.env
 for s in auth gateway notification project sync; do
   cp gitdock-$s/.env.example gitdock-$s/.env.local
 done
-cp gitdock-yam/.env.example gitdock-yam/.env
+cp gitdock-yam/.env.docker.example gitdock-yam/.env          # Docker hostnames
+cp gitdock-gamification/backend/backend/.env.example gitdock-gamification/backend/backend/.env
+cp gitdock-sentinel/.env.example gitdock-sentinel/.env
+
+# Standalone AI services (not part of the Compose stacks)
+cp gitdock-ai/.env.example gitdock-ai/.env
+cp AI_Alerte/.env.example AI_Alerte/.env
 ```
 
-`gitdock-sentinel/.env` has no template: create it by hand with the variables
-listed below. `gitdock-task/.env.docker` is committed with neutral values;
-replace them before any real use.
+`gitdock-task/.env.docker` is itself a committed template with neutral values
+(`!ChangeMe!`): replace them before any real use. `gitdock-yam` has a second
+template, `.env.example`, with `localhost` values for running it outside Docker.
 
-Two values must be consistent across files:
+A few values must be consistent across files:
 
-- `JWT_SECRET` must be **identical** in `gitdock-auth`, `gitdock-gateway` and
-  `gitdock-project`, and at least 32 characters long;
+- `JWT_SECRET` must be **identical** in `gitdock-auth`, `gitdock-gateway`,
+  `gitdock-project` and `gitdock-gamification`, and at least 32 characters long;
+- the PostgreSQL password in `infrastructure/.env` (`POSTGRES_PASSWORD`) is the
+  one to use in the services' `DB_PASSWORD` and in the gamification connection
+  string;
 - `MYSQL_ROOT_PASSWORD` in `infrastructure/.env` must match the password in
   `DATABASE_URL` of `gitdock-task/.env.docker`.
 
@@ -326,6 +339,11 @@ take a while.
 docker compose -f gitdock-sentinel/docker-compose.yml up -d
 python gitdock-sentinel/scripts/spark_cleaner.py
 ```
+
+The Sentinel Compose file reads `KAFKA_ADVERTISED_HOST` from
+`gitdock-sentinel/.env`: the address Kafka announces to its clients. On a single
+machine, `localhost` works; across machines, use an address both `gitdock-sync`
+and `gitdock-sentinel` can reach.
 
 The Spark job reads `raw-commits` and writes `cleaned-commits`; without it,
 Sentinel receives nothing. It needs `pyspark` and a Java runtime, and expects
@@ -387,9 +405,9 @@ IDE run configuration.
 | `backend/gitdock-backend/gitdock-sentinel/docker-compose.yml` | Kafka, Kafka UI and a dedicated ChromaDB for Sentinel |
 
 The development setup ran these two stacks on two machines joined by a private
-network. The configuration refers to them as `windows-host` (main stack) and
-`ubuntu-host` (Sentinel stack, GPU for Ollama). On a single machine, point
-those variables to `localhost`.
+network. Some defaults still refer to them as `windows-host` (main stack) and
+`ubuntu-host` (Sentinel stack, GPU for Ollama); the environment files override
+them, and their templates use `localhost` or the Docker service names.
 
 There is no reverse proxy or systemd configuration in the repository: the API
 Gateway is the single HTTP entry point, and a production setup would put a
@@ -414,7 +432,8 @@ TLS-terminating proxy in front of it.
 
 ### Environment variables
 
-Listed without values. Each service reads them from the file shown.
+Listed without values. Each service reads them from the file shown; every file
+has a committed `.env.example` template beside it.
 
 | File | Variables |
 |---|---|
@@ -424,9 +443,12 @@ Listed without values. Each service reads them from the file shown.
 | `gitdock-project/.env.local` | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `JPA_DDL_AUTO`, `JPA_SHOW_SQL`, `SQL_INIT_MODE`, `RABBITMQ_HOST`, `RABBITMQ_PORT`, `RABBITMQ_USERNAME`, `RABBITMQ_PASSWORD`, `EUREKA_DEFAULT_ZONE`, `JWT_SECRET` |
 | `gitdock-notification/.env.local` | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `RABBITMQ_HOST`, `RABBITMQ_PORT`, `RABBITMQ_USERNAME`, `RABBITMQ_PASSWORD`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `EUREKA_DEFAULT_ZONE`, `FRONTEND_URL`, `JPA_DDL_AUTO`, `JPA_SHOW_SQL` |
 | `gitdock-sync/.env.local` | `RABBITMQ_HOST`, `RABBITMQ_PORT`, `RABBITMQ_USERNAME`, `RABBITMQ_PASSWORD`, `EUREKA_DEFAULT_ZONE`, `KAFKA_HOST`, `KAFKA_PORT` |
+| `gitdock-gamification/backend/backend/.env` | `ConnectionStrings__DefaultConnection`, `ConnectionStrings__Redis`, `RabbitMQ__HostName`, `RabbitMQ__UserName`, `RabbitMQ__Password`, `Services__AuthServiceUrl`, `Services__ProjectServiceUrl`, `Eureka__Client__ServiceUrl`, `Eureka__Instance__HostName`, `JWT_SECRET` |
 | `gitdock-task/.env.docker` | `APP_ENV`, `APP_DEBUG`, `APP_SECRET`, `DATABASE_URL`, `MESSENGER_TRANSPORT_DSN`, `AUTH_SERVICE_URL`, `PROJECT_SERVICE_URL`, `MAILER_DSN`, `JWT_SECRET_KEY`, `JWT_PUBLIC_KEY`, `JWT_PASSPHRASE` |
 | `gitdock-yam/.env` | `APP_NAME`, `APP_PORT`, `EUREKA_SERVER_URL`, `CHROMA_HOST`, `CHROMA_PORT`, `DEFAULT_LLM_PROVIDER`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `OLLAMA_API_URL`, `OLLAMA_MODEL`, `EMBEDDING_MODEL`, `DRY_RUN` |
-| `gitdock-sentinel/.env` | `APP_NAME`, `APP_PORT`, `EUREKA_SERVER_URL`, `CHROMA_HOST`, `CHROMA_PORT`, `KAFKA_HOST`, `KAFKA_PORT`, `RABBITMQ_HOST`, `RABBITMQ_PORT`, `RABBITMQ_USER`, `RABBITMQ_PASSWORD`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `OLLAMA_API_URL`, `OLLAMA_MODEL`, `EMBEDDING_MODEL`, `DRY_RUN` |
+| `gitdock-sentinel/.env` | `APP_NAME`, `APP_PORT`, `EUREKA_SERVER_URL`, `CHROMA_HOST`, `CHROMA_PORT`, `KAFKA_HOST`, `KAFKA_PORT`, `KAFKA_ADVERTISED_HOST`, `RABBITMQ_HOST`, `RABBITMQ_PORT`, `RABBITMQ_USER`, `RABBITMQ_PASSWORD`, `OLLAMA_API_URL`, `OLLAMA_MODEL`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `EMBEDDING_MODEL`, `DRY_RUN`, `GITHUB_TOKEN` (scripts) |
+| `gitdock-ai/.env` | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `GITHUB_TOKEN`, `GITLAB_TOKEN` |
+| `AI_Alerte/.env` | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
 
 ### Container images
 
@@ -506,6 +528,9 @@ What to expect:
   [`gitdock-dev-intelligence.txt`](gitdock-dev-intelligence.txt) lists them,
   for example gateway routes still missing for some gamification endpoints.
 - **Only GitHub is supported** for synchronisation and OAuth.
+- **Smart Close pending.** The commit-driven task closing is implemented but
+  not yet merged here; its integration test is already in
+  `gitdock-task/backend/tests/`.
 - **Spark job run by hand.** The pre-processing job in front of Sentinel is a
   standalone script, not yet packaged as a service.
 - **Dependency updates pending.** The Spring Boot 3.3 dependency set carries
