@@ -6,7 +6,7 @@ import pytest
 
 # POURQUOI : On importe ton application FastAPI principale pour la tester.
 # COMMENT : TestClient va envelopper cette 'app' pour simuler des requêtes HTTP sans démarrer de vrai serveur sur le port 8010.
-from main import app
+from src.main import app
 
 # POURQUOI : On importe tes schémas pour fabriquer nos fausses réponses d'IA.
 from src.schemas.chat_schemas import IntentClassification, TeamRecommendation
@@ -57,7 +57,7 @@ def test_team_builder_integration(mock_search_developers, mock_execute_cascade):
 
     # POURQUOI : On envoie une vraie requête HTTP POST à ton API.
     # COMMENT : Le JSON traverse Pydantic (validation), puis entre dans 'build_team' dans 'chat.py'.
-    response = client.post("/api/ai/team-builder", json=payload)
+    response = client.post("/api/yam/team-builder", json=payload)
 
     # ==========================================
     # 3. ASSERT : VÉRIFICATION (Le flux de données)

@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 
-    hf_token: str = os.getenv("HF_TOKEN")
+    hf_token: str | None = os.getenv("HF_TOKEN")
 
     # Mode Simulation (DRY_RUN)
     dry_run: bool = str(os.getenv("DRY_RUN", "True")).lower() in ("true", "1", "t")

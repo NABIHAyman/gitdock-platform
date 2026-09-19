@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from unittest.mock import patch, AsyncMock
 from src.routes.chat import router
 from src.schemas.chat_schemas import IntentClassification, TeamRecommendation
@@ -45,7 +46,7 @@ def test_team_builder_flow(mock_cascade, mock_search, mock_get_models):
     }
 
     # --- ACT (On simule le POST HTTP) ---
-    response = client.post("/api/ai/team-builder", json=payload)
+    response = client.post("/api/yam/team-builder", json=payload)
 
     # --- ASSERT (Les vérifications) ---
     # 1. L'API doit répondre 200 OK
