@@ -1,0 +1,79 @@
+networks:
+  gitdock_net:
+    name: gitdock_net
+    driver: bridge
+
+volumes:
+  gitdock_kafka_data:
+    name: gitdock_kafka_data
+  gitdock_chroma_data:
+    name: gitdock_chroma_data
+
+services:
+  # ==========================================
+  # 1. LA BASE VECTORIELLE (Le Stockage Chaud)
+  # ==========================================
+  chromadb:
+    image: chromadb/chroma:1.5.7
+    container_name: gitdock-chroma
+    restart: unless-stopped
+    volumes:
+      - gitdock_chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ALLOW_RESET=TRUE
+    ports:
+      - "8005:8000" 
+    networks:
+      - gitdock_net
+
+  # ==========================================
+  # 2. APACHE KAFKA (Le Pare-chocs Ingestion)
+  # ==========================================
+  kafka:
+    image: bitnamilegacy/kafka:3.7.0
+    container_name: gitdock-kafka
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://ubuntu-host:9092
+    volumes:
+      - gitdock_kafka_data:/bitnami/kafka
+    networks:
+      - gitdock_net
+
+  # ==========================================
+  # 3. KAFKA UI (Le Dashboard de Monitoring)
+  # ==========================================
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: gitdock-kafka-ui
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=GitDock-Local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=ubuntu-host:9092
+    networks:
+      - gitdock_net
+    depends_on:
+      - kafka
+
+  #gitdock-sentinel-app:
+   # build: .
+    #container_name: gitdock-sentinel-app
+    #restart: unless-stopped
+    #env_file:
+    #  - .env
+    #depends_on:
+     # - kafka
+     # - chromadb
+    #networks:
+     # - gitdock_net
