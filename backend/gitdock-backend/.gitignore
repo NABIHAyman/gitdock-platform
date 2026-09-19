@@ -44,8 +44,6 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-# Fichiers Maven wrapper
-.mvn/
 
 # ========================
 # 🐍 PYTHON (gitdock-yam)
