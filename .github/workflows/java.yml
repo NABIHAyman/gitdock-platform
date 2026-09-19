@@ -166,6 +166,19 @@ jobs:
           psql -h localhost -U sa -d gitdock_auth_db -c "CREATE ROLE postgres LOGIN SUPERUSER PASSWORD 'postgres'"
           psql -h localhost -U sa -d gitdock_auth_db -c "CREATE DATABASE gitdock_sync OWNER postgres"
 
+      # Maven Central occasionally answers 403/5xx to CI runners; resolve
+      # dependencies and plugins up front, with a few retries.
+      - name: Resolve dependencies
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: |
+          for attempt in 1 2 3; do
+            ./mvnw --batch-mode --no-transfer-progress --projects "$SERVICE" --also-make dependency:go-offline && exit 0
+            echo "::warning::Dependency resolution failed (attempt $attempt), retrying"
+            sleep 20
+          done
+          exit 1
+
       - name: Build, test and report coverage
         env:
           SERVICE: ${{ matrix.service }}
