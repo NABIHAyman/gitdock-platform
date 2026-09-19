@@ -6,7 +6,6 @@ import edu.ehei.gitdock.gitdockauth.model.UserAccount;
 import edu.ehei.gitdock.gitdockauth.repository.ActivationTokenRepository;
 import edu.ehei.gitdock.gitdockauth.repository.InvitationTokenRepository;
 import edu.ehei.gitdock.gitdockauth.repository.UserAccountRepository;
-import edu.ehei.gitdock.gitdockauth.service.interfaces.EmailSenderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,9 +42,6 @@ public class UserActivationServiceIntegrationTest {
 
     @MockBean
     private PasswordEncoder passwordEncoder;
-
-    @MockBean
-    private EmailSenderService emailService;
 
     @MockBean
     private InvitationTokenRepository invitationTokenRepository;

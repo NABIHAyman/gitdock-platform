@@ -6,7 +6,6 @@ import edu.ehei.gitdock.gitdockproject.dto.ProjectDTO;
 import edu.ehei.gitdock.gitdockproject.dto.SyncRequestMessageDTO;
 import edu.ehei.gitdock.gitdockproject.repository.ProjectRepository;
 import edu.ehei.gitdock.gitdockproject.repository.UserProjectRepository;
-import edu.ehei.gitdock.gitdockproject.security.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,24 +43,21 @@ public class ProjectServiceIntegrationTest {
     @MockBean
     private AuthServiceClient authServiceClient;
 
-    @MockBean
-    private JwtService jwtService;
-
     // Supprime le @MockBean HttpServletRequest s'il crée le crash
     // On va simuler la requête manuellement dans le setUp
 
     @BeforeEach
     void setUp() {
         // 1. Reset des mocks
-        Mockito.reset(jwtService, projectRepository, rabbitTemplate, authServiceClient);
+        Mockito.reset(projectRepository, rabbitTemplate, authServiceClient);
 
-        // 2. Simulation du Contexte HTTP & JWT
+        // 2. Simulation du Contexte HTTP : identité posée par la Gateway
         HttpServletRequest mockedRequest = Mockito.mock(HttpServletRequest.class);
         lenient().when(mockedRequest.getHeader("Authorization")).thenReturn("Bearer fake-token");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockedRequest));
 
-        lenient().when(jwtService.extractUserId(anyString())).thenReturn(1L);
-        lenient().when(jwtService.extractCompanyId(anyString())).thenReturn(10L);
+        lenient().when(mockedRequest.getHeader("X-User-Id")).thenReturn("1");
+        lenient().when(mockedRequest.getHeader("X-Company-Id")).thenReturn("10");
 
         // 3. SIMULATION GLOBALE DU REPOSITORY (Pour éviter le savedProject null)
         lenient().when(projectRepository.save(any())).thenAnswer(invocation -> {
