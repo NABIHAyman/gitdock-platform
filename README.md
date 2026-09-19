@@ -4,12 +4,14 @@ A multi-tenant SaaS platform that centralises and analyses Git contributions,
 built as polyglot microservices with an applied-AI layer: a multi-agent RAG
 assistant and a real-time security audit of commit diffs.
 
-[![Python services](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/python.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/python.yml)
-[![.NET service](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/dotnet.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/dotnet.yml)
-[![PHP service](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml)
-[![Container images](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/containers.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/containers.yml)
-[![Security](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml)
-[![CodeQL](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml)
+[![Java services](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/java.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/java.yml)
+[![Python services](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/python.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/python.yml)
+[![.NET service](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/dotnet.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/dotnet.yml)
+[![PHP service](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml)
+[![Frontend](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/frontend.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/frontend.yml)
+[![Container images](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/containers.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/containers.yml)
+[![Security](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml)
+[![CodeQL](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml)
 
 > **Academic project.** GitDock was built as a fourth-year engineering project
 > at EHEIM Oujda (2025–2026). It has never been deployed to production.
@@ -485,7 +487,9 @@ services a change touches.
 Every action is pinned to a full commit SHA. Workflows run with read-only
 permissions by default, and each job is granted only what it needs.
 Dependabot keeps actions, dependencies and base images up to date, with a
-seven-day cooldown on new releases.
+seven-day cooldown on new releases. Minor and patch updates are grouped per
+ecosystem; major updates (Spring Boot 4, .NET 10, Vite 8...) are ignored, as
+they are migrations to plan rather than routine bumps.
 
 ---
 
@@ -545,8 +549,9 @@ What to expect:
 - **Spark job run by hand.** The pre-processing job in front of Sentinel is a
   standalone script, not yet packaged as a service.
 - **Dependency updates pending.** The Spring Boot 3.3 dependency set carries
-  known, already-fixed vulnerabilities. Trivy reports them in the Security tab,
-  and Dependabot proposes the updates.
+  known, already-fixed vulnerabilities. Trivy reports them in the Security tab;
+  Dependabot proposes the minor and patch updates, and the move to a newer
+  major version is still to be planned.
 - **Linting not yet enforced.** Python formatting and PHPStan are advisory
   until the codebase has been through a clean-up pass.
 
