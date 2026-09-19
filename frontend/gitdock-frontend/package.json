@@ -14,7 +14,7 @@
     "@tresjs/core": "^5.8.0",
     "axios": "^1.13.4",
     "diff2html": "^3.4.56",
-    "pinia": "^3.0.4",
+    "pinia": "^4.0.3",
     "sass": "^1.97.3",
     "sockjs-client": "^1.6.1",
     "three": "^0.184.0",
