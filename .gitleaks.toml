@@ -1,0 +1,24 @@
+# Gitleaks configuration for GitDock.
+# Default ruleset, plus two narrowly scoped exceptions documented below.
+# Run locally: gitleaks git . --log-opts="--all"
+
+[extend]
+useDefault = true
+
+# gitdock-sentinel audits code diffs for security issues. Its test data and
+# chaos producers deliberately contain a vulnerable snippet with a fake
+# hard-coded password, so that the audit has something to detect.
+# The exception applies only to that exact fake value, in those files only.
+[[allowlists]]
+description = "Intentional vulnerable fixture used to test gitdock-sentinel"
+condition = "AND"
+paths = [
+  '''(^|/)data/seeds\.json$''',
+  '''gitdock-sentinel/scripts/chaos_producer(_lite)?\.py$''',
+]
+regexes = ['''SuperSecretPassword123!''']
+
+# Placeholder left by the history rewrite that removed real secrets.
+[[allowlists]]
+description = "Redaction marker from git filter-repo"
+regexes = ['''\*\*\*REMOVED\*\*\*''']
