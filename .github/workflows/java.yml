@@ -154,6 +154,16 @@ jobs:
           cache: maven
           cache-dependency-path: backend/gitdock-backend/**/pom.xml
 
+      # gitdock-sync's integration test connects to its own database as
+      # postgres/postgres (ProjectSyncListenerIntegrationTest); test-only values.
+      - name: Prepare the gitdock-sync test database
+        if: matrix.service == 'gitdock-sync'
+        env:
+          PGPASSWORD: sa
+        run: |
+          psql -h localhost -U sa -d gitdock_auth_db -c "CREATE ROLE postgres LOGIN SUPERUSER PASSWORD 'postgres'"
+          psql -h localhost -U sa -d gitdock_auth_db -c "CREATE DATABASE gitdock_sync OWNER postgres"
+
       - name: Build, test and report coverage
         env:
           SERVICE: ${{ matrix.service }}
