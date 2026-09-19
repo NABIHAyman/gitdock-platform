@@ -524,9 +524,11 @@ What to expect:
 
 - **Not replayed end to end here.** The setup steps come from the team's
   development environment; they were not re-run for this publication.
-- **Known integration issues.** The development audit in
-  [`gitdock-dev-intelligence.txt`](gitdock-dev-intelligence.txt) lists them,
-  for example gateway routes still missing for some gamification endpoints.
+- **Known integration issues.** For example, the gamification service listens
+  for commit events under routing keys that no service publishes, so experience
+  points come from completed tasks only. The
+  [wiki](https://github.com/NABIHAyman/gitdock-platform/wiki/Architecture#known-integration-issues)
+  and [`gitdock-dev-intelligence.txt`](gitdock-dev-intelligence.txt) list the others.
 - **Only GitHub is supported** for synchronisation and OAuth.
 - **Smart Close pending.** The commit-driven task closing is implemented but
   not yet merged here; its integration test is already in
