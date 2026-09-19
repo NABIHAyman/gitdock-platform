@@ -4,6 +4,7 @@ A multi-tenant SaaS platform that centralises and analyses Git contributions,
 built as polyglot microservices with an applied-AI layer: a multi-agent RAG
 assistant and a real-time security audit of commit diffs.
 
+[![PHP service](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml)
 [![Security](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml)
 [![CodeQL](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml)
 
