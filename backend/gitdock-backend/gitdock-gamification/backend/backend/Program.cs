@@ -63,8 +63,8 @@ builder.Services.AddMassTransit(x =>
     {
         cfg.Host(builder.Configuration["RabbitMQ:HostName"] ?? "localhost", "/", h =>
         {
-            h.Username("guest");
-            h.Password("guest");
+            h.Username(builder.Configuration["RabbitMQ:UserName"] ?? "guest");
+            h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
         });
 
         // CORRECTIF CRITIQUE : Accepter les messages JSON bruts sans enveloppe MassTransit
