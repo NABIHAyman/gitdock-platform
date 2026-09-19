@@ -311,6 +311,8 @@ services:
     restart: always
     ports:
       - "5292:5292"
+    env_file:
+      - ../gitdock-gamification/backend/backend/.env
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
     depends_on:
