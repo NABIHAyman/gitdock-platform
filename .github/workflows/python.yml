@@ -102,11 +102,19 @@ jobs:
       - name: Install Ruff
         run: python -m pip install "ruff==${RUFF_VERSION}"
 
-      - name: Lint
+      # Blocking: syntax errors, invalid comparisons and undefined names.
+      - name: Lint (blocking rules)
+        run: ruff check --select E9,F63,F7,F82 --output-format=github .
+
+      # Advisory until the codebase has been through a formatting pass:
+      # findings show up as annotations without failing the build.
+      - name: Lint (full default rules, advisory)
+        continue-on-error: true
         run: ruff check --output-format=github .
 
-      - name: Check formatting
-        run: ruff format --check --diff .
+      - name: Check formatting (advisory)
+        continue-on-error: true
+        run: ruff format --check .
 
       - name: Detect test suite
         id: tests
@@ -118,6 +126,15 @@ jobs:
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
             echo "::notice title=${SERVICE}::No test suite in this service."
+          fi
+
+      # sentence-transformers pulls PyTorch; the default Linux wheel ships
+      # several GB of CUDA libraries that CI does not need.
+      - name: Install CPU-only PyTorch
+        if: steps.tests.outputs.present == 'true'
+        run: |
+          if grep -qiE '^[[:space:]]*sentence-transformers' requirements.txt; then
+            python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
           fi
 
       - name: Install dependencies

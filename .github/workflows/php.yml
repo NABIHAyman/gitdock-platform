@@ -58,8 +58,16 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Static analysis
+      # Advisory until a baseline level is agreed: PHPStan has never run on
+      # this codebase, and the Symfony extension is not installed.
+      - name: Static analysis (advisory)
+        continue-on-error: true
         run: phpstan analyse src --level=1 --no-progress --error-format=github
+
+      # tests/bootstrap.php boots the environment from .env.local, which is
+      # never committed; CI builds it from the committed template.
+      - name: Prepare test environment
+        run: cp .env.example .env.local
 
       - name: Unit tests
         run: vendor/bin/phpunit

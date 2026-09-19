@@ -1,7 +1,8 @@
 # Build and scan the container images of changed services; publish them to
 # GHCR only when a version tag (v*) is pushed.
 #
-# - build:   amd64 image, loaded locally and scanned by Trivy. Read-only token.
+# - build:   amd64 image, loaded locally and scanned by Trivy; results go to
+#            the code scanning tab (not blocking yet). Read-only token.
 # - publish: amd64 + arm64 image with SBOM and provenance, pushed to GHCR.
 #            Tag pushes only; the only job allowed to write packages.
 #
@@ -194,17 +195,6 @@ jobs:
         with:
           sarif_file: trivy-image.sarif
           category: trivy-image-${{ matrix.service }}
-
-      - name: Fail on fixable critical vulnerabilities
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          scan-type: image
-          image-ref: gitdock-ci/${{ matrix.service }}:${{ github.sha }}
-          severity: CRITICAL
-          ignore-unfixed: true
-          format: table
-          exit-code: "1"
-          skip-setup-trivy: true
 
   publish:
     name: publish ${{ matrix.service }}

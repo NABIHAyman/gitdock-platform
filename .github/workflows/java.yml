@@ -107,6 +107,40 @@ jobs:
     defaults:
       run:
         working-directory: backend/gitdock-backend
+    # The auth test profile and the notification context test expect a real
+    # PostgreSQL; the database, user and password below mirror
+    # gitdock-auth/src/test/resources/application-test.yml.
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: sa
+          POSTGRES_PASSWORD: sa
+          POSTGRES_DB: gitdock_auth_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sa -d gitdock_auth_db"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+      rabbitmq:
+        image: rabbitmq:3-management-alpine
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s --health-timeout 10s --health-retries 12
+    # Test-only values. The services have no default for these variables and
+    # refuse to start without them; none of them is a real credential.
+    env:
+      JWT_SECRET: ci-test-key-ci-test-key-ci-test-key-ci-test-key
+      GITHUB_CLIENT_ID: ci-test-client-id
+      GITHUB_CLIENT_SECRET: ci-test-client-secret
+      MAIL_USERNAME: ci-test
+      MAIL_PASSWORD: ci-test
+      RABBITMQ_PASSWORD: guest
+      DB_USERNAME: sa
+      DB_PASSWORD: sa
+      DB_NAME: gitdock_auth_db
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

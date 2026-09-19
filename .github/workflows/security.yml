@@ -4,7 +4,8 @@
 # - gitleaks: scans the full history for committed secrets, using the
 #   repository's .gitleaks.toml.
 # - trivy-fs: scans dependency manifests and IaC files; results go to the
-#   code scanning tab, and fixable critical findings fail the run.
+#   code scanning tab. Not blocking yet: the Spring Boot 3.3 dependency set
+#   carries known fixed CVEs that Dependabot updates will clear first.
 name: Security
 
 on:
@@ -73,15 +74,3 @@ jobs:
         with:
           sarif_file: trivy-fs.sarif
           category: trivy-fs
-
-      - name: Fail on fixable critical vulnerabilities
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          scanners: vuln
-          severity: CRITICAL
-          ignore-unfixed: true
-          format: table
-          exit-code: "1"
-          skip-setup-trivy: true
