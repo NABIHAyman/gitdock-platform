@@ -135,6 +135,8 @@ jobs:
       JWT_SECRET: ci-test-key-ci-test-key-ci-test-key-ci-test-key
       GITHUB_CLIENT_ID: ci-test-client-id
       GITHUB_CLIENT_SECRET: ci-test-client-secret
+      MAIL_HOST: localhost
+      MAIL_PORT: "2525"
       MAIL_USERNAME: ci-test
       MAIL_PASSWORD: ci-test
       RABBITMQ_PASSWORD: guest
