@@ -4,9 +4,12 @@ A multi-tenant SaaS platform that centralises and analyses Git contributions,
 built as polyglot microservices with an applied-AI layer: a multi-agent RAG
 assistant and a real-time security audit of commit diffs.
 
-[![PHP service](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml)
-[![Security](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml)
-[![CodeQL](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml)
+[![Python services](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/python.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/python.yml)
+[![.NET service](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/dotnet.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/dotnet.yml)
+[![PHP service](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/php.yml)
+[![Container images](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/containers.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/containers.yml)
+[![Security](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/security.yml)
+[![CodeQL](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml)
 
 > **Academic project.** GitDock was built as a fourth-year engineering project
 > at EHEIM Oujda (2025–2026). It has never been deployed to production.
