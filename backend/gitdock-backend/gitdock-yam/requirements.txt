@@ -3,7 +3,7 @@
     pydantic-settings==2.13.1
 
     # --- ORCHESTRATION IA (Sécurité de Typage) ---
-    pydantic-ai>=0.1.0
+    pydantic-ai>=1.0.0
     google-genai==1.72.0
 
     # --- VECTEURS ET EMBEDDINGS ---
@@ -13,6 +13,8 @@
     # --- BASE DE DONNÉES VECTORIELLE ---
     chromadb==1.5.7
     motor==3.4.0
+    # motor 3.4 relies on pymongo internals removed in pymongo 4.9
+    pymongo>=4.5,<4.9
 
     # --- UTILITAIRES & MICRO-SERVICES (VITAL POUR GITDOCK) ---
     requests>=2.31.0

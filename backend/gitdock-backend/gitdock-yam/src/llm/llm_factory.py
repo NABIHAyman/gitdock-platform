@@ -2,7 +2,8 @@ import logging
 import os
 import httpx
 from pydantic_ai.models import Model
-from pydantic_ai.models.gemini import GeminiModel
+from pydantic_ai.models.google import GoogleModel
+from pydantic_ai.providers.google import GoogleProvider
 from pydantic_ai.models.openai import OpenAIChatModel
 from src.core.config import settings
 
@@ -45,10 +46,9 @@ class LLMFactory:
             return None
         logger.info(f"☁️ Configuration Gemini ({settings.gemini_model})")
 
-        # On garde GeminiModel car c'est ce que votre environnement (PhpStorm/Logs) reconnaît.
-        # On s'assure que la clé est dans l'environnement attendu par GeminiModel.
-        os.environ["GEMINI_API_KEY"] = settings.gemini_api_key
-        return GeminiModel(settings.gemini_model)
+        # GoogleModel (SDK google-genai) remplace GeminiModel, retiré de pydantic-ai.
+        provider = GoogleProvider(api_key=settings.gemini_api_key)
+        return GoogleModel(settings.gemini_model, provider=provider)
 
     @staticmethod
     def get_models(user_preference: str = None) -> list[Model]:

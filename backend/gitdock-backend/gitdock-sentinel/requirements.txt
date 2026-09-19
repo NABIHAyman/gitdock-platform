@@ -3,7 +3,7 @@ fastapi[standard]==0.135.1
 pydantic-settings==2.13.1
 
 # --- ORCHESTRATION IA (Sécurité de Typage) ---
-pydantic-ai>=0.1.0
+pydantic-ai>=1.0.0
 google-genai==1.72.0
 
 # --- VECTEURS ET EMBEDDINGS ---
