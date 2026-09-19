@@ -106,6 +106,7 @@ class Task
         return $this->priority;
     }
 
+    public function getProjectId(): ?int { return $this->projectId; }
     public function getLevelId(): ?int { return $this->levelId; }
     public function getAssignedTo(): ?int { return $this->assignedTo; }
 

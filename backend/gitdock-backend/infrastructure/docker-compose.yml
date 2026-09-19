@@ -275,6 +275,24 @@ services:
     networks:
       - gitdock_net
 
+  # Smart Close : consommateur de project.commit.saved (« Fixes #ID » → tâche DONE)
+  task-smart-close:
+    build:
+      context: ../gitdock-task/infra/php
+    container_name: task_smart_close
+    restart: always
+    command: php bin/console app:smart-close:consume
+    volumes:
+      - ../gitdock-task:/var/www/html
+    env_file:
+      - ../gitdock-task/.env.docker
+    depends_on:
+      - php-app
+      - gitdock-mysql
+      - gitdock-rabbitmq
+    networks:
+      - gitdock_net
+
   nginx-task:
     build:
       context: ../gitdock-task/infra/nginx

@@ -5,14 +5,15 @@ namespace App\Message\Producer;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 use App\Message\TaskCompletedEvent;
+use App\Message\AmqpConnectionFactory;
 
 class TaskEventProducer implements TaskEventProducerInterface
 {
     private AMQPStreamConnection $connection;
 
-    public function __construct()
+    public function __construct(AmqpConnectionFactory $connections)
     {
-        $this->connection = new AMQPStreamConnection('127.0.0.1', 5672, 'guest', 'guest');
+        $this->connection = $connections->create();
     }
 
     public function publishTaskCompleted(TaskCompletedEvent $event): void
