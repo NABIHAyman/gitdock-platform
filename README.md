@@ -547,7 +547,7 @@ What to expect:
 
 | Contributor | Scope |
 |---|---|
-| **Ayman NABIH** | Design and architecture of the platform, and the rest of the codebase |
+| **Ayman NABIH** | Architecture, backend & AI (platform design, authentication, projects, synchronization, notifications, and the AI services) |
 | **Maryam LOUKILI** | `gitdock-task`, `gitdock-ai-alert` (`AI_Alerte`) |
 | **Rihab ADDOU** | `gitdock-gamification`, `gitdock-ai` |
 | **Amal SADKI** | Integration tests (Testcontainers) |
