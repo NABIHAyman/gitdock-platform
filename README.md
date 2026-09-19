@@ -14,7 +14,7 @@ assistant and a real-time security audit of commit diffs.
 [![CodeQL](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml/badge.svg?branch=main&event=push)](https://github.com/NABIHAyman/gitdock-platform/actions/workflows/codeql.yml)
 
 > **Academic project.** GitDock was built as a fourth-year engineering project
-> at EHEIM Oujda (2025–2026). It has never been deployed to production.
+> at EHEIM Oujda (2025–2026).
 > See [Status and known limitations](#status-and-known-limitations).
 
 **Contents** — [Overview](#overview) · [Tech stack](#tech-stack) ·
@@ -527,8 +527,8 @@ gitdock-platform/
 
 ## Status and known limitations
 
-GitDock is an **academic project**, built by a team of four in 2025–2026 and
-**never deployed to production**. This repository assembles the team's work
+GitDock is an **academic project**, built by a team of four in 2025–2026.
+This repository assembles the team's work
 from its original branches into a single `main`; the full commit history of
 every contributor is preserved.
 
