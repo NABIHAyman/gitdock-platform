@@ -4,7 +4,7 @@ server:
 application:
   security:
     jwt:
-      secret: ${JWT_SECRET:***REMOVED***}
+      secret: ${JWT_SECRET}
 
 spring:
   application:

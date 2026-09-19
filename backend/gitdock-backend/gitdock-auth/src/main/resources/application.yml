@@ -12,14 +12,14 @@ spring:
       client:
         registration:
           github:
-            client-id: ${GITHUB_CLIENT_ID:Ov23li2o16E8oJxp6jUY}
-            client-secret: ${GITHUB_CLIENT_SECRET:***REMOVED***}
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
             redirect-uri: ${GITHUB_REDIRECT_URI:http://localhost:5173/oauth/callback/github}
 
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:gitdock_auth}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -53,7 +53,7 @@ spring:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
+    password: ${RABBITMQ_PASSWORD}
 
 eureka:
   client:
@@ -65,7 +65,7 @@ eureka:
 application:
   security:
     jwt:
-      secret: ${JWT_SECRET:***REMOVED***}
+      secret: ${JWT_SECRET}
       expiration: ${JWT_EXPIRATION:86400000}
       refresh-token:
         expiration: ${JWT_REFRESH_EXPIRATION:604800000}

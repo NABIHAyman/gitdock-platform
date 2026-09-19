@@ -10,7 +10,7 @@ spring:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
+    password: ${RABBITMQ_PASSWORD}
 
   kafka:
     bootstrap-servers: ${KAFKA_HOST:ubuntu-host}:${KAFKA_PORT:9092} # 👈 L'IP d'Ubuntu

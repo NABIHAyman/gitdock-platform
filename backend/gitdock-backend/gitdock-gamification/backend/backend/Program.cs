@@ -19,7 +19,7 @@ using backend.Security;
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. CONFIGURATION SÉCURITÉ (JWT) ---
-var jwtKey = "***REMOVED***";
+var jwtKey = builder.Configuration["JWT_SECRET"] ?? string.Empty;
 var key = Encoding.UTF8.GetBytes(jwtKey);
 
 
