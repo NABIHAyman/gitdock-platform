@@ -19,6 +19,8 @@ target/
 .env.local
 .env.*.local
 *.env.old
+# ...sauf le .env de Symfony : valeurs par défaut non sensibles, requis par bin/console
+!gitdock-task/.env
 
 # Sauvegardes de fichiers de config
 *.old
@@ -103,6 +105,8 @@ gitdock-task/config/jwt/public.pem
 *.suo
 .vs/
 [Bb]in/
+# ...sauf le bin/ de Symfony (bin/console)
+!gitdock-task/bin/
 [Oo]bj/
 appsettings.Development.json
 appsettings.Production.json
